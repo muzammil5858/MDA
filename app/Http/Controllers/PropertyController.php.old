@@ -1,0 +1,209 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Attchement;
+use App\Models\Property;
+use Illuminate\Http\Request;
+use DB;
+
+class PropertyController extends Controller
+{
+    public function create(){
+        $property = DB::table("temp_properties")->where('user_id',auth()->user()->id)->first();
+        return view('property.form',compact('property'));
+    }
+    public function store(Request $request){
+        // dd($request->all());
+        $data = $request->validate([
+            "district" => '',
+            "center" => '',
+            "locality" => '',
+            "code" => 'required',
+            "dm_acre" => '',
+            "dm_kanal" => '',
+            "dm_marla" => '',
+            "dm_sqrft" => '',
+            "category" => '',
+            "acre" => '',
+            "kanal" => '',
+            "marla" => '',
+            "sqrft" => '',
+            "alotment_order" => '',
+            "alotment_date" => '',
+            "plot_no" => 'required',
+            "evacue_owner" => '',
+            "com_date" => '',
+            "allotee_name" => '',
+            "relation" => '',
+            "cnic" => '',
+        ]);
+
+        $data['user_id'] = auth()->user()->id;
+
+        
+        $property = Property::create($data);
+        $request->validate([
+            'complete_file' => 'required',
+            'affected_house' => '',
+            'builtup_property' => '',
+            'entitlement' => '',
+            'allot_com' => '',
+            'allot_order' => '',
+            'chit_mapping' => '', 'order_attach' => '',
+        ]);
+
+        $temp_attach = DB::table('temp_attchements')->where('user_id',auth()->user()->id)->first();
+        unset($temp_attach->created_at,$temp_attach->updated_at,$temp_attach->id,$temp_attach->user_id);
+        $temp_attach = (array) $temp_attach;
+        $temp_attach['property_id'] = $property->id;
+        
+
+        $attach = Attchement::create($temp_attach);
+
+        $delete = DB::table('temp_properties')->where('user_id',auth()->user()->id)->delete();
+        $delete1 = DB::table('temp_attchements')->where('user_id',auth()->user()->id)->delete();
+        return redirect()->route('formList');
+
+        
+        
+
+
+
+    }
+    private function attachements($file,$key){
+        $location = [
+            'complete_file' => '/uploads/complete',
+            'affected_house' => '/uploads/affected_house',
+            'builtup_property' => '/uploads/builtup',
+            'entitlement' => '/uploads/entitlement',
+            'allot_com' => '/uploads/allotment_committee',
+            'allot_order' => '/uploads/allotment_order',
+            'chit_mapping' => '/uploads/chit_mapping', 'order_attach' => '/uploads/order_attchement',
+          
+        ];
+        $filename = $file->getClientOriginalName(); // Get the original file name
+
+        // Check if it's an image or a PDF based on the mime type
+        if (in_array($file->getClientMimeType(), ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'])) {
+            // Move the file to the respective folder based on the $key
+            $file->move(public_path($location[$key]), $filename);
+
+            return $filename; // Return the file name for further use
+        } else {
+            // Optionally handle unsupported file types
+            throw new \Exception("Unsupported file type. Only images and PDFs are allowed.");
+        }
+
+    }
+
+    public function tempStore(Request $request){
+            
+            if($request->current == '1'){
+
+
+                    $userId = auth()->user()->id;
+                $record = DB::table('temp_properties')->updateOrInsert(
+                    ['user_id' => $userId], // Condition
+                    [$request->name => $request->value] // Dynamic column name and value
+                );
+            }
+            else{
+                $userId = auth()->user()->id;
+                
+                
+                if($request->hasFile('value')){
+                    
+                    $file = $this->attachements($request->value,$request->name);
+                }
+                $record = DB::table('temp_attchements')->updateOrInsert(
+                    ['user_id' => $userId], // Condition
+                    [$request->name => $file] // Dynamic column name and value
+                );
+
+            }
+            return response()->json(['status' => 'Data added to temp successfully']);
+
+            
+    }
+    public function tempFileStore(Request $request){
+        
+        $personalId = $request->id ;
+                
+                
+        if($request->hasFile('value')){
+            
+            $file = $this->attachements($request->value,$request->name);
+        }
+        $record = DB::table('attchements')->updateOrInsert(
+            ['property_id' => $personalId], 
+            [$request->name => $file] 
+        );
+
+    
+         return response()->json(['status' => 'Data added to temp successfully']);
+    }
+
+    public function formList(){
+        $data = DB::table('properties')->where('user_id',auth()->user()->id)->get();
+
+        return view('property.formlist',compact("data"));
+    }
+    public function formEdit($id){
+        $property = Property::with('attachment')->where('id',$id)->first();
+        return view('property.form-edit',compact('property','id'));
+    }
+    public function formDetail($id){
+        $property = Property::with('attachment')->where('id',$id)->first();
+        // dd($property);
+        
+        return view('property.formDetail',compact('property','id'));
+    }
+    public function update(Request $request,$id){
+        
+        // dd($request->all());
+        $data = $request->validate([
+            "district" => 'required',
+            "center" => 'required',
+            "locality" => 'required',
+            "code" => 'required',
+            "dm_acre" => '',
+            "dm_kanal" => '',
+            "dm_marla" => '',
+            "dm_sqrft" => '',
+            "category" => 'required',
+            "acre" => '',
+            "kanal" => '',
+            "marla" => '',
+            "sqrft" => '',
+            "alotment_order" => 'required',
+            "town" => 'required',
+            "plot_no" => 'required',
+            "evacue_owner" => '',
+            "sector" => 'required',
+            "allotee_name" => 'required',
+            "relation" => 'required',
+            "cnic" => 'required',
+        ]);
+
+        if(auth()->user()->hasRole('deo') ){
+            $data['de_date'] = now()->format('d-m-Y');
+        }
+
+
+        $property = Property::where('id',$id)->update($data);
+
+        $request->validate([
+            'complete_file' => 'required',
+            'affected_house' => 'required',
+            'builtup_property' => 'required',
+            'entitlement' => 'required',
+            'allot_com' => 'required',
+            'allot_order' => 'required',
+            'chit_mapping' => 'required', 'order_attach' => 'required',
+        ]);
+
+        return redirect()->route('formList');
+
+    }
+}

@@ -1,0 +1,248 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Attchement;
+use App\Models\Property;
+use Illuminate\Http\Request;
+use DB;
+
+class PropertyController extends Controller
+{
+    public function create(){
+        $property = DB::table("temp_properties")->where('user_id',auth()->user()->id)->first();
+        return view('property.form',compact('property'));
+    }
+    public function store(Request $request){
+        // dd($request->all());
+        DB::beginTransaction();
+
+    try {
+        // First validation for properties
+        $data = $request->validate([
+            "district" => '',
+            "center" => '',
+            "locality" => '',
+            "code" => 'required|unique:properties',
+            "dm_acre" => '',
+            "dm_kanal" => '',
+            "dm_marla" => '',
+            "dm_sqrft" => '',
+            "category" => '',
+            "acre" => '',
+            "kanal" => '',
+            "marla" => '',
+            "sqrft" => '',
+            "alotment_order" => '',
+            "alotment_date" => '',
+            "plot_no" => 'required|unique:properties',
+            "evacue_owner" => '',
+            "com_date" => '',
+            "allotee_name" => '',
+            "relation" => '',
+            "cnic" => '',
+        ]);
+
+        $data['user_id'] = auth()->user()->id;
+        
+        $property = Property::create($data);
+
+        // Second validation for attachments
+        $request->validate([
+            'complete_file' => 'required',
+            'affected_house' => '',
+            'builtup_property' => '',
+            'entitlement' => '',
+            'allot_com' => '',
+            'allot_order' => '',
+            'chit_mapping' => '',
+            'order_attach' => '',
+        ]);
+
+        // Fetch temp_attachment data
+        $temp_attach = DB::table('temp_attchements')->where('user_id', auth()->user()->id)->first();
+
+        if (!$temp_attach) {
+            return redirect()->back()->with('error', 'No temporary attachment found for this user.');
+        }
+
+        // Convert to array, add `property_id`
+        unset($temp_attach->created_at, $temp_attach->updated_at, $temp_attach->id, $temp_attach->user_id);
+        $temp_attach = (array) $temp_attach;
+        $temp_attach['property_id'] = $property->id;
+
+        // Insert into Attachments model
+        Attchement::create($temp_attach);
+
+        // Delete temporary entries
+        DB::table('temp_properties')->where('user_id', auth()->user()->id)->delete();
+        DB::table('temp_attchements')->where('user_id', auth()->user()->id)->delete();
+
+        // Commit the transaction if everything is successful
+        DB::commit();
+
+        return redirect()->route('formList')->with('success', 'Property and attachments successfully saved.');
+    } catch (\Exception $e) {
+        // Rollback the transaction if there's an error
+        DB::rollBack();
+
+        // Handle the exception or return an error
+        return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
+    }
+
+        
+        
+
+
+
+    }
+    private function attachements($file,$key){
+        $location = [
+            'complete_file' => '/uploads/complete',
+            'affected_house' => '/uploads/affected_house',
+            'builtup_property' => '/uploads/builtup',
+            'entitlement' => '/uploads/entitlement',
+            'allot_com' => '/uploads/allotment_committee',
+            'allot_order' => '/uploads/allotment_order',
+            'chit_mapping' => '/uploads/chit_mapping', 'order_attach' => '/uploads/order_attchement',
+          
+        ];
+        $filename = $file->getClientOriginalName(); // Get the original file name
+
+        // Check if it's an image or a PDF based on the mime type
+        if (in_array($file->getClientMimeType(), ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'])) {
+            // Move the file to the respective folder based on the $key
+            $file->move(public_path($location[$key]), $filename);
+
+            return $filename; // Return the file name for further use
+        } else {
+            // Optionally handle unsupported file types
+            throw new \Exception("Unsupported file type. Only images and PDFs are allowed.");
+        }
+
+    }
+
+    public function tempStore(Request $request){
+            
+            if($request->current == '1'){
+
+
+                    $userId = auth()->user()->id;
+                $record = DB::table('temp_properties')->updateOrInsert(
+                    ['user_id' => $userId], // Condition
+                    [$request->name => $request->value] // Dynamic column name and value
+                );
+            }
+            else{
+                $userId = auth()->user()->id;
+                
+                
+                if($request->hasFile('value')){
+                    
+                    $file = $this->attachements($request->value,$request->name);
+                }
+                $record = DB::table('temp_attchements')->updateOrInsert(
+                    ['user_id' => $userId], // Condition
+                    [$request->name => $file] // Dynamic column name and value
+                );
+
+            }
+            return response()->json(['status' => 'Data added to temp successfully']);
+
+            
+    }
+    public function tempFileStore(Request $request){
+        
+        $personalId = $request->id ;
+                
+                
+        if($request->hasFile('value')){
+            
+            $file = $this->attachements($request->value,$request->name);
+        }
+        $record = DB::table('attchements')->updateOrInsert(
+            ['property_id' => $personalId], 
+            [$request->name => $file] 
+        );
+
+    
+         return response()->json(['status' => 'Data added to temp successfully']);
+    }
+
+    public function formList(){
+        $data = DB::table('properties')->whereNull('de_date')->get();
+
+        return view('property.formlist',compact("data"));
+    }
+    public function entryList(){
+        $data = DB::table('properties')->where('deo',auth()->user()->id)->whereNotNull('de_date')->get();
+        
+        return view('property.formlist',compact("data"));
+    }
+    public function formEdit($id){
+        $property = Property::with('attachment')->where('id',$id)->first();
+        return view('property.form-edit',compact('property','id'));
+    }
+    public function formDetail($id){
+        $property = Property::with('attachment')->where('id',$id)->first();
+        // dd($property);
+        
+        return view('property.formDetail',compact('property','id'));
+    }
+    public function update(Request $request,$id){
+        
+        // dd($request->all());
+        $data = $request->validate([
+            "district" => 'required',
+            "center" => 'required',
+            "locality" => 'required',
+            "code" => 'required',
+            "dm_acre" => '',
+            "dm_kanal" => '',
+            "dm_marla" => '',
+            "dm_sqrft" => '',
+            "category" => '',
+            "acre" => '',
+            "kanal" => '',
+            "marla" => '',
+            "sqrft" => '',
+            "alotment_order" => '',
+            "town" => '',
+            "plot_no" => 'required',
+            "evacue_owner" => '',
+            "sector" => '',
+            "allotee_name" => '',
+            "relation" => '',
+            "cnic" => '',
+        ]);
+
+        if(auth()->user()->hasRole('deo') ){
+            $data['de_date'] = now()->format('d-m-Y');
+            if($request->category != null and $request->allotee_name != null){
+                $data['deo'] = auth()->user()->id;
+            }
+        }
+        
+
+
+        $property = Property::where('id',$id)->update($data);
+
+        $request->validate([
+            'complete_file' => 'required',
+            'affected_house' => '',
+            'builtup_property' => '',
+            'entitlement' => '',
+            'allot_com' => '',
+            'allot_order' => '',
+            'chit_mapping' => '', 'order_attach' => '',
+        ]);
+
+        return redirect()->route('formList');
+
+    }
+    public function formDelete($id){
+        $delete =   Property::find($id)->delete();
+        $adelete = Attchement::where('property_id',$id)->delete();
+        return redirect('/form-list')->with('success','Entry Deleted Successfully.');
+    }
+}
