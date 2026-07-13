@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant API as Backend
+    participant Auth as AuthController
+    participant DB as Database
+
+    User->>Browser: Enter credentials
+    Browser->>API: POST /login (email,password)
+    API->>Auth: attemptLogin(credentials)
+    Auth->>DB: SELECT * FROM users WHERE email = ?
+    DB-->>Auth: user row
+    Auth-->>API: issue token (Sanctum)
+    API-->>Browser: 200 OK + token
+    Browser-->>User: Authenticated

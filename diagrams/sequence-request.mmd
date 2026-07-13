@@ -1,0 +1,33 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant RequestsCtrl as RequestsController
+    participant RequestsModel as Request
+    participant PropertyModel as Property
+    participant InheritanceModel as Inheritance
+    participant TransferFileModel as TransferFile
+    participant AttachModel as Attchement
+    participant DocModel as PropertyDocument
+    participant DB
+    participant Notifier
+
+    User->>Frontend: Fill transfer request form + files
+    Frontend->>API: POST /api/requests (form + files)
+    API->>RequestsCtrl: store(requestData)
+    RequestsCtrl->>DB: BEGIN TRANSACTION
+    RequestsCtrl->>RequestsModel: create(requestData)
+    RequestsModel-->>RequestsCtrl: request(id)
+    alt property has owners
+        RequestsCtrl->>InheritanceModel: create / link owners (request_id)
+    end
+    par attachments
+        RequestsCtrl->>TransferFileModel: create transfer_file (if any)
+        RequestsCtrl->>AttachModel: create attachment rows
+        RequestsCtrl->>DocModel: store document rows
+    and
+        RequestsCtrl->>DB: commit
+    end
+    RequestsCtrl->>Notifier: notify clerks/admins
+    Notifier-->>Frontend: notification delivered
+    Frontend-->>User: show success (request created)

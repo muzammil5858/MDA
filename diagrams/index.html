@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MDHA — Diagrams</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;padding:0;background:#f7f7fb;color:#111}
+    header{background:#273345;color:#fff;padding:16px 20px}
+    main{padding:20px;max-width:1100px;margin:0 auto}
+    nav a{color:#cfe8ff;margin-right:12px;text-decoration:none}
+    section{background:#fff;border-radius:8px;padding:18px;margin:18px 0;box-shadow:0 6px 18px rgba(16,24,40,0.06)}
+    h2{margin-top:0}
+    pre.code{background:#0b1220;color:#dbeafe;padding:12px;border-radius:6px;overflow:auto}
+    .copy{float:right;font-size:13px}
+  </style>
+</head>
+<body>
+  <header>
+    <div style="max-width:1100px;margin:0 auto">
+      <h1 style="margin:0;font-size:18px">MDHA — ER & Sequence Diagrams</h1>
+      <nav>
+        <a href="#er">ER Diagram</a>
+        <a href="#login">Sequence — Login</a>
+        <a href="#request">Sequence — Create Request</a>
+        <a href="#approval">Sequence — Approval</a>
+      </nav>
+    </div>
+  </header>
+  <main>
+    <section id="er">
+      <h2>ER Diagram</h2>
+      <div class="mermaid">
+erDiagram
+    USERS {
+        int id PK
+        string name
+        string email
+    }
+
+    PROPERTIES {
+        int id PK
+        int user_id FK
+        int district
+        int center
+        int locality
+        string code
+        string category
+        string alotment_order
+        string alotment_date
+        string plot_no
+        string allotee_name
+        string cnic
+    }
+
+    INHERITANCES {
+        int id PK
+        int property_id FK
+        string name
+        string father_name
+        string cnic
+        decimal marlas
+        int request_id FK
+        bool is_current
+    }
+
+    ATTCHMENTS {
+        int id PK
+        int property_id FK
+        string order_attach
+    }
+
+    TRANSFER_FILES {
+        int id PK
+        int property_id FK
+        int representative_id FK
+        int shared_attorney_id FK
+    }
+
+    REQUESTS {
+        int id PK
+        int property_id FK
+        string status
+        int user_id FK
+    }
+
+    TRANSFER_ATTACHES {
+        int id PK
+        int request_id FK
+    }
+
+    REQUEST_PARTICIPENTS {
+        int id PK
+        int transfer_file_id FK
+        int request_id FK
+        int owner_id FK
+        int representative_id FK
+        string mode
+    }
+
+    REPRESENTATIVES {
+        int id PK
+        string type
+        string name
+        string cnic
+    }
+
+    PROPERTY_DOCUMENTS {
+        int id PK
+        int property_id FK
+        int request_id FK
+        string document_type
+        string file_path
+    }
+
+    PROPERTY_STATEMENTS {
+        int id PK
+        int request_id FK
+        int property_id FK
+    }
+
+    WITNESSES {
+        int id PK
+        int request_id FK
+        int property_id FK
+        string name
+        string biometric_id FK
+    }
+
+    DUMMY_RECEIVERS {
+        int id PK
+        int request_id FK
+    }
+
+    DUMMY_WITNESSES {
+        int id PK
+        int request_id FK
+    }
+
+    BIOMETRICS {
+        int id PK
+    }
+
+    LOGIN_BIOMETRICS {
+        int id PK
+    }
+
+    SCHEDULES {
+        int id PK
+    }
+
+    APPOINTMENTS {
+        int id PK
+        int schedule_id FK
+        int property_id FK
+    }
+
+    USERS ||--o{ PROPERTIES : "owner"
+    PROPERTIES ||--o{ INHERITANCES : "has_owners"
+    PROPERTIES ||--o{ ATTCHMENTS : "has_attachment"
+    PROPERTIES ||--o{ TRANSFER_FILES : "transfer_files"
+    PROPERTIES ||--o{ PROPERTY_DOCUMENTS : "documents"
+
+    PROPERTIES ||--o{ APPOINTMENTS : "appointments"
+    SCHEDULES ||--o{ APPOINTMENTS : "has"
+
+    REQUESTS ||--o{ TRANSFER_ATTACHES : "has"
+    REQUESTS ||--o{ PROPERTY_DOCUMENTS : "has"
+    REQUESTS ||--o{ WITNESSES : "has"
+    REQUESTS ||--o{ DUMMY_RECEIVERS : "has"
+    REQUESTS ||--o{ DUMMY_WITNESSES : "has"
+    REQUESTS ||--o{ REQUEST_PARTICIPENTS : "has"
+    REQUESTS ||--o{ PROPERTY_STATEMENTS : "has"
+
+    INHERITANCES }o--|| REPRESENTATIVES : "may_use"
+    TRANSFER_FILES }o--|| REPRESENTATIVES : "representative"
+    WITNESSES }o--|| BIOMETRICS : "biometric"
+    INHERITANCES }o--|| BIOMETRICS : "biometric"
+      </div>
+      <p style="margin-top:12px">Raw Mermaid source is included above — copy/paste to a Mermaid renderer if needed.</p>
+    </section>
+
+    <section id="login">
+      <h2>Sequence — Login</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Browser
+    participant API as Backend
+    participant Auth as AuthController
+    participant DB as Database
+
+    User->>Browser: Enter credentials
+    Browser->>API: POST /login (email,password)
+    API->>Auth: attemptLogin(credentials)
+    Auth->>DB: SELECT * FROM users WHERE email = ?
+    DB-->>Auth: user row
+    Auth-->>API: issue token (Sanctum)
+    API-->>Browser: 200 OK + token
+    Browser-->>User: Authenticated
+      </div>
+    </section>
+
+    <section id="request">
+      <h2>Sequence — Create Request</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant API
+    participant RequestsCtrl as RequestsController
+    participant RequestsModel as Request
+    participant PropertyModel as Property
+    participant InheritanceModel as Inheritance
+    participant TransferFileModel as TransferFile
+    participant AttachModel as Attchement
+    participant DocModel as PropertyDocument
+    participant DB
+    participant Notifier
+
+    User->>Frontend: Fill transfer request form + files
+    Frontend->>API: POST /api/requests (form + files)
+    API->>RequestsCtrl: store(requestData)
+    RequestsCtrl->>DB: BEGIN TRANSACTION
+    RequestsCtrl->>RequestsModel: create(requestData)
+    RequestsModel-->>RequestsCtrl: request(id)
+    alt property has owners
+        RequestsCtrl->>InheritanceModel: create / link owners (request_id)
+    end
+    par attachments
+        RequestsCtrl->>TransferFileModel: create transfer_file (if any)
+        RequestsCtrl->>AttachModel: create attachment rows
+        RequestsCtrl->>DocModel: store document rows
+    and
+        RequestsCtrl->>DB: commit
+    end
+    RequestsCtrl->>Notifier: notify clerks/admins
+    Notifier-->>Frontend: notification delivered
+    Frontend-->>User: show success (request created)
+      </div>
+    </section>
+
+    <section id="approval">
+      <h2>Sequence — Approval</h2>
+      <div class="mermaid">
+sequenceDiagram
+    participant Clerk
+    participant Frontend
+    participant API
+    participant ApprovalsCtrl as ApprovalController
+    participant RequestsModel as Request
+    participant InheritanceModel as Inheritance
+    participant PropertyStatementModel as PropertyStatement
+    participant TransferedPropertyModel as TransferedProperty
+    participant DB
+    participant Notifier
+
+    Clerk->>Frontend: Open pending request
+    Frontend->>API: POST /api/requests/:id/approve
+    API->>ApprovalsCtrl: approve(requestId)
+    ApprovalsCtrl->>DB: BEGIN TRANSACTION
+    ApprovalsCtrl->>RequestsModel: update status = 'approved'
+    ApprovalsCtrl->>InheritanceModel: mark previous owners is_current = 0; add new transfer records
+    ApprovalsCtrl->>PropertyStatementModel: create(statement)
+    ApprovalsCtrl->>TransferedPropertyModel: create(record)
+    ApprovalsCtrl->>DB: commit
+    ApprovalsCtrl->>Notifier: notify requester
+    Notifier-->>Frontend: update UI
+    Frontend-->>Clerk: show success
+      </div>
+    </section>
+
+    <footer style="text-align:center;padding:20px 0;color:#6b7280;font-size:13px">Diagrams generated from models & migrations in the repo.</footer>
+
+  </main>
+
+  <script src="https://unpkg.com/mermaid@10.4.0/dist/mermaid.min.js"></script>
+  <script>
+    if (window.mermaid) {
+      mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    }
+  </script>
+</body>
+</html>

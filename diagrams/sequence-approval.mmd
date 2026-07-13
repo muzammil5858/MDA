@@ -1,0 +1,24 @@
+sequenceDiagram
+    participant Clerk
+    participant Frontend
+    participant API
+    participant ApprovalsCtrl as ApprovalController
+    participant RequestsModel as Request
+    participant InheritanceModel as Inheritance
+    participant PropertyStatementModel as PropertyStatement
+    participant TransferedPropertyModel as TransferedProperty
+    participant DB
+    participant Notifier
+
+    Clerk->>Frontend: Open pending request
+    Frontend->>API: POST /api/requests/:id/approve
+    API->>ApprovalsCtrl: approve(requestId)
+    ApprovalsCtrl->>DB: BEGIN TRANSACTION
+    ApprovalsCtrl->>RequestsModel: update status = 'approved'
+    ApprovalsCtrl->>InheritanceModel: mark previous owners is_current = 0; add new transfer records
+    ApprovalsCtrl->>PropertyStatementModel: create(statement)
+    ApprovalsCtrl->>TransferedPropertyModel: create(record)
+    ApprovalsCtrl->>DB: commit
+    ApprovalsCtrl->>Notifier: notify requester
+    Notifier-->>Frontend: update UI
+    Frontend-->>Clerk: show success

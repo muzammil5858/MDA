@@ -1,0 +1,266 @@
+
+<x-app-layout>
+
+    <head>
+    <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Scheduling</title>
+        <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
+        <link rel="stylesheet" href="./fullcalender/css/bootstrap.min.css">
+        <link rel="stylesheet" href="./fullcalender/fullcalendar/lib/main.min.css">
+        <script src="./fullcalender/js/jquery-3.6.0.min.js"></script>
+        <script src="./fullcalender/js/bootstrap.min.js"></script>
+        <script src="./fullcalender/fullcalendar/lib/main.min.js"></script>
+   
+    
+    <style>
+    
+      /* .footerlogo {
+        text-align: center;
+        height: 30px;
+        width: 30px;
+        margin: 20px;
+      }
+     
+     
+      .box {
+        direction: rtl;
+        display: flex;
+        justify-content: center;
+    }
+        
+    
+            :root {
+                --bs-success-rgb: 71, 222, 152 !important;
+            }
+    
+            html,
+            body {
+                height: 100%;
+                width: 100%;
+              
+            }
+    
+            .btn-info.text-light:hover,
+            .btn-info.text-light:focus {
+                background: #000;
+            }
+            table, tbody, td, tfoot, th, thead, tr {
+                border-color: #ededed !important;
+                border-style: solid;
+                border-width: 1px !important;
+            } */
+             #calender{
+                width: 100%;
+                height: 90vh !important;
+             }
+        </style>
+    </head>
+    
+     
+        <div class="container p-5" >
+            <div class="row">
+                <div class="col">
+                    @if (session('success'))
+                        <div class="alert alert-success">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+                </div>
+            </div>
+            <div class="row">
+                <div class="{{ auth()->user()->hasRole('record-clerk') ? 'col-md-9' : 'col' }}">
+                    <div id="calendar"></div>
+                </div>
+                @if(auth()->user()->hasRole('record-clerk'))
+                <div class="col-md-3">
+                    <div class="cardt rounded-0 shadow">
+                        <div class="card-header bg-gradient bg-primary text-light">
+                            <h5 class="card-title">Schedule Form</h5>
+                        </div>
+                         @if($errors->any())
+    <h4 style="color: red">{{$errors->first()}}</h4>
+    @endif  
+                        <div class="card-body">
+                            <div class="container-fluid">
+                                <form action="/schsave" method="post" id="schedule-form">
+                                    @csrf
+                                    <input type="hidden" name="id" value="">
+                                    <div class="form-group mb-2">
+                                        <label for="title" class="control-label">Title</label>
+                                        <input type="text" name="title" class="form-control form-control-sm rounded-0"  id="title" placeholder="Add Title of Appointment" required>
+                                    <div class="form-group mb-2">
+                                        <label for="description" class="control-label">Description</label>
+                                        <textarea rows="3" class="form-control form-control-sm rounded-0" name="description" id="description" required></textarea>
+                                    </div>
+                                    <div class="form-group mb-2" >
+                                        <label for="title" class="control-label">Select Town</label>
+                                         <select class="select2-multiple form-control" name="town" style="font-size:14px; height:30px;">
+                                            <option value="" disabled selected>Select Town</option>
+                                            @foreach($type as $town)
+                                            <option value="{{$town->id}}">{{$town->name}}</option>
+                                            @endforeach
+                                 
+                                    </select> 
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label for="title" class="control-label">Limit</label>
+                                        <input type="number" class="form-control form-control-sm rounded-0" name="limit" value="5" id="limit" required>
+                                    </div>
+                                    
+                                    
+                                    <div class="form-group mb-2">
+                                        <label for="start_datetime" class="control-label">Start</label>
+                                        <input type="datetime-local" class="form-control form-control-sm rounded-0" name="start_datetime" id="start_datetime" required>
+                                    </div>
+                                    <div class="form-group mb-2">
+                                        <label for="end_datetime" class="control-label">End</label>
+                                        <input type="datetime-local" class="form-control form-control-sm rounded-0" name="end_datetime" id="end_datetime" required>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="text-center">
+                                <button class="btn btn-primary btn-sm rounded-0" type="submit" form="schedule-form"><i class="fa fa-save"></i> Save</button>
+                                <button class="btn btn-default border btn-sm rounded-0" type="reset" form="schedule-form"><i class="fa fa-reset"></i> Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        <!-- Event Details Modal -->
+        <div class="modal fade" tabindex="-1" data-bs-backdrop="static" id="event-details-modal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content rounded-0">
+                    <div class="modal-header rounded-0">
+                        <h5 class="modal-title">Schedule Details</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body rounded-0">
+                        <div class="container-fluid">
+                            <dl>
+                                <dt class="text-muted">Title</dt>
+                                <dd id="title" class="fw-bold fs-4"></dd>
+                                <dt class="text-muted">Description</dt>
+                                <dd id="description" class=""></dd>
+    
+                                <dt class="text-muted">Town</dt>
+                                <dd id="town" class=""></dd>
+    
+                                <dt class="text-muted">Limit</dt>
+                                <dd id="limit" class=""></dd>
+                                <dt class="text-muted">Booked By Users</dt>
+                                <dd id="users" class=""></dd>
+                                <dt class="text-muted">Start</dt>
+                                <dd id="start" class=""></dd>
+                                <dt class="text-muted">End</dt>
+                                <dd id="end" class=""></dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="modal-footer rounded-0">
+                        <div class="text-end">
+                            @if(auth()->user()->hasRole('record-clerk'))
+                            <button type="button" class="btn btn-primary btn-sm rounded-0" id="edit" data-id="">Edit</button>
+                            <button type="button" class="btn btn-danger btn-sm rounded-0" id="delete" data-id="">Delete</button>
+                            @endif
+                            <button type="button" class="btn btn-secondary btn-sm rounded-0" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        </div>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+           <script>
+            var today = new Date().toISOString().slice(0, 16);
+            
+    
+    document.getElementsByName("end_datetime")[0].min = today;
+    document.getElementsByName("start_datetime")[0].min = today;
+            </script>
+           <script>
+             $(document).ready(function() {
+                 // Select2 Multiple
+                 $('.select2-multiple').select2({
+                     placeholder: "Select",
+                     allowClear: true
+                 });
+     
+             });
+     
+         </script>
+    
+        <!-- Event Details Modal -->
+    
+    <?php 
+    $sched_res = [];
+    
+    foreach($schedules as $row){
+        $row->sdate = date("F d, Y h:i A",strtotime($row->start_datetime));
+        $row->edate = date("F d, Y h:i A",strtotime($row->end_datetime));
+        $sched_res[$row->id] = $row;
+        
+    }
+    ?>
+    
+    </body>
+    <script>
+        var scheds = $.parseJSON('<?= json_encode($sched_res) ?>')
+    </script>
+    <script src="./fullcalender/js/script.js"></script>
+     <!-- Google tag (gtag.js) -->
+    
+
+    <script>
+        var jArray = @json($type);
+       
+        $(document).ready(() => {
+          $(document.body).on("click", ".card[data-clickable=true]", (e) => {
+            var href = $(e.currentTarget).data("href");
+            window.location = href;
+          });
+        });
+      </script>
+
+      <link
+  rel="stylesheet"
+  href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+  integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+  crossorigin="anonymous"
+/>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+  integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+  integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+  crossorigin="anonymous"
+></script>
+<script
+  src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+  integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+  crossorigin="anonymous"
+></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" >
+
+<link href="https://netdna.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css" rel="">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.2.0/css/datepicker.min.css" rel="stylesheet">
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="https://netdna.bootstrapcdn.com/bootstrap/2.3.2/js/bootstrap.min.js"></script>
+
+    </html>
+    
+
+    </x-app-layout>
+    
+    
