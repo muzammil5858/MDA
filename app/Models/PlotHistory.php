@@ -5,15 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Attchement extends Model
+class PlotHistory extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'property_id', 'alternate_allotment',
-        'complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
-        'decision_courts', 'decision_allotment_committee',
-        'decision_mda_board', 'decision_revising_authority',
+        'property_id', 'name', 'id_card', 'challan_no',
     ];
 
     public function property()

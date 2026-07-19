@@ -3,6 +3,9 @@
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\AttchementController;
+use App\Http\Controllers\PlotHistoryController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\QAController;
@@ -48,20 +51,25 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', UserController::class);
 });
 
-Route::middleware('auth')->group(function (){
+Route::middleware('auth')->group(function () {
+
     Route::get('/form', [PropertyController::class, 'create'])->name('form');
     Route::post('/submit-form', [PropertyController::class, 'store'])->name('formSubmission');
-    Route::post('/update-form/{id}', [PropertyController::class, 'update'])->name('formUpdate');
-    Route::post('/temp-store-file',[PropertyController::class,'tempFileStore'])->name('tempFileStore');
-    Route::get('/form-list',[PropertyController::class , 'formList'])->name('formList');
-    Route::get('/entries-list',[PropertyController::class , 'entryList'])->name('entryList');
-    Route::get('/form-edit/{id}',[PropertyController::class , 'formEdit'])->name('formEdit');
-    Route::get('/form-detail/{id}',[PropertyController::class , 'formDetail'])->name('formDetail');
-    Route::get('/form-delete/{id}',[PropertyController::class , 'formDelete'])->name('formDelete');
-    Route::get('/files-detail/{type}',[PropertyController::class , 'filesDetail'])->name('fileDetail');
-    Route::get('/daily-detail',[PropertyController::class , 'dailyDetail'])->name('dailyDetail');
 
-    Route::delete('/inheritances-delete/{id}',[PropertyController::class , 'deleteInheritance'])->name('deleteInheritance ');
+    Route::get('/form-list', [PropertyController::class, 'formList'])->name('formList');
+    Route::get('/form-detail/{id}', [PropertyController::class, 'formDetail'])->name('formDetail');
+    Route::get('/form-edit/{id}', [PropertyController::class, 'formEdit'])->name('formEdit');
+    Route::post('/update-form/{id}', [PropertyController::class, 'update'])->name('formUpdate');
+    Route::get('/form-delete/{id}', [PropertyController::class, 'formDelete'])->name('formDelete');
+
+    // Standalone step-wise edit endpoints (optional)
+    Route::put('/payment/{propertyId}', [PaymentController::class, 'update'])->name('payment.update');
+
+    Route::post('/plot-history/{propertyId}', [PlotHistoryController::class, 'store'])->name('plotHistory.store');
+    Route::put('/plot-history/{id}', [PlotHistoryController::class, 'update'])->name('plotHistory.update');
+    Route::delete('/plot-history/{id}', [PlotHistoryController::class, 'destroy'])->name('plotHistory.destroy');
+
+    Route::post('/attachment/{propertyId}', [AttchementController::class, 'update'])->name('attachment.update');
 });
 
 // QA Routes

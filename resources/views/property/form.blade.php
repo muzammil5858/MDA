@@ -2,9 +2,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
-        p {
-            color: grey
-        }
+        p { color: grey }
 
         #heading {
             text-transform: uppercase;
@@ -13,11 +11,7 @@
             font-size: 1.5rem;
         }
 
-        #msform {
-            text-align: center;
-            position: relative;
-            margin-top: 20px
-        }
+        #msform { text-align: center; position: relative; margin-top: 20px }
 
         #msform fieldset {
             background: white;
@@ -30,13 +24,9 @@
             position: relative
         }
 
-        .form-card {
-            text-align: left
-        }
+        .form-card { text-align: left }
 
-        #msform fieldset:not(:first-of-type) {
-            display: none
-        }
+        #msform fieldset:not(:first-of-type) { display: none }
 
         #msform input,
         #msform textarea,
@@ -78,8 +68,11 @@
         }
 
         #msform .action-button:hover,
-        #msform .action-button:focus {
-            background-color: #311B92
+        #msform .action-button:focus { background-color: #311B92 }
+
+        #msform .action-button:disabled {
+            background-color: #9aa5b1;
+            cursor: not-allowed;
         }
 
         #msform .action-button-previous {
@@ -96,15 +89,9 @@
         }
 
         #msform .action-button-previous:hover,
-        #msform .action-button-previous:focus {
-            background-color: #000000
-        }
+        #msform .action-button-previous:focus { background-color: #000000 }
 
-        .card {
-            z-index: 0;
-            border: none;
-            position: relative
-        }
+        .card { z-index: 0; border: none; position: relative }
 
         .fs-title {
             font-size: 25px;
@@ -112,11 +99,6 @@
             margin-bottom: 15px;
             font-weight: normal;
             text-align: left
-        }
-
-        .purple-text {
-            color: #03346E;
-            font-weight: normal
         }
 
         .steps {
@@ -127,48 +109,17 @@
             text-align: right
         }
 
-        .fieldlabels {
-            color: gray;
-            text-align: left
-        }
-
-        #progressbar {
-            margin-bottom: 30px;
-            overflow: hidden;
-            color: lightgrey
-        }
-
-        #progressbar .active {
-            color: #03346E
-        }
+        #progressbar { margin-bottom: 30px; overflow: hidden; color: lightgrey }
+        #progressbar .active { color: #03346E }
 
         #progressbar li {
             list-style-type: none;
-            font-size: 15px;
-            width: 50%;
+            font-size: 14px;
+            width: 25%;
             float: left;
             position: relative;
-            font-weight: 400
-        }
-
-        #progressbar #account:before {
-            font-family: FontAwesome;
-            content: "\f13e"
-        }
-
-        #progressbar #personal:before {
-            font-family: FontAwesome;
-            content: "\f007"
-        }
-
-        #progressbar #payment:before {
-            font-family: FontAwesome;
-            content: "\f030"
-        }
-
-        #progressbar #confirm:before {
-            font-family: FontAwesome;
-            content: "\f00c"
+            font-weight: 400;
+            cursor: pointer;
         }
 
         #progressbar li:before {
@@ -184,6 +135,11 @@
             padding: 2px
         }
 
+        #progressbar #detail:before { content: "1"; font-family: FontAwesome; }
+        #progressbar #price:before { content: "2"; font-family: FontAwesome; }
+        #progressbar #transferees:before { content: "3"; font-family: FontAwesome; }
+        #progressbar #attachments:before { content: "4"; font-family: FontAwesome; }
+
         #progressbar li:after {
             content: '';
             width: 100%;
@@ -196,875 +152,754 @@
         }
 
         #progressbar li.active:before,
-        #progressbar li.active:after {
-            background: #03346E
-        }
+        #progressbar li.active:after { background: #03346E }
 
-        .progress {
-            height: 20px
-        }
+        .progress { height: 20px }
+        .progress-bar { background-color: #03346E }
 
-        .progress-bar {
-            background-color: #03346E
-        }
-
-        .fit-image {
-            width: 100%;
-            object-fit: cover
-        }
-
-        /* Loader CSS */
-        #loader {
-            position: fixed;
-            left: 15%;
-            top: 0;
-            width: 85%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        .spinner {
-            border: 8px solid #f3f3f3;
-            /* Light grey */
-            border-top: 8px solid #3498db;
-            /* Blue */
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .profile-pic {
-
-
-            display: block;
-
-            content: " *";
-            color: red;
-
-        }
-
-        .form-valid {
-            opacity: 0.5;
-        }
-
-        .form-control-label abbr {
-            text-decoration: none;
-            font-weight: normal;
-        }
-
-        .file-upload {
-            display: none;
-        }
-
-        .circle {
-            border-radius: 1000px !important;
-            overflow: hidden;
-            padding-top: 1px;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            width: 128px;
-            height: 128px;
-            margin-left: 17px;
-            border: 3px solid #3634b5;
+        .transferee-block {
+            border: 1px dashed #03346E;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
             position: relative;
-
         }
 
-        img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .p-image {
-            position: relative;
-            display: block;
-            top: 100px;
-
-            color: #202933;
-            transition: all .3s cubic-bezier(.175, .885, .32, 1.275);
-        }
-
-        .Mcf-image {
-            position: relative;
-            top: 100px;
-            left: 400px;
-            color: #202933;
-            transition: all .3s cubic-bezier(.175, .885, .32, 1.275);
-        }
-
-        .p-image:hover {
-            transition: all .3s cubic-bezier(.175, .885, .32, 1.275);
-        }
-
-        .upload-button {
-            font-size: 1.2em;
+        .remove-transferee {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #c0392b;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
             cursor: pointer;
+            font-size: 12px;
         }
 
-        input[type="number"]::-webkit-outer-spin-button,
-        input[type="number"]::-webkit-inner-spin-button {
-            -webkit-appearance: none;
+        #add-transferee {
+            background: #03346E;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 18px;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
 
+        .file-hint { font-size: 12px; color: #888; margin-top: -10px; margin-bottom: 15px; }
 
-        .upload-button:hover {
-            transition: all .3s cubic-bezier(.175, .885, .32, 1.275);
-            color: #999;
+        #form-alert-box {
+            display: none;
+            text-align: left;
         }
-
-        @media screen and (max-width: 640px) {
-
-            .ed {
-                display: none;
-            }
-
-            .circle {
-                width: 100px;
-                height: 100px;
-            }
-
-            .pic {
-                display: flex;
-                justify-content: center;
-            }
-        }
-
-        #progressBar {
-            width: 100%;
-            background-color: #f3f3f3;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        #progressBarFill {
-            height: 30px;
-            width: 0;
-            background-color: #4caf50;
-            text-align: center;
-            line-height: 30px;
-            color: white;
-        }
-        .progress-container {
-    display: inline-block;
-    text-align: center;
-    margin: 10px;
-    position: relative;
-}
-
-.progress-circle {
-    position: relative;
-    width: 120px;
-    height: 120px;
-}
-
-circle {
-    fill: none;
-}
-
-circle.bg {
-    stroke: #e6e6e6;
-}
-
-circle.progress {
-    stroke: #4caf50;
-    stroke-linecap: round;
-    transition: stroke-dashoffset 0.3s ease;
-    transform: rotate(-90deg); /* Start from the top */
-    transform-origin: 50% 50%;
-}
-
-.percent-text {
-    position: absolute;
-    top: 60%;
-    left: 46%;
-    transform: translate(-50%, -50%);
-    font-size: 17px;
-    font-weight: bold;
-}
-
     </style>
+
     <div class="container-fluid">
         <div class="row justify-content-center">
-            <div class="col-11 col-sm-10 col-md-10  text-center p-0 mt-3 mb-2">
+            <div class="col-11 col-sm-10 col-md-10 text-center p-0 mt-3 mb-2">
                 <div class="card px-4 pt-4 pb-0 mt-3 mb-3">
-                    <h2 id="heading">Mangla Dam Housing Authority</h2>
+                    <h2 id="heading">MirPur Housing Authority - Property Allotment</h2>
                     <p>Fill all form's fields to go to next step</p>
-                    <form id="msform" action="{{route('formSubmission')}}" method="POST" enctype="multipart/form-data">
+                    <form id="msform" action="{{ route('formSubmission') }}" method="POST" enctype="multipart/form-data">
                         @csrf
+
                         <!-- progressbar -->
                         <ul id="progressbar">
-                            <li class="active" id="account"><strong>Property Details</strong></li>
-                            <li id="payment"><strong>Attachements</strong></li>
-                           
+                            <li class="active" id="detail"><strong>Property Detail</strong></li>
+                            <li id="price"><strong>Payment</strong></li>
+                            <li id="transferees"><strong>Plot History</strong></li>
+                            <li id="attachments"><strong>Attachments</strong></li>
                         </ul>
                         <div class="progress">
                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                 aria-valuemin="0" aria-valuemax="100"></div>
-                        </div> <br> <!-- fieldsets -->
-                        <fieldset id="first-step">
-                            <div class="form-card">
-                                <div class="form-row">
-                                    <div class="col-md-12">
+                        </div>
+                        <br>
 
-                                        @if(session('success'))
-                                        <div class="alert alert-success">
-                                            {{ session('success') }}
-                                        </div>
-                                        @endif
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div id="form-alert-box" class="alert"></div>
 
-                                        @if($errors->any())
-                                        <div class="alert alert-danger">
-                                            <ul>
-                                                @foreach($errors->all() as $error)
+                                @if(session('success'))
+                                    <div class="alert alert-success">{{ session('success') }}</div>
+                                @endif
+                                @if($errors->any())
+                                    <div class="alert alert-danger">
+                                        <ul>
+                                            @foreach($errors->all() as $error)
                                                 <li>{{ $error }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                        @endif
+                                            @endforeach
+                                        </ul>
                                     </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-7">
-                                        <h2 class="fs-title">Location:</h2>
-                                    </div>
-                                    <div class="col-5">
-                                        <h2 class="steps">Step 1 - 2</h2>
-                                    </div>
-                                </div>
-                                
-
-                                <div class="form-row">
-
-                                    <div class=" col-md-4 ">
-                                        <label class="">District</label>
-                                            {{-- <input type="text" class="form-control" id="district" name="district"
-                                                value="{{$property->district ?? ''}}" placeholder="" /> --}}
-                                        <select name="district" class="form-control" id="district">
-                                            <option  value="Mirpur" selected >Mirpur</option>
-                                        </select>
-                                        
-
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="">Tehsil</label>
-                                        {{-- <input type="text" class="form-control" name="center"
-                                            placeholder=""
-                                            value="{{$property->center ?? ''}}" /> --}}
-                                            <select name="center" class="form-control" id="">
-                                                <option value="" disabled selected  >Select Center</option>
-                                                <option {{$property && $property->center == 'Mirpur' ? 'selected' : ''}} value="Mirpur"  >Mirpur</option>
-                                                <option {{$property && $property->center == 'Islam Garh' ? 'selected' : ''}} value="Islam Garh"  >Islam Garh</option>
-                                                <option {{$property && $property->center == 'Dudyal' ? 'selected' : ''}} value="Dudyal"  >Dudyal</option>
-                                            </select>
-                                        
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="">Locality/Revenue Village</label>
-                                        <input type="text" class="form-control" name="locality"
-                                            
-                                        value="{{$property->locality ?? ''}}" />
-                                       
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="">Code</label>
-                                        <input type="text" class="form-control" name="code"
-                                            placeholder="Enter Code"
-                                            value="{{  $property->code ?? ''}}" />
-                                        <div class="invalid-feedback" id="error-paddress"></div>
-                                    </div>
-                                </div>
-                               
-                                <div class="row">
-                                    <div class="col-7">
-                                        <h2 class="fs-title">Dwelling House:</h2>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class=" col-md-8">
-                                        <label for="name">Area Measurement</label>
-                                        <div class="row">
-                                            <div class="col">
-                                                <label for="name">Acre</label>
-                                                <input type="text" id="dm_acre" placeholder="acre" name="dm_acre" class="form-control"
-                                                value="{{  $property->dm_acre ?? ''}}">
-                                            </div>
-                                            <div class="col">
-                                                <label for="name">Kanal</label>
-                                                <input type="text" id="dm_kanal" placeholder="kanal" name="dm_kanal" class="form-control"
-                                                value="{{  $property->dm_kanal ?? ''}}">
-                                            </div>
-                                            <div class="col">
-                                                <label for="name">Marla</label>
-                                                <input type="text" id="dm_marla" placeholder="marla" name="dm_marla" class="form-control"
-                                                value="{{  $property->dm_marla ?? ''}}">
-                                            </div>
-                                            <div class="col">
-                                                <label for="name">Squarefeet</label>
-                                                <input type="text" id="dm_sqrft" placeholder="sqrft" name="dm_sqrft" class="form-control"
-                                                value="{{  $property->dm_sqrft ?? ''}}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-7">
-                                        <h2 class="fs-title">New Allotment:</h2>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-
-                                    <div class="col-md-4">
-                                        <label for="name" style="margin-top:33px;">Category</label>
-                                        {{-- <input type="text" name="category" placeholder="Select Category"
-                                            class="form-control" 
-                                            value="{{  $property->category?? ''}}"> --}}
-                                            <select name="category" id="" class="form-control">
-                                                <option value="">Select Category</option>
-                                                <option {{$property && $property->category == 'Plot' ? 'selected' : ''}} value="Plot">Plot</option>
-                                                <option {{$property && $property->category == 'House' ? 'selected' : ''}} value="House">House</option>
-                                                <option {{$property && $property->category == 'Commercial' ? 'selected' : ''}} value="Commercial">Commercial</option>
-                                            </select>  
-                                        
-                                    </div>
-                                    <div class=" col-md-8">
-                                        <label for="name">Area Measurement</label>
-                                        <div class="row">
-                                            <div class="col">
-                                                <label for="name">Acre</label>
-                                                <input type="text" id="acre" placeholder="acre" name="acre" class="form-control"
-                                                value="{{  $property->acre ?? ''}}">
-                                            </div>
-                                            <div class="col">
-                                                <label for="name">Kanal</label>
-                                                <input type="text" id="kanal" placeholder="kanal" name="kanal" class="form-control"
-                                                value="{{  $property->kanal ?? ''}}">
-                                            </div>
-                                            <div class="col">
-                                                <label for="name">Marla</label>
-                                                <input type="text" id="marla" placeholder="marla" name="marla" class="form-control"
-                                                value="{{  $property->marla ?? ''}}">
-                                            </div>
-                                            <div class="col">
-                                                <label for="name">Squarefeet</label>
-                                                <input type="text" id="sqrft" placeholder="sqrft" name="sqrft" class="form-control"
-                                                value="{{  $property->sqrft ?? ''}}">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-
-                                    <div class="col-md-4  ">
-                                        <label for="name">Allotment Order No</label>
-                                        <input type="text" name="alotment_order" placeholder="Enter Allotment Order No"
-                                            class="form-control" value="{{  $property->alotment_order ?? ''}}">
-                                        
-                                    </div>
-                                   
-                                    <div class=" col-md-4">
-                                        <label for="name">Town/City</label>
-                                       <select name="town" class="form-control" id="">
-                                        <option value="" disabled selected  >Select Town/City</option>
-                                        <option {{$property && $property->town == 'New City Mirpur' ? 'selected' : ''}} value="New City Mirpur"  >New City Mirpur</option>
-                                        <option {{$property && $property->town == 'New Small Town Islamgarh' ? 'selected' : ''}} value="New Small Town Islamgarh"  >New Small Town Islamgarh</option>
-                                        <option {{$property && $property->town == 'New Small Town Chaksawari' ? 'selected' : ''}} value="New Small Town Chaksawari"  >New Small Town Chaksawari</option>
-                                        <option {{$property && $property->town == 'New Small Town Dudyal' ? 'selected' : ''}} value="New Small Town Dudyal"  >New Small Town Dudyal</option>
-                                        <option {{$property && $property->town == 'New Small Town Siakh' ? 'selected' : ''}} value="New Small Town Siakh"  >New Small Town Siakh</option>
-                                    </select>
-                                     
-                                    </div>
-                                    <div class=" col-md-4 " >
-                                        <label for="name">Sector</label>
-                                        <input type="text" name="sector" class="form-control"
-                                        value="{{  $property->sector ?? ''}}">
-                                      
-                                    </div>
-
-                                    <div class="col-md-4  ">
-                                        <label for="name">Plot No</label>
-                                        <input type="text" name="plot_no" placeholder="Enter Plot Number"
-                                            class="form-control" value="{{  $property->plot_no ?? ''}}">
-                                      
-                                    </div>
-                                
-
-                                    <div class="col-md-4  ">
-                                        <label for="name">Allottee Name</label>
-                                        <input type="text" name="allotee_name" placeholder="Enter Allottee Name"
-                                            class="form-control" value="{{  $property->allotee_name ?? ''}}">
-                                        
-                                    </div>
-                                    <div class=" col-md-4">
-                                        <label for="name">Son of/Daughter of/Wife of</label>
-                                       <input type="text" class="form-control" name="relation" placeholder="Enter Son/Daughter/Wife" value="{{  $property->relation ?? ''}}" >
-                                        
-                                    </div>
-                                    <div class=" col-md-4 " id="bps">
-                                        <label for="name">CNIC</label>
-                                        <input type="number" class="form-control" name="cnic" value="{{  $property->cnic ?? ''}}" placeholder="Enter CNIC">
-                                        
-                                    </div>
-
-                                </div>
-                                
-
-
-                            </div> <input type="button" name="next" class="next action-button" value="Next" />
-                        </fieldset>
-                       
-                        <fieldset id="second-step">
-                            {{-- < class="form-card"> --}}
-                                <div class="row">
-                                    <div class="col-7">
-                                        <h2 class="fs-title">Related Attachements:</h2>
-                                    </div>
-                                    <div class="col-5">
-                                        <h2 class="steps">Step 2 - 2</h2>
-                                    </div>
-                                </div>
-                                <div class="form-row">
-                                    <div class="col-md-6 text-left">
-                                        <label class="d-flex" for="name">Complete File <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="complete_file_done"></label>
-                                        <input type="file" placeholder="Enter Name" name="complete_file" >
-                                        <p class="size-complete_file"></p>
-                                    </div>
-                                    <div class="col-md-6 text-left">
-                                        <label class="d-flex" for="name">Code of Affected House <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="affected_house_done"></label>
-                                        <input type="file" placeholder="Enter Name" name="affected_house" >
-                                        <p class="size-affected_house"></p>
-                                    </div>
-                                    <div class=" col-md-6  text-left">
-                                        <label class="d-flex" for="name">Award of Built-up Property <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="builtup_property_done"></label>
-                                        <input type="file" name="builtup_property" placeholder="Enter Designation"
-                                            >
-                                            <p class="size-builtup_property"></p>
-                                    </div>
-                               
-
-                                    <div class="col-md-6 text-left">
-                                        <label class="d-flex" for="name">Entitlement <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="entitlement_done"></label>
-                                        <input type="file" placeholder="Enter Department" name="entitlement"
-                                            >
-                                            <p class="size-entitlement"></p>
-                                        
-
-                                    </div>
-                                    <div class=" col-md-6 text-left">
-                                        <label class="d-flex" for="name">Allotment by Allotment Committee <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="allot_com_done"></label>
-                                        <input type="file" name="allot_com" placeholder="Enter Address"
-                                            >
-                                            <p class="size-allot_com"></p>
-                                        
-
-                                    </div>
-                           
-
-                                    <div class="col-md-6 text-left">
-                                        <label class="d-flex" for="name">Allotment Order <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="allot_order_done"></label>
-                                        <input type="file" placeholder="Enter Mobile No" name="allot_order"
-                                            >
-                                            <p class="size-allot_order"></p>
-                                       
-
-                                    </div>
-                                    <div class=" col-md-6  text-left">
-                                        <label  class="d-flex" for="name">Possession Chit With Mapping <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="chit_mapping_done"></label>
-                                        <input type="file" name="chit_mapping" placeholder="Enter Email"
-                                            >
-                                            <p class="size-chit_mapping"></p>
-                                        
-
-                                    </div>
-                                    <div class="col-md-6 text-left" >
-                                        <label class="d-flex" for="name">Order Attachement <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="order_attach_done"></label>
-                                        <input type="file" name="order_attach">
-                                        <p class="size-order_attach"></p>
-                                       
-                                    </div>
-                                </div>
-                                <input type="submit" name="" class=" action-button" value="Submit" /> <input
-                                    type="button" name="previous" class="previous action-button-previous"
-                                    value="Previous" />
-                        </fieldset>
-                        <div id="loader" style="display:none;" >
-                            <img src="{{asset('/done.png')}}" alt="" id="done">
-                            <div id="spinner">
-                                <div id="progressWrapper"></div>
-                                <div id="loader-percent" style="font-weight:bold;margin-top:10px;">Please Wait</div>
+                                @endif
                             </div>
                         </div>
+
+                        {{-- ===================== STEP 1 : PROPERTY DETAIL ===================== --}}
+                        <fieldset id="step-1">
+                            <div class="form-card">
+                                <div class="row">
+                                    <div class="col-7"><h2 class="fs-title">Property Detail:</h2></div>
+                                    <div class="col-5"><h2 class="steps">Step 1 - 4</h2></div>
+                                </div>
+
+                                <div class="form-row">
+
+                                    <div class="col-md-3">
+                                        <div class="form-row mx-1 ">
+                                            <div class="col-6 px-0">
+                                        <label>Application No.</label>
+                                        <input type="text" class="form-control" name="application_no"
+                                        placeholder="Application No."
+                                            value="{{ $property->application_no ?? '' }}">
+                                            </div>
+                                              <div class="col-6 px-0">
+                                                  <label>Application Date</label>
+                                        <input type="date" class="form-control datepicker" name="application_date"
+                                        placeholder="Application Date"
+                                            value="{{ $property->application_date ?? '' }}">
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                                                        <div class="col-md-3">
+                                        <label>Plot No.</label>
+                                        <input type="text" class="form-control" name="plot_no"
+                                        placeholder="Plot No."
+                                            value="{{ $property->plot_no ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+
+    <label for="Sector">Sector</label>
+
+    <select name="sector" id="sector" class="form-control">
+        <option value="">Select Sector</option>
+
+        <option value="A"
+            {{ old('sector', $property->sector?? '') == 'A' ? 'selected' : '' }}>
+            A
+        </option>
+
+        <option value="B"
+            {{ old('sector', $property->sector?? '') == 'B'? 'selected' : '' }}>
+            B
+        </option>
+
+        <option value="C"
+            {{ old('sector', $property->sector ?? '') == 'C' ? 'selected' : '' }}>
+            C
+        </option>
+    </select>
+</div>
+
+      <div class="col-md-3">
+
+    <label >Block</label>
+
+    <select name="block" id="block" class="form-control">
+        <option value="">Select Block</option>
+                <option value="A"
+            {{ old('block', $property->block?? '') == 'A' ? 'selected' : '' }}>
+            A
+        </option>
+
+        <option value="B"
+            {{ old('block', $property->block?? '') == 'B'? 'selected' : '' }}>
+            B
+        </option>
+
+        <option value="C"
+            {{ old('block', $property->block ?? '') == 'C' ? 'selected' : '' }}>
+            C
+        </option>
+    </select>
+</div>
+                                <div class="col-md-3">
+    <div class="row mx-0">
+
+        <div class="col-4 px-0">
+            <label>Kanal</label>
+            <input type="number"
+                   class="form-control"
+                   name="kanal"
+                   placeholder="Kanal"
+                   value="{{ $property->kanal ?? '' }}">
+        </div>
+
+        <div class="col-4 px-0">
+            <label>Marla</label>
+            <input type="number"
+                   class="form-control"
+                   name="marla"
+                   placeholder="Marla"
+                   value="{{ $property->marla ?? '' }}">
+        </div>
+
+        <div class="col-4 px-0">
+            <label>Sq Ft</label>
+            <input type="number"
+                   class="form-control"
+                   name="sqrft"
+                   placeholder="Sq Ft"
+                   value="{{ $property->sqrft ?? '' }}">
+        </div>
+
+    </div>
+</div>
+                                  <div class="col-md-3">
+                                  <label for="approved_scheme">Approved Scheme</label>
+
+                        <select name="approved_scheme" id="approved_scheme" class="form-control">
+        <option selected disabled>Select Scheme</option>
+
+        <option value="Scheme 1"
+            {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 1' ? 'selected' : '' }}>
+            Scheme 1
+        </option>
+
+        <option value="Scheme 2"
+            {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 2' ? 'selected' : '' }}>
+            Scheme 2
+        </option>
+
+        <option value="Scheme 3"
+            {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 3' ? 'selected' : '' }}>
+            Scheme 3
+        </option>
+    </select>
+</div>
+
+  <div class="col-md-3">
+                                        <label>Initial Draft Amount</label>
+                                        <input type="number" class="form-control" name="initial_draft_amount"
+                                        placeholder="Initial Draft Amount"
+                                            value="{{ $property->initial_draft_amount ?? '' }}">
+                                    </div>
+<div class="col-md-3">
+                                        <label>Initial Draft Date</label>
+                                        <input type="date" class="form-control datepicker" name="initial_draft_date"
+                                        placeholder="Initial Draft Date"
+                                            value="{{ $property->initial_draft_date ?? '' }}">
+                                    </div>
+
+
+
+                                </div>
+
+
+
+
+                                <div class="form-row">
+
+
+
+
+
+
+                                    <div class="col-md-3">
+                                        <label>Name Applicant/Allottee</label>
+                                        <input type="text" class="form-control" name="applicant_name"
+                                        placeholder="Name Applicant"
+                                            value="{{ $property->applicant_name ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Father/Husband Name</label>
+                                        <input type="text" class="form-control" name="father_husband_name"
+                                        placeholder="Father/Husband Name"
+                                            value="{{ $property->father_husband_name ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Old NIC</label>
+                                        <input type="number" class="form-control" name="old_nic"
+                                        placeholder="Old NIC"
+                                            value="{{ $property->old_nic ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>CNIC</label>
+                                        <input type="number" class="form-control" name="cnic"
+                                        placeholder="CNIC"
+                                            value="{{ $property->cnic ?? '' }}">
+                                    </div>
+
+                                </div>
+
+
+                                <div class="form-row">
+
+
+                                    <div class="col-md-6">
+                                        <label>Address (Temporary)</label>
+                                        <textarea class="form-control"
+                                        placeholder="Address (Temporary)"
+                                        name="address_temporary" rows="1">{{ $property->address_temporary ?? '' }}</textarea>
+                                    </div>
+                                 <div class="col-md-6">
+                                        <label>Address (Permanent)</label>
+                                        <textarea class="form-control"
+                                        placeholder="Address (Permanent)"
+                                        name="address_permanent" rows="1">{{ $property->address_permanent ?? '' }}</textarea>
+                                    </div>
+
+                                </div>
+
+
+                                <div class="form-row">
+
+
+                                         <div class="col-md-3">
+                                            <label for="name" >
+                                                Category</label>
+
+                                                  <select name="category" id="" class="form-control">
+                                                     <option value="">Select Category</option>
+                                                      <option {{$property && $property->category == 'Lawyer' ? 'selected' : ''}} value="Lawyer">Lawyer</option>
+                                                     <option {{$property && $property->category == 'Overseas' ? 'selected' : ''}} value="Overseas">Overseas</option>
+                                                     <option{{$property && $property->category == 'Permanent_Employee' ? 'selected' : ''}} value="Permanent_Employee">Permanent Employee</option>
+
+                                                           </select> </div>
+
+                                                                <div class="col-md-3">
+    <label for="approved_scheme">Mode of Allottment</label>
+
+    <select name="mode_allottment" id="mode_allottment" class="form-control">
+        <option value="">Select Allottment</option>
+
+        <option value="Balloting"
+            {{ old('mode_allottment', $property->mode_allottment ?? '') == 'Balloting' ? 'selected' : '' }}>
+            Balloting
+        </option>
+
+        <option value="Auction"
+            {{ old('mode_allottment', $property->mode_allottment ?? '') == 'Auction' ? 'selected' : '' }}>
+            Auction
+        </option>
+
+        <option value="By_Chairman"
+            {{ old('mode_allottment', $property->mode_allottment ?? '') == 'By_Chairman' ? 'selected' : '' }}>
+            By Chairman
+        </option>
+    </select>
+</div>
+
+
+
+
+                                    <div class="col-md-3">
+                                        <label>Allotment Date</label>
+                                        <input type="date" class="form-control datepicker" name="allotment_date"
+                                        placeholder="Allotment Date"
+                                            value="{{ $property->allotment_date ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Serial No of Balloting</label>
+                                        <input type="text" class="form-control" name="balloting_serial_no"
+                                        placeholder="Serial No of Balloting"
+                                            value="{{ $property->balloting_serial_no ?? '' }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="button" class="next action-button" value="Next">
+                        </fieldset>
+
+                        {{-- ===================== STEP 2 : PRICE ===================== --}}
+                        <fieldset id="step-2">
+                            <div class="form-card">
+                                <div class="row">
+                                    <div class="col-7"><h2 class="fs-title">Payment Detail:</h2></div>
+                                    <div class="col-5"><h2 class="steps">Step 2 - 4</h2></div>
+                                </div>
+
+
+                                <div class="form-row">
+
+                                   <div class="col-md-3">
+                                        <label>Total Price of Plot</label>
+                                        <input type="number" class="form-control"
+                                        placeholder="Total Price of Plot"
+                                        name="total_price"
+                                            value="{{ $property->payment->total_price ?? ''}}">
+                                    </div>
+
+
+
+                                    <div class="col-md-3">
+                                        <label>Amount Deposited</label>
+                                        <input type="number" class="form-control"
+                                        placeholder="Amount Deposited"
+                                        name="amount_deposited"
+                                            value="{{ $property->payment->amount_deposited ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Remaining Amount</label>
+                                        <input type="number" class="form-control"
+                                        placeholder="Remaining Amount"
+                                        name="remaining_amount"
+                                            value="{{ $property->payment->remaining_amount ?? '' }}">
+                                    </div>
+                                           <div class="col-md-3">
+                                        <label>Down payment</label>
+                                        <input type="number" class="form-control"
+                                        placeholder="Down payment"
+                                        name="down_payment"
+                                            value="{{$property->payment->down_payment ?? '' }}">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label>Initial Notice No. (Allotment Letter)</label>
+                                        <input type="text" class="form-control" name="initial_notice_no"
+                                        placeholder="Initial Notice No."
+                                            value="{{ $property->payment->initial_notice_no ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Initial Notice Date</label>
+                                        <input type="text" class="form-control datepicker"
+                                        placeholder="Initial Notice Date"
+                                        name="initial_notice_date"
+                                            value="{{ $property->payment->initial_notice_date ?? '' }}">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label>Total Received Amount </label>
+                                        <input type="number" class="form-control"
+                                        placeholder="Total Received Amount"
+                                        name="total_received_amount"
+                                            value="{{ $property->payment->total_received_amount ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Received Amount Date</label>
+                                        <input type="text" class="form-control datepicker"
+                                        placeholder="Received Amount Date"
+                                        name="received_amount_date"
+                                            value="{{ $property->payment->received_amount_date ?? '' }}">
+                                    </div>
+ </div>
+                                <div class="row">
+                                    <div class="col-7"><h2 class="fs-title">Allotment / Possession:</h2></div>
+                                </div>
+                                <div class="form-row">
+
+                                    <div class="col-md-3">
+                                        <label>Allotment Order No.</label>
+                                        <input type="text" class="form-control"
+                                        placeholder="Allotment Order No." name="allotment_order_no"
+                                            value="{{ $property->payment->allotment_order_no ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Allotment Order Date</label>
+                                        <input type="date" class="form-control datepicker"
+                                        placeholder="Allotment Order Date"
+                                        name="allotment_order_date"
+                                            value="{{ $property->payment->allotment_order_date ?? '' }}">
+                                    </div>
+
+
+                                    <div class="col-md-3">
+                                        <label>Possession Slip No.</label>
+                                        <input type="text" class="form-control"
+                                        placeholder="Possession Slip No."
+                                        name="possession_slip_no"
+                                            value="{{ $property->payment->possession_slip_no ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Possession Slip Date</label>
+                                        <input type="date" class="form-control datepicker"
+                                        placeholder="Possession Slip Date"
+                                        name="possession_slip_date"
+                                            value="{{ $property->payment->possession_slip_date ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Approval of Boundary Wall</label>
+                                        <input type="text" class="form-control" name="boundary_wall_approval"
+                                        placeholder="Approval of Boundary Wall"
+                                            value="{{ $property->payment->boundary_wall_approval ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Approval Date of Maps</label>
+                                        <input type="date" class="form-control datepicker" name="map_approval_date"
+                                        placeholder="Approval Date of Maps"
+                                        value="{{ $property->payment->map_approval_date ?? '' }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Transfer Order No.</label>
+                                        <input type="text" class="form-control" placeholder="Transfer Order No."
+                                         name="transfer_order_no"
+                                            value="{{ $property->payment->transfer_order_no ?? '' }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="button" class="next action-button" value="Next">
+                            <input type="button" class="previous action-button-previous" value="Previous">
+                        </fieldset>
+
+                        {{-- ===================== STEP 3 : DETAIL OF TRANSFEREES ===================== --}}
+                        <fieldset id="step-3">
+                            <div class="form-card">
+                                <div class="row">
+                                    <div class="col-7"><h2 class="fs-title">Detail of Transferees:</h2></div>
+                                    <div class="col-5"><h2 class="steps">Step 3 - 4</h2></div>
+                                </div>
+
+
+
+                                <div id="transferees-wrapper">
+                                    <div class="transferee-block" data-index="0">
+                                        <div class="form-row">
+                                            <div class="col-md-3">
+                                                <label>Transferee Name</label>
+                                                <input type="text" class="form-control"
+                                                placeholder="Transferee Name" name="transferees[0][name]">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>ID Card</label>
+                                                <input type="number" class="form-control"
+                                                placeholder="ID Card"
+                                                name="transferees[0][id_card]">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Challan No.</label>
+                                                <input type="text" class="form-control"
+                                                placeholder="Challan No."
+                                                name="transferees[0][challan_no]">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="button" id="add-transferee">+ Add Transferee</button>
+                            </div>
+                            <input type="button" class="next action-button" value="Next">
+                            <input type="button" class="previous action-button-previous" value="Previous">
+                        </fieldset>
+
+                        {{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
+                        <fieldset id="step-4">
+
+
+
+                                           {{-- NOTE (assumption): "Alternate Allotment" placed here — please confirm --}}
+                                <div class="form-row">
+                                    <div class="col-md-4 text-left">
+                                        <label>Alternate Allotment </label>
+                                        <input type="text" class="form-control" name="alternate_allotment"
+                                        placeholder="Alternate Allotment"
+                                            value="{{ $property->alternate_allotment ?? '' }}">
+                                    </div>
+                                </div>
+                            <div class="row">
+                                <div class="col-7"><h2 class="fs-title">Attachments:</h2></div>
+                                <div class="col-5"><h2 class="steps">Step 4 - 4</h2></div>
+                            </div>
+
+                            <div class="form-row">
+                                   <div class="col-md-4 text-left">
+                                    <label>Complete Property File</label>
+                                    <input type="file" name="complete_property_file">
+                                </div>
+                                <div class="col-md-4 text-left">
+                                    <label>Adjacent Area Allotment</label>
+                                    <input type="file" name="adjacent_area_allotment">
+                                </div>
+                                <div class="col-md-4 text-left">
+                                    <label>Division of Plots</label>
+                                    <input type="file" name="division_of_plots">
+                                </div>
+                                <div class="col-md-4 text-left">
+                                    <label>Decision of Courts Against Plot</label>
+                                    <input type="file" name="decision_courts">
+                                </div>
+                                <div class="col-md-4 text-left">
+                                    <label>Decision of Allotment Committee</label>
+                                    <input type="file" name="decision_allotment_committee">
+                                </div>
+                                <div class="col-md-4 text-left">
+                                    <label>Decision of MDA Board</label>
+                                    <input type="file" name="decision_mda_board">
+                                </div>
+                                <div class="col-md-4 text-left">
+                                    <label>Decision of Revising Authority (Cancel/Restore etc)</label>
+                                    <input type="file" name="decision_revising_authority">
+                                </div>
+                            </div>
+
+                            <button type="submit" id="submit-btn" class="action-button">Submit</button>
+                            <input type="button" class="previous action-button-previous" value="Previous">
+                        </fieldset>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
-        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/compressorjs@1.1.1/dist/compressor.min.js"></script>
-    <script src="https://unpkg.com/pdf-lib"></script>
-    </script>
-   
+
+
+
     <script>
-        $(document).ready(function(){
-        //     document.querySelectorAll('#second-step input[type="file"]').forEach((fileInput) => {
-//     fileInput.addEventListener('change', async function () {
-//         if (fileInput.files.length > 0) {
-//             const originalFile = fileInput.files[0];
+    $(document).ready(function () {
+        $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
 
-//             if (originalFile.type.startsWith("image/")) {
-//                 // Image Compression using Compressor.js
-//                 console.log("Original image file size: ", originalFile.size / 1024, "KB");
+        // Explicit step order
+        var stepIds = ['#step-1', '#step-2', '#step-3', '#step-4'];
+        var current = 0; // index into stepIds
 
-//                 new Compressor(originalFile, {
-//                     quality: 0.6, // Adjust compression quality
-//                     success(compressedBlob) {
-//                         const compressedFile = new File([compressedBlob], originalFile.name, {
-//                             type: originalFile.type,
-//                             lastModified: Date.now(),
-//                         });
+        function setProgressBar(stepIndex) {
+            var percent = (100 / stepIds.length) * (stepIndex + 1);
+            $('.progress-bar').css('width', percent.toFixed() + '%');
+        }
 
-//                         console.log("Compressed image file size: ", compressedFile.size / 1024, "KB");
+        function goToStep(index) {
+            if (index < 0 || index >= stepIds.length) return;
 
-//                         // Replace the file in the input with the compressed file
-//                         let dataTransfer = new DataTransfer();
-//                         dataTransfer.items.add(compressedFile);
-//                         fileInput.files = dataTransfer.files; // Set the compressed file as the new file
-//                         document.querySelector('.size-' + fileInput.name).textContent = "File Size : " + (compressedFile.size / 1024).toFixed(2) + " KB";
-//                     },
-//                     error(err) {
-//                         console.error("Image compression failed:", err.message);
-//                     }
-//                 });
-//             } else if (originalFile.type === "application/pdf") {
-//                 // PDF Optimization using pdf-lib
-//                 console.log("Original PDF file size: ", originalFile.size / 1024, "KB");
+            var current_fs = $(stepIds[current]);
+            var target_fs = $(stepIds[index]);
 
-//                 try {
-//                     const arrayBuffer = await originalFile.arrayBuffer();
-//                     const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-
-//                     // Save the compressed/optimized PDF
-//                     const compressedPdfBytes = await pdfDoc.save({ useObjectStreams: true });
-
-//                     const compressedBlob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
-//                     const compressedFile = new File([compressedBlob], originalFile.name, {
-//                         type: 'application/pdf',
-//                         lastModified: Date.now()
-//                     });
-
-//                     console.log("Compressed PDF file size: ", compressedFile.size / 1024, "KB");
-
-//                     // Replace the file in the input with the compressed file
-//                     let dataTransfer = new DataTransfer();
-//                     dataTransfer.items.add(compressedFile);
-//                     fileInput.files = dataTransfer.files; // Set the compressed file as the new file
-//                     document.querySelector('.size-' + fileInput.name).textContent = "File Size : " + (compressedFile.size / 1024).toFixed(2) + " KB";
-
-//                 } catch (err) {
-//                     console.error("PDF optimization failed:", err.message);
-//                 }
-//             } else {
-//                 console.log("Unsupported file type:", originalFile.type);
-//             }
-//         }
-//     });
-// });
-
-            var current_fs, next_fs, previous_fs; // fieldsets
-var opacity;
-var current = 1;
-var steps = $("fieldset").length;
-
-            // function callAjax(current, name, value) {
-            //     let formData = new FormData();
-            //     formData.append('current', current);
-            //     formData.append('name', name);
-            //     formData.append('value', value);
-            //     console.log(current,name,value);
-            //     $.ajax({
-            //         url: "{{route('tempStore')}}",  // Replace with your backend route to handle the request
-            //         type: 'POST',
-            //         headers: {
-            //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') // CSRF token
-            //         },
-            //         data: formData,
-            //         contentType: false,
-            //         processData: false,
-            //         success: function (response) {
-                       
-            //             $('#spinner').hide();
-            //             $('#done').show();
-            //             $('#' + name + '_done').show();
-            //             setTimeout(function() {
-            //                 $('#loader').hide();
-            //             }, 300);
-            //             // console.log("Data saved successfully.");
-            //         },
-            //         error: function (xhr, status, error) {
-            //             console.error("An error occurred: " + error);
-            //         }
-            //     });
-            // }
-
-           
-
-    // function uploadFiles(current,name,value) {
-    //     const progressWrapper = document.getElementById('progressWrapper');
-    //     progressWrapper.innerHTML = ''; // Clear previous progress bars
-
-    //     for (let i = 0; i < files.length; i++) {
-    //         uploadFile(current,);
-    //     }
-    // }
-
-    function callAjax(current,name, value) {
-        
-        const progressWrapper = document.getElementById('progressWrapper');
-        progressWrapper.innerHTML = '';
-        let formData = new FormData();
-        formData.append('current', current);
-        formData.append('name', name);
-        formData.append('value', value);
-        formData.append('_token', '{{ csrf_token() }}'); // Add CSRF token
-
-        let xhr = new XMLHttpRequest();
-        
-        // Create progress bar for the file
-        let progressBar = createCircularProgressBar(name, current);
-        document.getElementById('progressWrapper').appendChild(progressBar);
-
-        xhr.upload.addEventListener('progress', function (e) {
-            if (e.lengthComputable) {
-                let percentComplete = (e.loaded / e.total) * 100;
-                let circle = document.querySelector(`#progressCircle${current} circle.progress`);
-                let radius = circle.r.baseVal.value;
-                let circumference = 2 * Math.PI * radius;
-                let offset = circumference - (percentComplete / 100) * circumference;
-
-                circle.style.strokeDashoffset = offset;
-                document.querySelector(`#percentText${current}`).innerText = Math.round(percentComplete) + '%';
-            }
-        });
-
-        xhr.addEventListener('load', function () {
-            // let circle = document.querySelector(`#progressCircle${current} circle`);
-            // circle.style.stroke = '#28a745'; // Success color
-            // document.querySelector(`#percentText${current}`).innerText = '100%';
-            $('#spinner').hide();
-                        $('#done').show();
-                        $('#' + name + '_done').show();
-                        setTimeout(function() {
-                            $('#loader').hide();
-                        }, 300);
-        });
-
-        xhr.addEventListener('error', function () {
-            let circle = document.querySelector(`#progressCircle${current} circle`);
-            circle.style.stroke = '#dc3545'; // Error color
-            document.querySelector(`#percentText${current}`).innerText = 'Error';
-        });
-
-        xhr.open('POST', '{{ route('tempStore') }}', true); // Use Laravel route for file upload
-        xhr.send(formData);
-    }
-
-    function createCircularProgressBar(fileName, index) {
-        let div = document.createElement('div');
-        div.classList.add('progress-container');
-        div.id = `progressCircle${index}`;
-        div.innerHTML = `
-                <svg class="progress-circle" width="100" height="100">
-                <circle class="progress" cx="50" cy="50" r="45" stroke-width="10" stroke-dasharray="283" stroke-dashoffset="283"></circle>
-            </svg>
-            <div class="percent-text" id="percentText${index}">0%</div>
-        `;
-        return div;
-    }
-
-// Set up event listeners for the first step
-$('#first-step input[type="text"], #first-step input[type="number"], #first-step input[type="date"], #first-step select').on('change', function (e) {
-    
-    callAjax(1, e.target.name, e.target.value);
-});
-
-// Set up event listeners for the second step
-$('#second-step input[type="file"]').on('change', function (e) {
-    $('#done').hide();
-                $('#spinner').show();
-                $('#loader').show();
-    callAjax(2, e.target.name, e.target.files[0]);
-});
-
-// Handle next button clicks
-$(".next").click(function () {
-    current_fs = $(this).parent();
-    next_fs = $(this).parent().next();
-    
-    let isValid = true;
-
-    // First step validation
-    // if (current == 1) {
-    //     let inputs = document.getElementById('first-step').querySelectorAll('input,select');
-    //     inputs.forEach(input => {
-    //         const errorDiv = document.getElementById(`error-${input.name}`);
-    //         if (errorDiv) {
-    //             errorDiv.textContent = ""; // Clear previous error messages
-    //             input.classList.remove("d-block"); // Remove invalid class
-    //         }
-    //     });
-
-    //     inputs.forEach(input => {
-    
-    //         const value = input.value.trim();
-    //         const errorDiv = document.getElementById(`error-${input.name}`);
-    //         switch (input.name) {
-    //             case "paddress":
-    //                 if (!value) {
-    //                     isValid = false;
-    //                     errorDiv.textContent = "Permanent Address is required.";
-    //                     errorDiv.classList.add("d-block");
-    //                 }
-    //                 break;
-    //             case "mobile":
-    //                 if (!value || !/^\d{11}$/.test(value)) {
-    //                     isValid = false;
-    //                     errorDiv.textContent = "Mobile No must be 11 digits.";
-    //                     errorDiv.classList.add("d-block");
-    //                 }
-    //                 break;
-    //             case "applied_district":
-    //             case "institute":
-    //             case "ss_time":
-    //             case "se_time":
-    //             case "ws_time":
-    //             case "we_time":
-    //             case "post_held":
-    //             case "job_type":
-    //             case "sallary":
-    //                 if (!value) {
-    //                     isValid = false;
-    //                     errorDiv.textContent = `${input.name} is required.`;
-    //                     errorDiv.classList.add("d-block");
-    //                 }
-    //                 break;
-    //             case "cnic":
-    //                 if (!value || value.length !== 13) {
-    //                     isValid = false;
-    //                     errorDiv.textContent = "CNIC must be 13 digits.";
-    //                     errorDiv.classList.add("d-block");
-    //                 }
-    //                 break;
-    //             case "issue_date":
-    //             case "expiry_date":
-    //             case "dob":
-    //             case "job_joining":
-    //             case "applied_date":
-    //                 if (!value) {
-    //                     isValid = false;
-    //                     errorDiv.textContent = `${input.name} is required.`;
-    //                     errorDiv.classList.add("d-block");
-    //                 }
-    //                 break;
-    //             // Add more cases as needed
-    //         }
-    //     });
-
-    //     if (!isValid) {
-    //         return;
-    //     }
-        
-    // }
-
-
-
-
-    // Update progress bar
-    $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
-
-    // Show the next fieldset
-    next_fs.show();
-
-    // Hide the current fieldset with animation
-    current_fs.animate({ opacity: 0 }, {
-        step: function (now) {
-            var opacity = 1 - now;
-            current_fs.css({
-                'display': 'none',
-                'position': 'relative'
-            });
-            next_fs.css({ 'opacity': opacity });
-        },
-        duration: 500
+            $('#progressbar li').removeClass('active');
+            $('#progressbar li').each(function (i) {
+        if (i <= index) {
+            $(this).addClass('active');
+        }
     });
 
-    setProgressBar(current);
+            current_fs.hide();
+            target_fs.show();
+
+            current = index;
+            setProgressBar(current);
+        }
+
+        // Next button
+        $(document).off('click', '.next').on('click', '.next', function (e) {
+
+            e.preventDefault();
+            goToStep(current + 1);
+        });
+
+        // Previous button
+        $(document).off('click', '.previous').on('click', '.previous', function (e) {
+            e.preventDefault();
+            goToStep(current - 1);
+        });
+
+        // Progressbar item click → seedha us step par jump
+        $('#progressbar li').on('click', function () {
+            var index = $('#progressbar li').index(this);
+            goToStep(index);
+        });
+
+        // Dynamic "Add Transferee"
+        var transfereeIndex = 1;
+        $('#add-transferee').click(function () {
+            var block = `
+                <div class="transferee-block" data-index="${transfereeIndex}">
+                    <button type="button" class="btn btn-danger remove-transferee">Remove</button>
+                    <div class="form-row">
+                        <div class="col-md-4">
+                            <label>Transferees Name</label>
+                            <input type="text" class="form-control"
+                            placeholder="Transferees Name"
+                            name="transferees[${transfereeIndex}][name]">
+                        </div>
+                        <div class="col-md-4">
+                            <label>ID Card</label>
+                            <input type="text"
+                            placeholder="ID Card"
+                            class="form-control" name="transferees[${transfereeIndex}][id_card]">
+                        </div>
+                        <div class="col-md-4">
+                            <label>Challan No.</label>
+                            <input type="text"
+                             placeholder="Challan No."
+                            class="form-control" name="transferees[${transfereeIndex}][challan_no]">
+                        </div>
+                    </div>
+                </div>`;
+            $('#transferees-wrapper').append(block);
+            transfereeIndex++;
+        });
+
+     $(document).on('click', '.remove-transferee', function (e) {
+
+   e.preventDefault();
+           console.log("Remove clicked");
+
+    $(this).closest('.transferee-block').remove();
+
 });
 
+        // ===================== SUBMIT (AJAX) =====================
+        function showAlert(type, message) {
+            var box = $('#form-alert-box');
+            box.removeClass('alert-success alert-danger').addClass('alert-' + type);
+            box.html(message);
+            box.show();
+            $('html, body').animate({ scrollTop: box.offset().top - 100 }, 300);
+        }
 
+        $('#msform').on('submit', function (e) {
+            e.preventDefault();
 
-            $(".previous").click(function(){
-                
-                current_fs = $(this).parent();
-                previous_fs = $(this).parent().prev();
-                
-                //Remove class active
-            $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
+            var form = this;
+            var formData = new FormData(form);
+            var $submitBtn = $('#submit-btn');
 
-            //show the previous fieldset
-            previous_fs.show();
+            $submitBtn.prop('disabled', true).text('Saving...');
+            $('#form-alert-box').hide();
 
-            //hide the current fieldset with style
-            current_fs.animate({opacity: 0}, {
-            step: function(now) {
-            // for making fielset appear animation
-            opacity = 1 - now;
+            $.ajax({
+                url: $(form).attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                success: function (response) {
+                    showAlert('success', response.message || 'Data saved successfully.');
 
-            current_fs.css({
-            'display': 'none',
-            'position': 'relative'
+                    // Redirect to list page after a short pause, agar backend redirect url bheje
+                    if (response.redirect) {
+                        setTimeout(function () {
+                            window.location.href = response.redirect;
+                        }, 1200);
+                    } else {
+                        form.reset();
+                        goToStep(0);
+                    }
+                },
+                error: function (xhr) {
+                    var message = 'Kuch masla ho gaya. Dobara koshish karein.';
+    console.log(xhr);
+    console.log(xhr.status);
+    console.log(xhr.responseText);
+    console.log(xhr.responseJSON);
+
+    alert(xhr.responseText);
+
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        var list = '<ul class="mb-0">';
+                        $.each(errors, function (field, messages) {
+                            list += '<li>' + messages[0] + '</li>';
+                        });
+                        list += '</ul>';
+                        message = list;
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+
+                    showAlert('danger', message);
+                },
+                complete: function () {
+                    $submitBtn.prop('disabled', false).text('Submit');
+                }
             });
-            previous_fs.css({'opacity': opacity});
-            },
-            duration: 500
-            });
-            setProgressBar(--current);
-            });
-
-            function setProgressBar(curStep){
-            var percent = parseFloat(100 / steps) * curStep;
-            percent = percent.toFixed();
-            $(".progress-bar")
-            .css("width",percent+"%")
-            }
-
-            $(".submit").click(function(){
-            return false;
-            });
-            
-            });
-
-            
+        });
+    });
     </script>
-    
-    
-
 </x-app-layout>

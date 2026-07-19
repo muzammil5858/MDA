@@ -2,381 +2,312 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Attchement;
-use App\Models\Inheritance;
 use App\Models\Property;
+use App\Models\Payment;
+use App\Models\PlotHistory;
+use App\Models\Attchement;
 use Illuminate\Http\Request;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class PropertyController extends Controller
 {
-    public function create(){
-        $property = DB::table("temp_properties")->where('user_id',auth()->user()->id)->first();
-        return view('property.form',compact('property'));
+    /**
+     * Show the multi-step form (create).
+     */
+    public function create()
+    {
+        $property = null;
+        return view('property.form', compact('property'));
     }
-    public function store(Request $request){
-        // dd($request->all());
-        
-        // First validation for properties
-        $data = $request->validate([
-            "district" => '',
-            "center" => '',
-            "locality" => '',
-            "code" => 'required|unique:properties',
-            "dm_acre" => '',
-            "dm_kanal" => '',
-            "dm_marla" => '',
-            "dm_sqrft" => '',
-            "category" => '',
-            "acre" => '',
-            "kanal" => '',
-            "marla" => '',
-            "sqrft" => '',
-            "alotment_order" => '',
-            "alotment_date" => '',
-            "plot_no" => '',
-            "evacue_owner" => '',
-            "com_date" => '',
-            "allotee_name" => '',
-            "relation" => '',
-            "cnic" => '',
-            "hiba_count" => '',
-            "warasat_count" => '',
-            "sale_count" => '',
-        ]);
-        
-        
-        $data['user_id'] = auth()->user()->id;
-        
-        
-        // Second validation for attachments
+    public function store(Request $request)
+    {
+
         $request->validate([
-            'complete_file' => 'required',
-            'affected_house' => '',
-            'builtup_property' => '',
-            'entitlement' => '',
-            'allot_com' => '',
-            'allot_order' => '',
-            'chit_mapping' => '',
-            'order_attach' => '',
+            // Step 1
+            'application_no'        => 'nullable|string',
+            'application_date'      => 'nullable|date',
+            'plot_no'                => 'nullable',
+            'sector'                  => 'nullable|string',
+            'block'                   => 'nullable|string',
+            'kanal'                   => 'nullable|numeric',
+            'marla'                   => 'nullable|numeric',
+            'sqrft'                    => 'nullable|numeric',
+            'approved_scheme'        => 'nullable|string',
+            'initial_draft_amount'  => 'nullable|numeric',
+            'initial_draft_date'    => 'nullable|date',
+            'applicant_name'         => 'nullable|string',
+            'father_husband_name'   => 'nullable|string',
+            'old_nic'                 => 'nullable',
+            'cnic'                    => 'nullable|string',
+            'address_temporary'      => 'nullable|string',
+            'address_permanent'      => 'nullable|string',
+            'category'                => 'nullable|string',
+            'mode_allottment'        => 'nullable|string',
+            'allotment_date'      => 'nullable|date',
+            'balloting_serial_no'   => 'nullable',
+
+            // Step 2
+            'total_price'             => 'nullable|numeric',
+            'amount_deposited'       => 'nullable|numeric',
+            'remaining_amount'       => 'nullable|numeric',
+            'down_payment'            => 'nullable|numeric',
+            'initial_notice_no'      => 'nullable|string',
+            'initial_notice_date'    => 'nullable|date',
+            'total_received_amount' => 'nullable|numeric',
+            'received_amount_date'  => 'nullable|date',
+            'allotment_order_no'    => 'nullable',
+            'allotment_order_date'  => 'nullable|date',
+            'possession_slip_no'    => 'nullable',
+            'possession_slip_date'  => 'nullable|date',
+            'boundary_wall_approval' => 'nullable',
+            'map_approval_date'      => 'nullable|date',
+            'transfer_order_no'      => 'nullable',
+
+            // Step 3
+            'transferees'               => 'nullable|array',
+            'transferees.*.name'       => 'nullable|string',
+            'transferees.*.id_card'   => 'nullable',
+            'transferees.*.challan_no' => 'nullable',
+
+            // Step 4
+            'alternate_allotment'          => 'nullable|string',
+            'complete_property_file'       => 'nullable|file|max:5120',
+            'adjacent_area_allotment'      => 'nullable|file|max:5120',
+            'division_of_plots'            => 'nullable|file|max:5120',
+            'decision_courts'              => 'nullable|file|max:5120',
+            'decision_allotment_committee' => 'nullable|file|max:5120',
+            'decision_mda_board'           => 'nullable|file|max:5120',
+            'decision_revising_authority'  => 'nullable|file|max:5120',
         ]);
-        
-        // Fetch temp_attachment data
-        $temp_attach = DB::table('temp_attchements')->where('user_id', auth()->user()->id)->first();
-        
-        
-        if (!$temp_attach) {
-            return redirect()->back()->with('error', 'No temporary attachment found for this user.');
-        }
+
         DB::beginTransaction();
-        
+
         try {
-            $property = Property::create($data);
-            // Convert to array, add `property_id`
-            unset($temp_attach->created_at, $temp_attach->updated_at, $temp_attach->id, $temp_attach->user_id);
-            $temp_attach = (array) $temp_attach;
-            $temp_attach['property_id'] = $property->id;
-            
-            // Insert into Attachments model
-            Attchement::create($temp_attach);
-            
-            DB::commit();
-    }
-    catch (\Exception $e) {
-        // Rollback the transaction if there's an error
-        DB::rollBack();
-       
-        
-        // Handle the exception or return an error
-        return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
-    }
+            // 1) Property
+            $property = Property::create([
+                'application_no'       => $request->application_no,
+                'application_date'     => $request->application_date,
+                'plot_no'               => $request->plot_no,
+                'sector'                 => $request->sector,
+                'block'                  => $request->block,
+                'kanal'                  => $request->kanal,
+                'marla'                  => $request->marla,
+                'sqrft'                   => $request->sqrft,
+                'approved_scheme'       => $request->approved_scheme,
+                'initial_draft_amount' => $request->initial_draft_amount,
+                'initial_draft_date'   => $request->initial_draft_date,
+                'applicant_name'        => $request->applicant_name,
+                'father_husband_name'  => $request->father_husband_name,
+                'old_nic'                => $request->old_nic,
+                'cnic'                   => $request->cnic,
+                'address_temporary'     => $request->address_temporary,
+                'address_permanent'     => $request->address_permanent,
+                'category'               => $request->category,
+                'mode_allottment'       => $request->mode_allottment,
+                'allotment_date'        => $request->allotment_date,
+                'balloting_serial_no'  => $request->balloting_serial_no,
+                'user_id'                => auth()->id(),
+            ]);
+            return response()->json($request->all());
 
-        // Delete temporary entries
-        DB::table('temp_properties')->where('user_id', auth()->user()->id)->delete();
-        DB::table('temp_attchements')->where('user_id', auth()->user()->id)->delete();
+            // 2) Payment
+            Payment::create([
+                'property_id'             => $property->id,
+                'total_price'              => $request->total_price,
+                'amount_deposited'        => $request->amount_deposited,
+                'remaining_amount'        => $request->remaining_amount,
+                'down_payment'             => $request->down_payment,
+                'initial_notice_no'       => $request->initial_notice_no,
+                'initial_notice_date'     => $request->initial_notice_date,
+                'total_received_amount'  => $request->total_received_amount,
+                'received_amount_date'   => $request->received_amount_date,
+                'allotment_order_no'     => $request->allotment_order_no,
+                'allotment_order_date'   => $request->allotment_order_date,
+                'possession_slip_no'     => $request->possession_slip_no,
+                'possession_slip_date'   => $request->possession_slip_date,
+                'boundary_wall_approval' => $request->boundary_wall_approval,
+                'map_approval_date'       => $request->map_approval_date,
+                'transfer_order_no'       => $request->transfer_order_no,
+            ]);
 
-        // Commit the transaction if everything is successful
-
-        return redirect()->route('formList')->with('success', 'Property and attachments successfully saved.');
-    
-
-        
-        
-
-
-
-    }
-    private function attachements($file,$key){
-        $location = [
-            'complete_file' => '/uploads/complete',
-            'affected_house' => '/uploads/affected_house',
-            'builtup_property' => '/uploads/builtup',
-            'entitlement' => '/uploads/entitlement',
-            'allot_com' => '/uploads/allotment_committee',
-            'allot_order' => '/uploads/allotment_order',
-            'chit_mapping' => '/uploads/chit_mapping', 'order_attach' => '/uploads/order_attchement',
-          
-        ];
-       $originalName = $file->getClientOriginalName(); 
-        $timestamp = now()->timestamp; 
-        $filename = $timestamp . '_' . $originalName;// Get the original file name
-
-        // Check if it's an image or a PDF based on the mime type
-        if (in_array($file->getClientMimeType(), ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'])) {
-            // Move the file to the respective folder based on the $key
-            $file->move(public_path($location[$key]), $filename);
-
-            return $filename; // Return the file name for further use
-        } else {
-            // Optionally handle unsupported file types
-            throw new \Exception("Unsupported file type. Only images and PDFs are allowed.");
-        }
-
-    }
-
-    public function tempStore(Request $request){
-            
-            if($request->current == '1'){
-
-
-                    $userId = auth()->user()->id;
-                $record = DB::table('temp_properties')->updateOrInsert(
-                    ['user_id' => $userId], // Condition
-                    [$request->name => $request->value] // Dynamic column name and value
-                );
-            }
-            else{
-                $userId = auth()->user()->id;
-                
-                
-                if($request->hasFile('value')){
-                    
-                    $file = $this->attachements($request->value,$request->name);
+            // 3) Plot History (transferees) — repeatable rows, empty rows skip ho jate hain
+            if ($request->has('transferees')) {
+                foreach ($request->transferees as $row) {
+                    if (empty($row['name']) && empty($row['id_card']) && empty($row['challan_no'])) {
+                        continue;
+                    }
+                    PlotHistory::create([
+                        'property_id' => $property->id,
+                        'name'         => $row['name'] ?? null,
+                        'id_card'     => $row['id_card'] ?? null,
+                        'challan_no' => $row['challan_no'] ?? null,
+                    ]);
                 }
-                $record = DB::table('temp_attchements')->updateOrInsert(
-                    ['user_id' => $userId], // Condition
-                    [$request->name => $file] // Dynamic column name and value
-                );
-
             }
-            return response()->json(['status' => 'Data added to temp successfully']);
 
-            
-    }
-    public function tempFileStore(Request $request){
-        
-        $personalId = $request->id ;
-                
-                
-        if($request->hasFile('value')){
-            
-            $file = $this->attachements($request->value,$request->name);
+            // 4) Attachment (files)
+            $fileFields = [
+                'complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
+                'decision_courts', 'decision_allotment_committee',
+                'decision_mda_board', 'decision_revising_authority',
+            ];
+
+            $attachmentData = [
+                'property_id'          => $property->id,
+                'alternate_allotment'  => $request->alternate_allotment,
+            ];
+
+            foreach ($fileFields as $field) {
+                if ($request->hasFile($field)) {
+                    $attachmentData[$field] = $request->file($field)->store('attachments', 'public');
+                }
+            }
+
+            Attchement::create($attachmentData);
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'An error occurred: ' . $e->getMessage()], 500);
+            }
+
+            return redirect()->back()->withInput()->with('error', 'An error occurred: ' . $e->getMessage());
         }
-        $record = DB::table('attchements')->updateOrInsert(
-            ['property_id' => $personalId], 
-            [$request->name => $file] 
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message'  => 'Property, payment, plot history and attachments saved successfully.',
+                'redirect' => route('formList'),
+            ]);
+        }
+
+        return redirect()->route('formList')->with('success', 'Property, payment, plot history and attachments saved successfully.');
+    }
+
+    /**
+     * List of all submitted properties (with related data).
+     */
+    public function formList()
+    {
+        $data = Property::with(['payment', 'plotHistories', 'attachment'])->latest()->get();
+        return view('property.formlist', compact('data'));
+    }
+
+    /**
+     * Show a single property's full detail.
+     */
+    public function formDetail($id)
+    {
+        $property = Property::with(['payment', 'plotHistories', 'attachment'])->findOrFail($id);
+        return view('property.formDetail', compact('property'));
+    }
+
+    /**
+     * Edit form for an existing property.
+     */
+    public function formEdit($id)
+    {
+        $property = Property::with(['payment', 'plotHistories', 'attachment'])->findOrFail($id);
+        return view('property.form-edit', compact('property'));
+    }
+
+    /**
+     * Update an existing property record (all 4 tables).
+     */
+    public function update(Request $request, $id)
+    {
+        $property = Property::findOrFail($id);
+
+        $property->update([
+            'application_no'       => $request->application_no,
+            'application_date'     => $request->application_date,
+            'plot_no'               => $request->plot_no,
+            'sector'                 => $request->sector,
+            'block'                  => $request->block,
+            'kanal'                  => $request->kanal,
+            'marla'                  => $request->marla,
+            'sqrft'                   => $request->sqrft,
+            'approved_scheme'       => $request->approved_scheme,
+            'initial_draft_amount' => $request->initial_draft_amount,
+            'initial_draft_date'   => $request->initial_draft_date,
+            'applicant_name'        => $request->applicant_name,
+            'father_husband_name'  => $request->father_husband_name,
+            'old_nic'                => $request->old_nic,
+            'cnic'                   => $request->cnic,
+            'address_temporary'     => $request->address_temporary,
+            'address_permanent'     => $request->address_permanent,
+            'category'               => $request->category,
+            'mode_allottment'       => $request->mode_allottment,
+            'allotment_date'        => $request->allotment_date,
+            'balloting_serial_no'  => $request->balloting_serial_no,
+        ]);
+
+        Payment::updateOrCreate(
+            ['property_id' => $property->id],
+            [
+                'total_price'             => $request->total_price,
+                'amount_deposited'       => $request->amount_deposited,
+                'remaining_amount'       => $request->remaining_amount,
+                'down_payment'            => $request->down_payment,
+                'initial_notice_no'      => $request->initial_notice_no,
+                'initial_notice_date'    => $request->initial_notice_date,
+                'total_received_amount' => $request->total_received_amount,
+                'received_amount_date'  => $request->received_amount_date,
+                'allotment_order_no'    => $request->allotment_order_no,
+                'allotment_order_date'  => $request->allotment_order_date,
+                'possession_slip_no'    => $request->possession_slip_no,
+                'possession_slip_date'  => $request->possession_slip_date,
+                'boundary_wall_approval' => $request->boundary_wall_approval,
+                'map_approval_date'      => $request->map_approval_date,
+                'transfer_order_no'      => $request->transfer_order_no,
+            ]
         );
 
-    
-         return response()->json(['status' => 'Data added to temp successfully']);
-    }
+        if ($request->has('transferees')) {
+            // Purani entries hata ke nayi list se replace kar dete hain
+            PlotHistory::where('property_id', $property->id)->delete();
 
-    public function formList(){
-        $data = DB::table('properties')->whereNull('de_date')->get();
-
-        return view('property.formlist',compact("data"));
-    }
-    public function entryList(){
-        $data = DB::table('properties')->where('deo',auth()->user()->id)->whereNotNull('de_date')->get();
-        
-        return view('property.formlist',compact("data"));
-    }
-    public function formEdit($id){
-        $property = Property::with('attachment')->where('id',$id)->first();
-        $inherit = Inheritance::where('property_id',$property->id)->get();
-       
-        
-        return view('property.form-edit',compact('property','id','inherit'));
-    }
-    public function formDetail($id){
-        $property = Property::with('attachment','owners')->where('id',$id)->first();
-        
-     
-        
-        return view('property.formDetail',compact('property','id'));
-    }
-  public function update(Request $request, $id)
-{
-    
-    $property = Property::findOrFail($id);
-
-    $data = $request->validate([
-        'district' => 'required',
-        'center' => 'required',
-        'locality' => 'required',
-        'code' => [
-            'required',
-            $request->code != $property->code ? 'unique:properties,code' : '',
-        ],
-        'dm_acre' => '',
-        'dm_kanal' => '',
-        'dm_marla' => '',
-        'dm_sqrft' => '',
-        'category' => '',
-        'acre' => '',
-        'kanal' => '',
-        'marla' => '',
-        'sqrft' => '',
-        'alotment_order' => '',
-        'town' => '',
-        'plot_no' => 'required',
-        'evacue_owner' => '',
-        'sector' => '',
-        'allotee_name' => '',
-        'relation' => '',
-        'cnic' => '',
-        'allotment_type' => '',
-        'transfer_count' => '',
-        "hiba_count" => '',
-            "warasat_count" => '',
-            "sale_count" => '',
-            "qabza_chit" => '',
-            "house_constructed" => '',
-            "map_approval" => '',
-            "owner_type" => '',
-            "boundary_wall" => '',
-            "latest_transfer" => '',
-    
-    ]);
-
-    
-
-    // Role: deo
-    if (auth()->user()->hasRole('deo')) {
-        if ($property->deo != null && $property->de_date != null) {
-            $data['deo'] = $property->deo;
-            $data['de_date'] = $property->de_date;
-        } else {
-            if ($request->category != null && $request->allotee_name != null) {
-                $data['de_date'] = now()->format('d-m-Y');
-                $data['deo'] = auth()->user()->id;
-            }
-        }
-    }
-
- 
-    
-  
-    // Update property
-    Property::where('id', $id)->update($data);
-    
-    
-
-    if ($request->has('inheritance_null')) {
-        // Single fallback record - update or create by property_id
-        
-        foreach ($request->inheritance as $id => $data) {
-            $data['is_current'] = 1;
-        Inheritance::updateOrCreate(
-                    ['id' => $data['id']],
-                    array_merge($data, ['property_id' => $property->id])
-                );
-    }
-
-    } else {
-       
-        
-
-        foreach ($request->inheritance as $id => $data) {
-            $data['is_current'] = 1;
-            if ($data['id']) {
-                // Update existing record
-               Inheritance::updateOrCreate(
-                    ['id' => $data['id']],
-                    array_merge($data, ['property_id' => $property->id])
-                );
-                $submittedIds[] = $id;
-            } else {
-                // Create new record
-                $newRecord = Inheritance::create(
-                    array_merge($data, ['property_id' => $property->id])
-                );
-                $submittedIds[] = $newRecord->id;
+            foreach ($request->transferees as $row) {
+                if (empty($row['name']) && empty($row['id_card']) && empty($row['challan_no'])) {
+                    continue;
+                }
+                PlotHistory::create([
+                    'property_id' => $property->id,
+                    'name'         => $row['name'] ?? null,
+                    'id_card'     => $row['id_card'] ?? null,
+                    'challan_no' => $row['challan_no'] ?? null,
+                ]);
             }
         }
 
+        $fileFields = [
+            'complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
+            'decision_courts', 'decision_allotment_committee',
+            'decision_mda_board', 'decision_revising_authority',
+        ];
+
+        $attachmentData = ['alternate_allotment' => $request->alternate_allotment];
+
+        foreach ($fileFields as $field) {
+            if ($request->hasFile($field)) {
+                $attachmentData[$field] = $request->file($field)->store('attachments', 'public');
+            }
+        }
+
+        Attchement::updateOrCreate(
+            ['property_id' => $property->id],
+            $attachmentData
+        );
+
+        return redirect()->route('formList')->with('success', 'Property updated successfully.');
     }
 
-    return redirect()->route('formList');
-}
-    public function formDelete($id){
-                $delete = Property::find($id)->delete();
-        $adelete = Attchement::where('property_id', $id);
 
-        // Check if there are attachments to delete and delete them
-        if ($adelete->exists()) {
-            $adelete->delete();
-        }
-        return redirect()->back()->with('success','Entry Deleted Successfully.');
-    }
-
-    public function filesDetail($type){
-        if($type == 'index'){
-
-            $appdata = DB::select("SELECT count(properties.code) as entries,date(created_at) as date from properties  group by date(created_at) order by date(created_at) desc");
-            $graph = DB::select("SELECT count(properties.code) as entries,date(created_at) as date from properties  where DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= date(created_at) group by date(created_at) order by date(created_at) desc ");
-        
-           
-        }
-        else if($type == 'entry'){
-
-            $appdata = DB::select("SELECT count(properties.code) as entries,STR_TO_DATE(de_date, '%d-%m-%Y') as date from properties where de_date is not null AND category IS NOT NULL 
-                  AND allotee_name IS NOT NULL group by date order by date desc");
-            $graph = DB::select("SELECT count(properties.code) as entries,de_date as date from properties where de_date is not  null AND category IS NOT NULL 
-                  AND allotee_name IS NOT NULL and DATE_SUB(CURDATE(),INTERVAL 30 DAY) <= STR_TO_DATE(de_date, '%d-%m-%Y')  group by date order by date desc");
-
-    
-            
-        }
-        
-        $labels = array_column($graph, 'date');
-        
-        $data = array_column($graph, 'entries');
-        
-        return view('qa.dailydetail', compact('data', 'appdata', 'labels','type'));
-        
-    }
-    public function dailyDetail(Request $request){
-        
-        
-        if ($request->type == 'index') {
-            $data = DB::select("
-            SELECT count(properties.code) as entries, users.name 
-            FROM properties 
-            LEFT JOIN users ON users.id = properties.user_id 
-            WHERE DATE(properties.created_at) = '$request->date' 
-            GROUP BY users.name
-            ");
-        } elseif ($request->type == 'entry') {
-            $data = DB::select("
-                SELECT count(properties.code) as entries, users.name 
-                FROM properties 
-                LEFT JOIN users ON users.id = properties.deo 
-                WHERE STR_TO_DATE(de_date, '%d-%m-%Y') = '$request->date' 
-                  AND category IS NOT NULL 
-                  AND allotee_name IS NOT NULL 
-                GROUP BY users.name
-            ");
-        }
-            return response()->json($data);
-    }
-
-    public function deleteInheritance(Request $request,$id)
+    public function formDelete($id)
     {
-         $inheritance = Inheritance::findOrFail($id);
-         $inheritance->delete();
-
-    return response()->json(['message' => 'Deleted successfully']);
+        Property::findOrFail($id)->delete();
+        return redirect()->back()->with('success', 'Entry deleted successfully.');
     }
-
 }

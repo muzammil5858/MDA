@@ -70,7 +70,7 @@
         }
             input[type="radio"] {
                 padding: 0 !important;
-            
+
             margin-bottom: 0 !important;
             margin-top: 0 !important;
 
@@ -458,7 +458,7 @@ circle.progress {
                     </div>
                     <div class="col-5 entry-form">
                         <div class="card px-4 pt-4 pb-0 mt-3 mb-3">
-                            <h2 id="heading">Mangla Dam Housing Authority</h2>
+                            <h2 id="heading">Mirpur Dam Housing Authority </h2>
                             <p class="text-center">Fill all form's fields to go to next step</p>
                             <form id="msform" action="{{route('formUpdate',$id)}}" method="POST" enctype="multipart/form-data">
                                 @csrf
@@ -466,7 +466,7 @@ circle.progress {
                                 <ul id="progressbar">
                                     <li class="active" id="account"><strong>Property Details</strong></li>
                                     <li id="payment"><strong>Attachements</strong></li>
-                                   
+
                                 </ul>
                                 <div class="progress">
                                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
@@ -476,13 +476,13 @@ circle.progress {
                                     <div class="form-card">
                                         <div class="form-row">
                                             <div class="col-md-12">
-        
+
                                                 @if(session('success'))
                                                 <div class="alert alert-success">
                                                     {{ session('success') }}
                                                 </div>
                                                 @endif
-        
+
                                                 @if($errors->any())
                                                 <div class="alert alert-danger">
                                                     <ul>
@@ -494,6 +494,10 @@ circle.progress {
                                                 @endif
                                             </div>
                                         </div>
+
+
+
+
                                         <div class="row">
                                             <div class="col-7">
                                                 <h2 class="fs-title">Location:</h2>
@@ -502,17 +506,17 @@ circle.progress {
                                                 <h2 class="steps">Step 1 - 2</h2>
                                             </div>
                                         </div>
-                                        
-        
+
+
                                         <div class="form-row">
-        
+
                                             <div class=" col-md-4 ">
                                                 <label class="">District</label>
                                                 <select name="district" class="form-control" id="district">
                                                     <option value="Mirpur" selected  >Mirpur</option>
                                                 </select>
-                                                
-        
+
+
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="">Tehsil</label>
@@ -522,14 +526,14 @@ circle.progress {
                                                     <option {{$property && $property->center == 'Islam Garh' ? 'selected' : ''}} value="Islam Garh"  >Islam Garh</option>
                                                     <option {{$property && $property->center == 'Dudyal' ? 'selected' : ''}} value="Dudyal"  >Dudyal</option>
                                                 </select>
-                                                
+
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="">Locality/Revenue Village</label>
                                                 <input type="text" class="form-control" name="locality"
-                                                    
+
                                                 value="{{$property->locality ?? ''}}" />
-                                               
+
                                             </div>
                                             <div class="col-md-4">
                                                 <label class="">Code</label>
@@ -539,7 +543,7 @@ circle.progress {
                                                 <div class="invalid-feedback" id="error-paddress"></div>
                                             </div>
                                         </div>
-                                       
+
                                         <div class="row">
                                             <div class="col-7">
                                                 <h2 class="fs-title">Dwelling House:</h2>
@@ -578,7 +582,7 @@ circle.progress {
                                             </div>
                                         </div>
                                         <div class="form-row">
-        
+
                                             <div class="col-md-4">
                                                 <label for="name" style="margin-top:33px;">Category</label>
                                                 <select name="category" id="" class="form-control">
@@ -586,8 +590,8 @@ circle.progress {
                                                     <option {{$property && $property->category == 'Plot' ? 'selected' : ''}} value="Plot">Plot</option>
                                                     <option {{$property && $property->category == 'House' ? 'selected' : ''}} value="House">House</option>
                                                     <option {{$property && $property->category == 'Commercial' ? 'selected' : ''}} value="Commercial">Commercial</option>
-                                                </select> 
-                                                
+                                                </select>
+
                                             </div>
                                             <div class=" col-md-8">
                                                 <label for="name">Area Measurement</label>
@@ -616,17 +620,17 @@ circle.progress {
                                             </div>
                                         </div>
                                         <div class="form-row">
-        
+
                                             <div class="col-md-4  ">
                                                 <label for="name">Allotment Order No</label>
                                                 <input type="text" name="alotment_order" placeholder="Enter Allotment Order No"
                                                     class="form-control" value="{{  $property->alotment_order ?? ''}}">
-                                                
+
                                             </div>
-                                           
+
                                             <div class=" col-md-4">
                                                 <label for="name">Town/City</label>
-                                               
+
                                                <select name="town" class="form-control" id="">
                                                 <option value="" disabled selected  >Select Town/City</option>
                                                 <option {{$property && $property->town == '3' ? 'selected' : ''}} value="3"  >New City Mirpur</option>
@@ -635,20 +639,20 @@ circle.progress {
                                                 <option {{$property && $property->town == '2' ? 'selected' : ''}} value="2"  >New Small Town Dudyal</option>
                                                 <option {{$property && $property->town == '1' ? 'selected' : ''}} value="1"  >New Small Town Siakh</option>
                                             </select>
-                                             
+
                                             </div>
                                             <div class=" col-md-4 " >
                                                 <label for="name">Sector</label>
                                                 <input type="text" name="sector" class="form-control"
                                                 value="{{  $property->sector ?? ''}}">
-                                              
+
                                             </div>
-        
+
                                             <div class="col-md-4  ">
                                                 <label for="name">Plot No</label>
                                                 <input type="text" name="plot_no" placeholder="Enter Plot Number"
                                                     class="form-control" value="{{  $property->plot_no ?? ''}}">
-                                              
+
                                             </div>
                                             <div class="col-md-6">
                                             <label class="form-label d-block">Allotment Type</label>
@@ -764,23 +768,23 @@ circle.progress {
     </div>
 </div>
 <div class="col-md-4">
-    
+
     <label for="latest_transfer">Latest Transfer:</label>
     <select name="latest_transfer" id="latest_transfer" class="form-control">
         <option value="">-- Select Transfer Type --</option>
-        
+
             <option {{$property->latest_transfer == 1 ? 'selected' : ''}} value="1">Property Transfer</option>
             <option {{$property->latest_transfer == 2 ? 'selected' : ''}} value="2">Warassat Transfer</option>
             <option {{$property->latest_transfer == 3 ? 'selected' : ''}} value="3">Hiba Transfer</option>
-        
+
     </select>
 
 </div>
 
 
 
-                                        
-        
+
+
                                             <div class="container mt-4">
     <h5>Allottee Details</h5>
     <div id="allottee-wrapper">
@@ -789,7 +793,7 @@ circle.progress {
         <input type="hidden" name="inheritance_null" value ="">
         <div class="row allottee-item mb-3" data-id="0">
             <input type="hidden" name="inheritance[0][id]" value ="">
-            
+
             <div class="col-md-3">
                 <label>Allottee Name</label>
                 <input type="text" name="inheritance[0][name]" class="form-control" placeholder="Enter Name" value="{{$property->allotee_name}}">
@@ -850,14 +854,14 @@ circle.progress {
 
     <button type="button" class="btn btn-primary mt-2" id="add-more">Add More</button>
 </div>
-        
+
                                         </div>
-                                        
-        
-        
+
+
+
                                     </div> <input type="button" name="next" class="next action-button" value="Next" />
                                 </fieldset>
-                               
+
                                 <fieldset id="second-step">
                                     <input type="hidden" name="affected_house" value="{{$property->attachment->affected_house}}">
                                <input type="hidden" name="complete_file" value="{{$property->attachment->complete_file}}">
@@ -902,8 +906,8 @@ circle.progress {
                                                 <a href="{{asset('/uploads/builtup/'.$property->attachment->builtup_property)}}">View Attached File</a>
                                                 @endif
                                             </div>
-                                       
-        
+
+
                                             <div class="col-md-6 text-left">
                                                 <label class="d-flex" for="name">Entitlement <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="entitlement_done"></label>
                                                 <input type="file" placeholder="Enter Department" name="entitlement"
@@ -912,8 +916,8 @@ circle.progress {
                                                     @if($property->attachment->entitlement != null)
                                                 <a href="{{asset('/uploads/entitlement/'.$property->attachment->entitlement)}}">View Attached File</a>
                                                 @endif
-                                                
-        
+
+
                                             </div>
                                             <div class=" col-md-6 text-left">
                                                 <label class="d-flex" for="name">Allotment by Allotment Committee <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="allot_com_done"></label>
@@ -923,10 +927,10 @@ circle.progress {
                                                     @if($property->attachment->allot_com != null)
                                                     <a href="{{asset('/uploads/allotment_committee/'.$property->attachment->allot_com)}}">View Attached File</a>
                                                     @endif
-        
+
                                             </div>
-                                   
-        
+
+
                                             <div class="col-md-6 text-left">
                                                 <label class="d-flex" for="name">Allotment Order <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="allot_order_done"></label>
                                                 <input type="file" placeholder="Enter Mobile No" name="allot_order"
@@ -935,8 +939,8 @@ circle.progress {
                                                     @if($property->attachment->allot_order != null)
                                                     <a href="{{asset('/uploads/allotment_order/'.$property->attachment->allot_order)}}">View Attached File</a>
                                                     @endif
-                                               
-        
+
+
                                             </div>
                                             <div class=" col-md-6  text-left">
                                                 <label  class="d-flex" for="name">Possession Chit With Mapping <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="chit_mapping_done"></label>
@@ -946,7 +950,7 @@ circle.progress {
                                                     @if($property->attachment->chit_mapping != null)
                                                     <a href="{{asset('/uploads/chit_mapping/'.$property->attachment->chit_mapping)}}">View Attached File</a>
                                                     @endif
-        
+
                                             </div>
                                             <div class="col-md-6 text-left" >
                                                 <label class="d-flex" for="name">Order Attachement <img class="ml-1" style="display: none;" src="{{asset('/double-check.png')}}" width="20" height="20" alt="" id="order_attach_done"></label>
@@ -955,7 +959,7 @@ circle.progress {
                                                 @if($property->attachment->order_attach != null)
                                                     <a href="{{asset('/uploads/order_attchement/'.$property->attachment->order_attach)}}">View Attached File</a>
                                                     @endif
-                                               
+
                                             </div>
                                         </div>
                                         <input type="submit" name="" class=" action-button" value="Submit" /> <input
@@ -968,7 +972,7 @@ circle.progress {
                                         <div id="progressWrapper"></div>
                                         <div id="loader-percent" style="font-weight:bold;margin-top:10px;">Please Wait</div>
                                     </div>
-                                </div>  
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -1051,11 +1055,11 @@ circle.progress {
                 fileInput.addEventListener('change', async function () {
                  if (fileInput.files.length > 0) {
                 const originalFile = fileInput.files[0];
-    
+
                 if (originalFile.type.startsWith("image/")) {
                     // Image Compression using Compressor.js
                     console.log("Original image file size: ", originalFile.size / 1024, "KB");
-    
+
                     new Compressor(originalFile, {
                         quality: 0.6, // Adjust compression quality
                         success(compressedBlob) {
@@ -1063,9 +1067,9 @@ circle.progress {
                                 type: originalFile.type,
                                 lastModified: Date.now(),
                             });
-    
+
                             console.log("Compressed image file size: ", compressedFile.size / 1024, "KB");
-    
+
                             // Replace the file in the input with the compressed file
                             let dataTransfer = new DataTransfer();
                             dataTransfer.items.add(compressedFile);
@@ -1079,28 +1083,28 @@ circle.progress {
                 } else if (originalFile.type === "application/pdf") {
                     // PDF Optimization using pdf-lib
                     console.log("Original PDF file size: ", originalFile.size / 1024, "KB");
-    
+
                     try {
                         const arrayBuffer = await originalFile.arrayBuffer();
                         const pdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
-    
+
                         // Save the compressed/optimized PDF
                         const compressedPdfBytes = await pdfDoc.save({ useObjectStreams: true });
-    
+
                         const compressedBlob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
                         const compressedFile = new File([compressedBlob], originalFile.name, {
                             type: 'application/pdf',
                             lastModified: Date.now()
                         });
-    
+
                         console.log("Compressed PDF file size: ", compressedFile.size / 1024, "KB");
-    
+
                         // Replace the file in the input with the compressed file
                         let dataTransfer = new DataTransfer();
                         dataTransfer.items.add(compressedFile);
                         fileInput.files = dataTransfer.files; // Set the compressed file as the new file
                         document.querySelector('.size-' + fileInput.name).textContent = "File Size : " + (compressedFile.size / 1024).toFixed(2) + " KB";
-    
+
                     } catch (err) {
                         console.error("PDF optimization failed:", err.message);
                     }
@@ -1110,14 +1114,14 @@ circle.progress {
             }
         });
     });
-    
+
                 var current_fs, next_fs, previous_fs; // fieldsets
     var opacity;
     var current = 1;
     var steps = $("fieldset").length;
-    
+
     function callAjax(current,name, value) {
-        
+
         const progressWrapper = document.getElementById('progressWrapper');
         progressWrapper.innerHTML = '';
         let formData = new FormData();
@@ -1128,7 +1132,7 @@ circle.progress {
         formData.append('_token', '{{ csrf_token() }}'); // Add CSRF token
 
         let xhr = new XMLHttpRequest();
-        
+
         // Create progress bar for the file
         let progressBar = createCircularProgressBar(name, current);
         document.getElementById('progressWrapper').appendChild(progressBar);
@@ -1180,9 +1184,9 @@ circle.progress {
         `;
         return div;
     }
-    
-    
-    
+
+
+
     // Set up event listeners for the second step
     $('#second-step input[type="file"]').on('change', function (e) {
         $('#done').hide();
@@ -1190,21 +1194,21 @@ circle.progress {
                     $('#loader').show();
         callAjax(2, e.target.name, e.target.files[0]);
     });
-    
+
     // Handle next button clicks
     $(".next").click(function () {
         current_fs = $(this).parent();
         next_fs = $(this).parent().next();
-        
+
         let isValid = true;
 
-    
+
         // Update progress bar
         $("#progressbar li").eq($("fieldset").index(next_fs)).addClass("active");
-    
+
         // Show the next fieldset
         next_fs.show();
-    
+
         // Hide the current fieldset with animation
         current_fs.animate({ opacity: 0 }, {
             step: function (now) {
@@ -1217,29 +1221,29 @@ circle.progress {
             },
             duration: 500
         });
-    
+
         setProgressBar(current);
     });
-    
-    
-    
+
+
+
                 $(".previous").click(function(){
-                    
+
                     current_fs = $(this).parent();
                     previous_fs = $(this).parent().prev();
-                    
+
                     //Remove class active
                 $("#progressbar li").eq($("fieldset").index(current_fs)).removeClass("active");
-    
+
                 //show the previous fieldset
                 previous_fs.show();
-    
+
                 //hide the current fieldset with style
                 current_fs.animate({opacity: 0}, {
                 step: function(now) {
                 // for making fielset appear animation
                 opacity = 1 - now;
-    
+
                 current_fs.css({
                 'display': 'none',
                 'position': 'relative'
@@ -1250,21 +1254,21 @@ circle.progress {
                 });
                 setProgressBar(--current);
                 });
-    
+
                 function setProgressBar(curStep){
                 var percent = parseFloat(100 / steps) * curStep;
                 percent = percent.toFixed();
                 $(".progress-bar")
                 .css("width",percent+"%")
                 }
-    
+
                 $(".submit").click(function(){
                 return false;
                 });
-                
+
                 });
-    
-                
+
+
         </script>
         <script>
             $(document).on('click', '.remove-btn', function() {
