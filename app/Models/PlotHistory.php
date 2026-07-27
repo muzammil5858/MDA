@@ -10,7 +10,7 @@ class PlotHistory extends Model
     use HasFactory;
 
     protected $fillable = [
-        'property_id', 'name', 'id_card', 'challan_no',
+        'property_id', 'name','father_name','id_card', 'challan_no',
     ];
 
     public function property()

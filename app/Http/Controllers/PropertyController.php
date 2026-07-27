@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Property;
 use App\Models\Payment;
+use App\Models\Block;
+use App\Models\Sector;
 use App\Models\PlotHistory;
 use App\Models\Attchement;
 use Illuminate\Http\Request;
@@ -11,63 +13,82 @@ use Illuminate\Support\Facades\DB;
 
 class PropertyController extends Controller
 {
+        public function getBlocks($sectorId)
+{
+    // If sector is 'all' or empty, return empty collection
+    if (empty($sectorId) || $sectorId === '') {
+        return response()->json([]);
+    }
+
+    // Find blocks that belong to this sector
+    $blocks = Block::where('sector_id', $sectorId)->orderBy('name')->get();
+
+    return response()->json($blocks);
+}
     /**
      * Show the multi-step form (create).
      */
     public function create()
     {
         $property = null;
-        return view('property.form', compact('property'));
+        $sectors = Sector::orderBy('name')->get();
+
+
+        return view('property.form', compact('property', 'sectors'));
     }
+
     public function store(Request $request)
     {
-
         $request->validate([
             // Step 1
-            'application_no'        => 'nullable|string',
+            'application_no'        => 'required|string|unique:properties,application_no',
             'application_date'      => 'nullable|date',
-            'plot_no'                => 'nullable',
-            'sector'                  => 'nullable|string',
-            'block'                   => 'nullable|string',
-            'kanal'                   => 'nullable|numeric',
-            'marla'                   => 'nullable|numeric',
-            'sqrft'                    => 'nullable|numeric',
-            'approved_scheme'        => 'nullable|string',
+            'plot_no'               => 'nullable|string',
+            'sector_id' => 'nullable|exists:sectors,id',
+            'block_id'              => 'nullable|exists:blocks,id',
+            'kanal'                 => 'nullable|numeric',
+            'marla'                 => 'nullable|numeric',
+            'sqrft'                 => 'nullable|numeric',
+            'approved_scheme'       => 'nullable|string',
+            'size'                  => 'nullable|string|max:255',
+            'form_no'               => 'nullable|string|max:255',
+            'remarks'               => 'nullable|string',
             'initial_draft_amount'  => 'nullable|numeric',
             'initial_draft_date'    => 'nullable|date',
-            'applicant_name'         => 'nullable|string',
+            'applicant_name'        => 'nullable|string',
             'father_husband_name'   => 'nullable|string',
-            'old_nic'                 => 'nullable',
-            'cnic'                    => 'nullable|string',
-            'address_temporary'      => 'nullable|string',
-            'address_permanent'      => 'nullable|string',
-            'category'                => 'nullable|string',
-            'mode_allottment'        => 'nullable|string',
-            'allotment_date'      => 'nullable|date',
-            'balloting_serial_no'   => 'nullable',
+            'old_nic'               => 'nullable|string',
+            'cnic'                  => 'nullable|string',
+            'address_temporary'     => 'nullable|string',
+            'address_permanent'     => 'nullable|string',
+            'category'              => 'nullable|string',
+            'mode_allottment'       => 'nullable|string',
+            'allotment_date'        => 'nullable|date',
+            'balloting_serial_no'   => 'nullable|string',
 
             // Step 2
             'total_price'             => 'nullable|numeric',
             'amount_deposited'       => 'nullable|numeric',
             'remaining_amount'       => 'nullable|numeric',
-            'down_payment'            => 'nullable|numeric',
+            'down_payment'           => 'nullable|numeric',
             'initial_notice_no'      => 'nullable|string',
             'initial_notice_date'    => 'nullable|date',
-            'total_received_amount' => 'nullable|numeric',
-            'received_amount_date'  => 'nullable|date',
-            'allotment_order_no'    => 'nullable',
-            'allotment_order_date'  => 'nullable|date',
-            'possession_slip_no'    => 'nullable',
-            'possession_slip_date'  => 'nullable|date',
-            'boundary_wall_approval' => 'nullable',
+            'total_received_amount'  => 'nullable|numeric',
+            'received_amount_date'   => 'nullable|date',
+            'allotment_order_no'     => 'nullable|string',
+            'allotment_order_date'   => 'nullable|date',
+            'possession_slip_no'     => 'nullable|string',
+            'possession_slip_date'   => 'nullable|date',
+            'boundary_wall_approval' => 'nullable|string',
             'map_approval_date'      => 'nullable|date',
-            'transfer_order_no'      => 'nullable',
+            'transfer_order_no'      => 'nullable|string',
 
             // Step 3
             'transferees'               => 'nullable|array',
             'transferees.*.name'       => 'nullable|string',
-            'transferees.*.id_card'   => 'nullable',
-            'transferees.*.challan_no' => 'nullable',
+            'transferees.*.father_name'=> 'nullable|string',
+            'transferees.*.id_card'    => 'nullable|string',
+            'transferees.*.challan_no' => 'nullable|string',
 
             // Step 4
             'alternate_allotment'          => 'nullable|string',
@@ -78,6 +99,9 @@ class PropertyController extends Controller
             'decision_allotment_committee' => 'nullable|file|max:5120',
             'decision_mda_board'           => 'nullable|file|max:5120',
             'decision_revising_authority'  => 'nullable|file|max:5120',
+        ], [
+            'application_no.unique' => 'This Application No already exists. Please use a different number.',
+            'application_no.required' => 'The Application No is required.',
         ]);
 
         DB::beginTransaction();
@@ -87,82 +111,74 @@ class PropertyController extends Controller
             $property = Property::create([
                 'application_no'       => $request->application_no,
                 'application_date'     => $request->application_date,
-                'plot_no'               => $request->plot_no,
-                'sector'                 => $request->sector,
-                'block'                  => $request->block,
-                'kanal'                  => $request->kanal,
-                'marla'                  => $request->marla,
-                'sqrft'                   => $request->sqrft,
-                'approved_scheme'       => $request->approved_scheme,
+                'plot_no'              => $request->plot_no,
+                'sector_id'             => $request->sector_id,
+                'block_id'                  => $request->block_id,
+                'kanal'                => $request->kanal,
+                'marla'                => $request->marla,
+                'sqrft'                => $request->sqrft,
+                'approved_scheme'      => $request->approved_scheme,
+                'size'                 => $request->size,
+                'form_no'              => $request->form_no,
+                'remarks'              => $request->remarks,
                 'initial_draft_amount' => $request->initial_draft_amount,
                 'initial_draft_date'   => $request->initial_draft_date,
-                'applicant_name'        => $request->applicant_name,
+                'applicant_name'       => $request->applicant_name,
                 'father_husband_name'  => $request->father_husband_name,
-                'old_nic'                => $request->old_nic,
-                'cnic'                   => $request->cnic,
-                'address_temporary'     => $request->address_temporary,
-                'address_permanent'     => $request->address_permanent,
-                'category'               => $request->category,
-                'mode_allottment'       => $request->mode_allottment,
-                'allotment_date'        => $request->allotment_date,
+                'old_nic'              => $request->old_nic,
+                'cnic'                 => $request->cnic,
+                'address_temporary'    => $request->address_temporary,
+                'address_permanent'    => $request->address_permanent,
+                'category'             => $request->category,
+                'mode_allottment'      => $request->mode_allottment,
+                'allotment_date'       => $request->allotment_date,
                 'balloting_serial_no'  => $request->balloting_serial_no,
-                'user_id'                => auth()->id(),
+                'user_id'              => auth()->id(),
             ]);
-            return response()->json($request->all());
 
             // 2) Payment
             Payment::create([
                 'property_id'             => $property->id,
-                'total_price'              => $request->total_price,
+                'total_price'             => $request->total_price,
                 'amount_deposited'        => $request->amount_deposited,
                 'remaining_amount'        => $request->remaining_amount,
-                'down_payment'             => $request->down_payment,
+                'down_payment'            => $request->down_payment,
                 'initial_notice_no'       => $request->initial_notice_no,
                 'initial_notice_date'     => $request->initial_notice_date,
-                'total_received_amount'  => $request->total_received_amount,
-                'received_amount_date'   => $request->received_amount_date,
-                'allotment_order_no'     => $request->allotment_order_no,
-                'allotment_order_date'   => $request->allotment_order_date,
-                'possession_slip_no'     => $request->possession_slip_no,
-                'possession_slip_date'   => $request->possession_slip_date,
-                'boundary_wall_approval' => $request->boundary_wall_approval,
+                'total_received_amount'   => $request->total_received_amount,
+                'received_amount_date'    => $request->received_amount_date,
+                'allotment_order_no'      => $request->allotment_order_no,
+                'allotment_order_date'    => $request->allotment_order_date,
+                'possession_slip_no'      => $request->possession_slip_no,
+                'possession_slip_date'    => $request->possession_slip_date,
+                'boundary_wall_approval'  => $request->boundary_wall_approval,
                 'map_approval_date'       => $request->map_approval_date,
                 'transfer_order_no'       => $request->transfer_order_no,
             ]);
 
-            // 3) Plot History (transferees) — repeatable rows, empty rows skip ho jate hain
+            // 3) Plot History (transferees)
             if ($request->has('transferees')) {
                 foreach ($request->transferees as $row) {
-                    if (empty($row['name']) && empty($row['id_card']) && empty($row['challan_no'])) {
+                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no'])) {
                         continue;
                     }
                     PlotHistory::create([
                         'property_id' => $property->id,
-                        'name'         => $row['name'] ?? null,
+                        'name'        => $row['name'] ?? null,
+                        'father_name' => $row['father_name'] ?? null,
                         'id_card'     => $row['id_card'] ?? null,
-                        'challan_no' => $row['challan_no'] ?? null,
+                        'challan_no'  => $row['challan_no'] ?? null,
                     ]);
                 }
             }
 
             // 4) Attachment (files)
-            $fileFields = [
-                'complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
-                'decision_courts', 'decision_allotment_committee',
-                'decision_mda_board', 'decision_revising_authority',
-            ];
-
             $attachmentData = [
-                'property_id'          => $property->id,
-                'alternate_allotment'  => $request->alternate_allotment,
+                'property_id'         => $property->id,
+                'alternate_allotment' => $request->alternate_allotment,
             ];
 
-            foreach ($fileFields as $field) {
-                if ($request->hasFile($field)) {
-                    $attachmentData[$field] = $request->file($field)->store('attachments', 'public');
-                }
-            }
-
+            $this->storeAttachmentFiles($request, $property, $attachmentData);
             Attchement::create($attachmentData);
 
             DB::commit();
@@ -170,7 +186,9 @@ class PropertyController extends Controller
             DB::rollBack();
 
             if ($request->wantsJson()) {
-                return response()->json(['message' => 'An error occurred: ' . $e->getMessage()], 500);
+                return response()->json([
+                    'message' => 'An error occurred: ' . $e->getMessage()
+                ], 500);
             }
 
             return redirect()->back()->withInput()->with('error', 'An error occurred: ' . $e->getMessage());
@@ -191,7 +209,7 @@ class PropertyController extends Controller
      */
     public function formList()
     {
-        $data = Property::with(['payment', 'plotHistories', 'attachment'])->latest()->get();
+        $data = Property::with(['payment', 'plotHistories', 'attachment','sector','block'])->latest()->get();
         return view('property.formlist', compact('data'));
     }
 
@@ -200,7 +218,7 @@ class PropertyController extends Controller
      */
     public function formDetail($id)
     {
-        $property = Property::with(['payment', 'plotHistories', 'attachment'])->findOrFail($id);
+        $property = Property::with(['payment', 'plotHistories', 'attachment' , 'sector','block'])->findOrFail($id);
         return view('property.formDetail', compact('property'));
     }
 
@@ -209,8 +227,18 @@ class PropertyController extends Controller
      */
     public function formEdit($id)
     {
-        $property = Property::with(['payment', 'plotHistories', 'attachment'])->findOrFail($id);
-        return view('property.form-edit', compact('property'));
+        $property = Property::with(['payment', 'plotHistories', 'attachment','sector' , 'block'])->findOrFail($id);
+        $sectors = Sector::orderBy('name')->get();
+           // Get blocks for the selected sector
+    $blocks = collect(); // Empty collection by default
+    if ($property->sector_id) {
+
+            $blocks = Block::where('sector_id', $property->sector->id)->orderBy('name')->get();
+
+    }
+
+
+        return view('property.form-edit', compact('property', 'id', 'sectors','blocks'));
     }
 
     /**
@@ -220,89 +248,185 @@ class PropertyController extends Controller
     {
         $property = Property::findOrFail($id);
 
-        $property->update([
-            'application_no'       => $request->application_no,
-            'application_date'     => $request->application_date,
-            'plot_no'               => $request->plot_no,
-            'sector'                 => $request->sector,
-            'block'                  => $request->block,
-            'kanal'                  => $request->kanal,
-            'marla'                  => $request->marla,
-            'sqrft'                   => $request->sqrft,
-            'approved_scheme'       => $request->approved_scheme,
-            'initial_draft_amount' => $request->initial_draft_amount,
-            'initial_draft_date'   => $request->initial_draft_date,
-            'applicant_name'        => $request->applicant_name,
-            'father_husband_name'  => $request->father_husband_name,
-            'old_nic'                => $request->old_nic,
-            'cnic'                   => $request->cnic,
-            'address_temporary'     => $request->address_temporary,
-            'address_permanent'     => $request->address_permanent,
-            'category'               => $request->category,
-            'mode_allottment'       => $request->mode_allottment,
-            'allotment_date'        => $request->allotment_date,
-            'balloting_serial_no'  => $request->balloting_serial_no,
+        // Validation
+        $request->validate([
+            'application_no'        => 'required|string|unique:properties,application_no,' . $property->id,
+            'application_date'      => 'nullable|date',
+            'plot_no'               => 'nullable|string',
+            'sector_id'             => 'nullable|exists:sectors,id',
+            'block_id'              => 'nullable|exists:blocks,id',
+            'kanal'                 => 'nullable|numeric',
+            'marla'                 => 'nullable|numeric',
+            'sqrft'                 => 'nullable|numeric',
+            'approved_scheme'       => 'nullable|string',
+            'size'                  => 'nullable|string|max:255',
+            'form_no'               => 'nullable|string|max:255',
+            'remarks'               => 'nullable|string',
+            'initial_draft_amount'  => 'nullable|numeric',
+            'initial_draft_date'    => 'nullable|date',
+            'applicant_name'        => 'nullable|string',
+            'father_husband_name'   => 'nullable|string',
+            'old_nic'               => 'nullable|string',
+            'cnic'                  => 'nullable|string',
+            'address_temporary'     => 'nullable|string',
+            'address_permanent'     => 'nullable|string',
+            'category'              => 'nullable|string',
+            'mode_allottment'       => 'nullable|string',
+            'allotment_date'        => 'nullable|date',
+            'balloting_serial_no'   => 'nullable|string',
+            'total_price'           => 'nullable|numeric',
+            'amount_deposited'      => 'nullable|numeric',
+            'remaining_amount'      => 'nullable|numeric',
+            'down_payment'          => 'nullable|numeric',
+            'initial_notice_no'     => 'nullable|string',
+            'initial_notice_date'   => 'nullable|date',
+            'total_received_amount' => 'nullable|numeric',
+            'received_amount_date'  => 'nullable|date',
+            'allotment_order_no'    => 'nullable|string',
+            'allotment_order_date'  => 'nullable|date',
+            'possession_slip_no'    => 'nullable|string',
+            'possession_slip_date'  => 'nullable|date',
+            'boundary_wall_approval'=> 'nullable|string',
+            'map_approval_date'     => 'nullable|date',
+            'transfer_order_no'     => 'nullable|string',
+            'transferees'           => 'nullable|array',
+            'transferees.*.name'    => 'nullable|string',
+            'transferees.*.father_name' => 'nullable|string',
+            'transferees.*.id_card' => 'nullable|string',
+            'transferees.*.challan_no' => 'nullable|string',
+            'alternate_allotment'   => 'nullable|string',
+            'complete_property_file' => 'nullable|file|max:5120',
+            'adjacent_area_allotment' => 'nullable|file|max:5120',
+            'division_of_plots'     => 'nullable|file|max:5120',
+            'decision_courts'       => 'nullable|file|max:5120',
+            'decision_allotment_committee' => 'nullable|file|max:5120',
+            'decision_mda_board'    => 'nullable|file|max:5120',
+            'decision_revising_authority' => 'nullable|file|max:5120',
+        ], [
+            'application_no.unique' => 'This Application No already exists. Please use a different number.',
+            'application_no.required' => 'The Application No is required.',
         ]);
 
-        Payment::updateOrCreate(
-            ['property_id' => $property->id],
-            [
-                'total_price'             => $request->total_price,
-                'amount_deposited'       => $request->amount_deposited,
-                'remaining_amount'       => $request->remaining_amount,
-                'down_payment'            => $request->down_payment,
-                'initial_notice_no'      => $request->initial_notice_no,
-                'initial_notice_date'    => $request->initial_notice_date,
-                'total_received_amount' => $request->total_received_amount,
-                'received_amount_date'  => $request->received_amount_date,
-                'allotment_order_no'    => $request->allotment_order_no,
-                'allotment_order_date'  => $request->allotment_order_date,
-                'possession_slip_no'    => $request->possession_slip_no,
-                'possession_slip_date'  => $request->possession_slip_date,
-                'boundary_wall_approval' => $request->boundary_wall_approval,
-                'map_approval_date'      => $request->map_approval_date,
-                'transfer_order_no'      => $request->transfer_order_no,
-            ]
-        );
+        DB::beginTransaction();
 
-        if ($request->has('transferees')) {
-            // Purani entries hata ke nayi list se replace kar dete hain
-            PlotHistory::where('property_id', $property->id)->delete();
+        try {
+            $oldApplicationNo = $property->application_no;
+            $newApplicationNo = $request->application_no;
 
-            foreach ($request->transferees as $row) {
-                if (empty($row['name']) && empty($row['id_card']) && empty($row['challan_no'])) {
-                    continue;
+            // 1) Update Property
+            $property->update([
+                'application_no'       => $newApplicationNo,
+                'application_date'     => $request->application_date,
+                'plot_no'              => $request->plot_no,
+                'sector_id' => $request->sector_id,
+                'block_id'                => $request->block_id,
+                'kanal'                => $request->kanal,
+                'marla'                => $request->marla,
+                'sqrft'                => $request->sqrft,
+                'approved_scheme'      => $request->approved_scheme,
+                'size'                 => $request->size,
+                'form_no'              => $request->form_no,
+                'remarks'              => $request->remarks,
+                'initial_draft_amount' => $request->initial_draft_amount,
+                'initial_draft_date'   => $request->initial_draft_date,
+                'applicant_name'       => $request->applicant_name,
+                'father_husband_name'  => $request->father_husband_name,
+                'old_nic'              => $request->old_nic,
+                'cnic'                 => $request->cnic,
+                'address_temporary'    => $request->address_temporary,
+                'address_permanent'    => $request->address_permanent,
+                'category'             => $request->category,
+                'mode_allottment'      => $request->mode_allottment,
+                'allotment_date'       => $request->allotment_date,
+                'balloting_serial_no'  => $request->balloting_serial_no,
+            ]);
+
+            // 2) Update Payment
+            Payment::updateOrCreate(
+                ['property_id' => $property->id],
+                [
+                    'total_price'             => $request->total_price,
+                    'amount_deposited'        => $request->amount_deposited,
+                    'remaining_amount'        => $request->remaining_amount,
+                    'down_payment'            => $request->down_payment,
+                    'initial_notice_no'       => $request->initial_notice_no,
+                    'initial_notice_date'     => $request->initial_notice_date,
+                    'total_received_amount'   => $request->total_received_amount,
+                    'received_amount_date'    => $request->received_amount_date,
+                    'allotment_order_no'      => $request->allotment_order_no,
+                    'allotment_order_date'    => $request->allotment_order_date,
+                    'possession_slip_no'      => $request->possession_slip_no,
+                    'possession_slip_date'    => $request->possession_slip_date,
+                    'boundary_wall_approval'  => $request->boundary_wall_approval,
+                    'map_approval_date'       => $request->map_approval_date,
+                    'transfer_order_no'       => $request->transfer_order_no,
+                ]
+            );
+
+            // 3) Update Plot History
+            if ($request->has('transferees')) {
+                PlotHistory::where('property_id', $property->id)->delete();
+
+                foreach ($request->transferees as $row) {
+                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no'])) {
+                        continue;
+                    }
+                    PlotHistory::create([
+                        'property_id' => $property->id,
+                        'name'        => $row['name'] ?? null,
+                        'father_name' => $row['father_name'] ?? null,
+                        'id_card'     => $row['id_card'] ?? null,
+                        'challan_no'  => $row['challan_no'] ?? null,
+                    ]);
                 }
-                PlotHistory::create([
-                    'property_id' => $property->id,
-                    'name'         => $row['name'] ?? null,
-                    'id_card'     => $row['id_card'] ?? null,
-                    'challan_no' => $row['challan_no'] ?? null,
+            }
+
+            // 4) Rename folder if application_no changed
+            if ($oldApplicationNo && $oldApplicationNo !== $newApplicationNo) {
+                $this->renameAttachmentFolder($oldApplicationNo, $newApplicationNo);
+            }
+
+            // 5) Update Attachments
+            $attachmentData = ['alternate_allotment' => $request->alternate_allotment];
+            $this->storeAttachmentFiles($request, $property, $attachmentData);
+
+            Attchement::updateOrCreate(
+                ['property_id' => $property->id],
+                $attachmentData
+            );
+
+            DB::commit();
+
+            // ✅ JSON Response for AJAX
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success'  => true,
+                    'message'  => 'Property updated successfully.',
+                    'redirect' => route('formList'),
                 ]);
             }
-        }
 
-        $fileFields = [
-            'complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
-            'decision_courts', 'decision_allotment_committee',
-            'decision_mda_board', 'decision_revising_authority',
-        ];
+            return redirect()->route('formList')->with('success', 'Property updated successfully.');
 
-        $attachmentData = ['alternate_allotment' => $request->alternate_allotment];
+        } catch (\Exception $e) {
+            DB::rollBack();
 
-        foreach ($fileFields as $field) {
-            if ($request->hasFile($field)) {
-                $attachmentData[$field] = $request->file($field)->store('attachments', 'public');
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred: ' . $e->getMessage()
+                ], 500);
             }
+
+            return redirect()->back()->withInput()->with('error', 'An error occurred: ' . $e->getMessage());
         }
-
-        Attchement::updateOrCreate(
-            ['property_id' => $property->id],
-            $attachmentData
-        );
-
-        return redirect()->route('formList')->with('success', 'Property updated successfully.');
     }
+
+
+
+
+
+
 
 
     public function formDelete($id)
@@ -310,4 +434,122 @@ class PropertyController extends Controller
         Property::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'Entry deleted successfully.');
     }
+
+    private function sanitizeFolderName(?string $name, int $fallbackId): string
+    {
+        $folderName = preg_replace('/[^A-Za-z0-9_\-]/', '_', trim((string) $name));
+        $folderName = trim($folderName, '_');
+
+        return $folderName !== '' ? $folderName : ('property_' . $fallbackId);
+    }
+
+    private function storeAttachmentFiles(Request $request, Property $property, array &$attachmentData)
+    {
+        $fileFieldLabels = [
+            'complete_property_file'       => 'Complete Property File',
+            'adjacent_area_allotment'      => 'Adjacent Area Allotment',
+            'division_of_plots'            => 'Division of Plots',
+            'decision_courts'              => 'Decision of Courts Against Plot',
+            'decision_allotment_committee' => 'Decision of Allotment Committee',
+            'decision_mda_board'           => 'Decision of MDA Board',
+            'decision_revising_authority'  => 'Decision of Revising Authority',
+        ];
+
+        $applicationFolder = $this->sanitizeFolderName($property->application_no, $property->id);
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        foreach ($fileFieldLabels as $field => $label) {
+            if ($request->hasFile($field)) {
+                $file = $request->file($field);
+
+                $labelFolder = $this->sanitizeFolderName($label, 0);
+                $folderPath  = $applicationFolder . '/' . $labelFolder;
+
+                $originalName     = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeOriginalName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName);
+                $extension        = $file->getClientOriginalExtension();
+
+                $fileName = $safeOriginalName . '.' . $extension;
+
+                if ($disk->exists($folderPath . '/' . $fileName)) {
+                    $fileName = $safeOriginalName . '_' . uniqid() . '_' . time() . '.' . $extension;
+                }
+
+                $path = $file->storeAs($folderPath, $fileName, 'public');
+                $attachmentData[$field] = $path;
+            }
+        }
+    }
+
+    private function renameAttachmentFolder(string $oldApplicationNo, string $newApplicationNo)
+    {
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        $oldFolder = $this->sanitizeFolderName($oldApplicationNo, 0);
+        $newFolder = $this->sanitizeFolderName($newApplicationNo, 0);
+
+        if ($oldFolder !== $newFolder && $disk->exists($oldFolder)) {
+            $files = $disk->allFiles($oldFolder);
+
+            foreach ($files as $filePath) {
+                $newPath = str_replace($oldFolder . '/', $newFolder . '/', $filePath);
+                $disk->move($filePath, $newPath);
+            }
+
+            $attachment = Attchement::whereHas('property', function ($q) use ($newApplicationNo) {
+                $q->where('application_no', $newApplicationNo);
+            })->first();
+
+            if ($attachment) {
+                foreach (['complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
+                          'decision_courts', 'decision_allotment_committee',
+                          'decision_mda_board', 'decision_revising_authority'] as $field) {
+                    if (!empty($attachment->$field)) {
+                        $attachment->$field = str_replace($oldFolder . '/', $newFolder . '/', $attachment->$field);
+                    }
+                }
+                $attachment->save();
+            }
+        }
+    }
+
+
+
+/**
+ * Dashboard view - shows summary cards (total properties etc.)
+ */
+public function dashboard()
+{
+    $totalProperties  = Property::count();
+    $totalPayments    = Payment::count();
+    $totalPlotHistory = PlotHistory::count();
+    $totalAttachments = Attchement::count();
+
+    // Sector-wise grouped properties (for the expandable list)
+    $propertiesBySector = Property::with('sector')
+        ->orderBy('sector_id')
+        ->get()
+        ->groupBy(function ($property) {
+            return $property->sector->name ?? 'No Sector Assigned';
+        });
+
+            $propertiesByBlock = Property::with('block')
+        ->orderBy('block_id')
+        ->get()
+        ->groupBy(function ($property) {
+            return $property->block->name ?? 'No block Assigned';
+        });
+
+    return view('property.dashboard', compact(
+        'totalProperties',
+        'totalPayments',
+        'totalPlotHistory',
+        'totalAttachments',
+        'propertiesBySector',
+        'propertiesByBlock'
+    ));
+}
+
+
+
 }

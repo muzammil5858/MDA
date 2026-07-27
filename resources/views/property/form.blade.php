@@ -1,8 +1,60 @@
 <x-app-layout>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
         p { color: grey }
+        .select2-container{
+    width:100% !important;
+    margin-bottom:15px;
+}
+
+.select2-container--default .select2-selection--single{
+    background:#ECEFF1 !important;
+    border:1px solid #ccc !important;
+    border-radius:0 !important;
+    height:42px !important;
+    padding:0 15px;
+    display:flex;
+    align-items:center;
+}
+
+.select2-container--default .select2-selection__rendered{
+    color:#2C3E50 !important;
+    line-height:40px !important;
+    padding-left:0 !important;
+    font-size:16px;
+    letter-spacing:1px;
+}
+
+.select2-container--default .select2-selection__arrow{
+    height:40px !important;
+    right:10px !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--single{
+    border:1px solid #03346E !important;
+    box-shadow:none !important;
+}
+
+.select2-dropdown{
+    border:1px solid #03346E !important;
+}
+
+.select2-search__field{
+    border:none !important;
+    outline:none !important;
+    box-shadow:none !important;
+}
 
         #heading {
             text-transform: uppercase;
@@ -258,7 +310,7 @@
                                               <div class="col-6 px-0">
                                                   <label>Application Date</label>
                                         <input type="date" class="form-control datepicker" name="application_date"
-                                        placeholder="Application Date"
+                                        placeholder="Select Date"
                                             value="{{ $property->application_date ?? '' }}">
                                             </div>
 
@@ -272,50 +324,28 @@
                                         placeholder="Plot No."
                                             value="{{ $property->plot_no ?? '' }}">
                                     </div>
-                                    <div class="col-md-3">
+                                  <div class="col-md-3">
+    <label>Sector</label>
 
-    <label for="Sector">Sector</label>
-
-    <select name="sector" id="sector" class="form-control">
-        <option value="">Select Sector</option>
-
-        <option value="A"
-            {{ old('sector', $property->sector?? '') == 'A' ? 'selected' : '' }}>
-            A
+<select name="sector_id" id="sector" class="form-control">
+    <option value="">Select Sector</option>
+    @foreach($sectors as $sector)
+        <option value="{{ $sector->id }}"
+            {{ old('sector_id', $property->sector_id ?? '') == $sector->id ? 'selected' : '' }}>
+            {{ $sector->name }}
         </option>
-
-        <option value="B"
-            {{ old('sector', $property->sector?? '') == 'B'? 'selected' : '' }}>
-            B
-        </option>
-
-        <option value="C"
-            {{ old('sector', $property->sector ?? '') == 'C' ? 'selected' : '' }}>
-            C
-        </option>
-    </select>
+    @endforeach
+</select>
 </div>
 
       <div class="col-md-3">
 
     <label >Block</label>
 
-    <select name="block" id="block" class="form-control">
+    <select name="block_id" id="block" class="form-control">
         <option value="">Select Block</option>
-                <option value="A"
-            {{ old('block', $property->block?? '') == 'A' ? 'selected' : '' }}>
-            A
-        </option>
 
-        <option value="B"
-            {{ old('block', $property->block?? '') == 'B'? 'selected' : '' }}>
-            B
-        </option>
 
-        <option value="C"
-            {{ old('block', $property->block ?? '') == 'C' ? 'selected' : '' }}>
-            C
-        </option>
     </select>
 </div>
                                 <div class="col-md-3">
@@ -372,6 +402,18 @@
         </option>
     </select>
 </div>
+  <div class="col-md-3">
+                                        <label>Size</label>
+                                        <input type="text" class="form-control" name="size"
+                                        placeholder="Enter Size"
+                                            value="{{ $property->size ?? '' }}">
+                                    </div>
+                                      <div class="col-md-3">
+                                        <label>Form_no.</label>
+                                        <input type="text" class="form-control" name="form_no"
+                                        placeholder="Enter Form_no."
+                                            value="{{ $property->form_no ?? '' }}">
+                                    </div>
 
   <div class="col-md-3">
                                         <label>Initial Draft Amount</label>
@@ -382,7 +424,7 @@
 <div class="col-md-3">
                                         <label>Initial Draft Date</label>
                                         <input type="date" class="form-control datepicker" name="initial_draft_date"
-                                        placeholder="Initial Draft Date"
+                                        placeholder="Select Date"
                                             value="{{ $property->initial_draft_date ?? '' }}">
                                     </div>
 
@@ -420,9 +462,13 @@
                                     </div>
                                     <div class="col-md-3">
                                         <label>CNIC</label>
-                                        <input type="number" class="form-control" name="cnic"
-                                        placeholder="CNIC"
-                                            value="{{ $property->cnic ?? '' }}">
+<input type="text"
+       class="form-control"
+       name="cnic"
+       id="cnic"
+       maxlength="15"
+       placeholder="12345-1234567-1"
+       value="{{ $property->cnic ?? '' }}">
                                     </div>
 
                                 </div>
@@ -491,7 +537,7 @@
                                     <div class="col-md-3">
                                         <label>Allotment Date</label>
                                         <input type="date" class="form-control datepicker" name="allotment_date"
-                                        placeholder="Allotment Date"
+                                        placeholder="Select Date"
                                             value="{{ $property->allotment_date ?? '' }}">
                                     </div>
                                     <div class="col-md-3">
@@ -500,6 +546,13 @@
                                         placeholder="Serial No of Balloting"
                                             value="{{ $property->balloting_serial_no ?? '' }}">
                                     </div>
+                               <div class="col-md-3">
+    <label>Remarks</label>
+    <textarea class="form-control"
+              name="remarks"
+              rows="3"
+              placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
+</div>
                                 </div>
                             </div>
 
@@ -518,33 +571,34 @@
                                 <div class="form-row">
 
                                    <div class="col-md-3">
-                                        <label>Total Price of Plot</label>
+                                        <label>Price</label>
                                         <input type="number" class="form-control"
-                                        placeholder="Total Price of Plot"
+                                        placeholder="Enter Price"
                                         name="total_price"
                                             value="{{ $property->payment->total_price ?? ''}}">
                                     </div>
 
 
-
+{{-- Amount Deposited------>Recieved Amount --}}
                                     <div class="col-md-3">
-                                        <label>Amount Deposited</label>
+                                        <label>Recieved Amount</label>
                                         <input type="number" class="form-control"
-                                        placeholder="Amount Deposited"
+                                        placeholder="Enter Amount"
                                         name="amount_deposited"
                                             value="{{ $property->payment->amount_deposited ?? '' }}">
                                     </div>
+                                    {{-- Remaining Amount-------->Recievable Amount --}}
                                     <div class="col-md-3">
-                                        <label>Remaining Amount</label>
+                                        <label>Recievable Amount</label>
                                         <input type="number" class="form-control"
-                                        placeholder="Remaining Amount"
+                                        placeholder="Enter Amount"
                                         name="remaining_amount"
                                             value="{{ $property->payment->remaining_amount ?? '' }}">
                                     </div>
                                            <div class="col-md-3">
                                         <label>Down payment</label>
                                         <input type="number" class="form-control"
-                                        placeholder="Down payment"
+                                        placeholder="Enter payment"
                                         name="down_payment"
                                             value="{{$property->payment->down_payment ?? '' }}">
                                     </div>
@@ -558,7 +612,7 @@
                                     <div class="col-md-3">
                                         <label>Initial Notice Date</label>
                                         <input type="text" class="form-control datepicker"
-                                        placeholder="Initial Notice Date"
+                                        placeholder="Select Date"
                                         name="initial_notice_date"
                                             value="{{ $property->payment->initial_notice_date ?? '' }}">
                                     </div>
@@ -573,7 +627,7 @@
                                     <div class="col-md-3">
                                         <label>Received Amount Date</label>
                                         <input type="text" class="form-control datepicker"
-                                        placeholder="Received Amount Date"
+                                        placeholder="Select Date"
                                         name="received_amount_date"
                                             value="{{ $property->payment->received_amount_date ?? '' }}">
                                     </div>
@@ -582,33 +636,38 @@
                                     <div class="col-7"><h2 class="fs-title">Allotment / Possession:</h2></div>
                                 </div>
                                 <div class="form-row">
+                                    {{-- Allotment Order No. -------->Allotment Chit No. --}}
 
                                     <div class="col-md-3">
-                                        <label>Allotment Order No.</label>
+                                        <label>Allotment Chit No.</label>
                                         <input type="text" class="form-control"
-                                        placeholder="Allotment Order No." name="allotment_order_no"
+                                        placeholder="Enter Chit No." name="allotment_order_no"
                                             value="{{ $property->payment->allotment_order_no ?? '' }}">
                                     </div>
+
+                                    {{-- Allotment Order Date --}}
                                     <div class="col-md-3">
-                                        <label>Allotment Order Date</label>
+                                        <label>Allotment Chit Date</label>
                                         <input type="date" class="form-control datepicker"
-                                        placeholder="Allotment Order Date"
+                                        placeholder="Select Date"
                                         name="allotment_order_date"
                                             value="{{ $property->payment->allotment_order_date ?? '' }}">
                                     </div>
+                                    {{-- Possession Slip No. -------->Qabza Chit No. --}}
 
 
                                     <div class="col-md-3">
-                                        <label>Possession Slip No.</label>
+                                        <label>Qabza Chit No.</label>
                                         <input type="text" class="form-control"
-                                        placeholder="Possession Slip No."
+                                        placeholder="Enter Chit No."
                                         name="possession_slip_no"
                                             value="{{ $property->payment->possession_slip_no ?? '' }}">
                                     </div>
+                                    {{-- Possession Slip Date-------->Qabza Chit Date --}}
                                     <div class="col-md-3">
-                                        <label>Possession Slip Date</label>
+                                        <label>Qabza Chit Date</label>
                                         <input type="date" class="form-control datepicker"
-                                        placeholder="Possession Slip Date"
+                                        placeholder="Select Date"
                                         name="possession_slip_date"
                                             value="{{ $property->payment->possession_slip_date ?? '' }}">
                                     </div>
@@ -653,6 +712,11 @@
                                                 <label>Transferee Name</label>
                                                 <input type="text" class="form-control"
                                                 placeholder="Transferee Name" name="transferees[0][name]">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Father Name</label>
+                                                <input type="text" class="form-control"
+                                                placeholder="Father Name" name="transferees[0][father_name]">
                                             </div>
                                             <div class="col-md-3">
                                                 <label>ID Card</label>
@@ -738,8 +802,93 @@
 
 
     <script>
+
+
     $(document).ready(function () {
         $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
+
+     $('#sector_id').select2({
+        placeholder: "Select Sector",
+        allowClear: true,
+        width: "100%"
+    });
+        // Initialize Select2 for block (empty initially)
+    $('#block').select2({
+        placeholder: "Select Block",
+        allowClear: true,
+        width: "100%"
+    });
+
+    // When sector changes, load blocks
+            // Clear current options
+                // ✅ When sector changes, load blocks
+    $('#sector').on('change', function() {
+        var sectorId = $(this).val();
+        var blockSelect = $('#block');
+        blockSelect.empty().append('<option value="">Select Block</option>');
+        blockSelect.val('').trigger('change');
+
+        // If no sector selected, disable block dropdown
+        if (!sectorId) {
+            blockSelect.prop('disabled', true);
+            return;
+        }
+
+        // Enable block dropdown and fetch blocks
+        blockSelect.prop('disabled', false);
+
+        $.ajax({
+            url: '/get-blocks/' + sectorId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(blocks) {
+                if (blocks.length > 0) {
+                    $.each(blocks, function(index, block) {
+                        blockSelect.append('<option value="' + block.id + '">' + block.name + '</option>');
+                    });
+                } else {
+                    blockSelect.append('<option value="">No blocks available</option>');
+                }
+                blockSelect.trigger('change');
+            },
+            error: function(xhr) {
+                console.error('Error fetching blocks:', xhr);
+                blockSelect.append('<option value="">Error loading blocks</option>');
+            }
+        });
+    });
+
+    // If there's already a selected sector (for edit mode), trigger load
+    var initialSector = $('#sector').val(); // ✅ Correct
+    if (initialSector) {
+        $('#sector').trigger('change'); // ✅ Correct
+
+        // After blocks load, set the previously selected block
+        var selectedBlock = '{{ old('block_id', $property->block_id ?? '') }}';
+        if (selectedBlock) {
+            setTimeout(function() {
+                $('#block').val(selectedBlock).trigger('change');
+            }, 500);
+        }
+    }
+
+
+    // If there's already a selected sector (for edit mode), trigger load
+    var initialSector = $('#sector').val();
+    if (initialSector) {
+        $('#sector').trigger('change');
+
+        // After blocks load, set the previously selected block
+        var selectedBlock = '{{ old('sector', $property->block ?? '') }}';
+        if (selectedBlock) {
+            setTimeout(function() {
+                $('#block').val(selectedBlock).trigger('change');
+            }, 500);
+        }
+    }
+
+
+
 
         // Explicit step order
         var stepIds = ['#step-1', '#step-2', '#step-3', '#step-4'];
@@ -796,19 +945,25 @@
                 <div class="transferee-block" data-index="${transfereeIndex}">
                     <button type="button" class="btn btn-danger remove-transferee">Remove</button>
                     <div class="form-row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label>Transferees Name</label>
                             <input type="text" class="form-control"
                             placeholder="Transferees Name"
                             name="transferees[${transfereeIndex}][name]">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label>Father Name</label>
+                            <input type="text" class="form-control"
+                            placeholder="Father Name"
+                            name="transferees[${transfereeIndex}][father_name]">
+                        </div>
+                        <div class="col-md-3">
                             <label>ID Card</label>
                             <input type="text"
                             placeholder="ID Card"
                             class="form-control" name="transferees[${transfereeIndex}][id_card]">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label>Challan No.</label>
                             <input type="text"
                              placeholder="Challan No."
@@ -840,6 +995,7 @@
 
         $('#msform').on('submit', function (e) {
             e.preventDefault();
+              $('#cnic').val($('#cnic').val().replace(/-/g, ''));
 
             var form = this;
             var formData = new FormData(form);
@@ -873,7 +1029,7 @@
                     }
                 },
                 error: function (xhr) {
-                    var message = 'Kuch masla ho gaya. Dobara koshish karein.';
+                    var message = 'Something went wrong. Please try again.';
     console.log(xhr);
     console.log(xhr.status);
     console.log(xhr.responseText);
@@ -901,5 +1057,41 @@
             });
         });
     });
+
+
+
+
+        document.querySelectorAll('textarea').forEach(function(textarea) {
+    textarea.style.overflow = 'hidden';
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+
+$('#cnic').on('input', function () {
+    let value = $(this).val().replace(/\D/g, ''); // sirf numbers
+
+    if (value.length > 13) {
+        value = value.substring(0, 13);
+    }
+
+    let formatted = value;
+
+    if (value.length > 5) {
+        formatted = value.substring(0, 5) + '-' + value.substring(5);
+    }
+
+    if (value.length > 12) {
+        formatted = value.substring(0, 5) + '-' +
+                    value.substring(5, 12) + '-' +
+                    value.substring(12);
+    }
+
+    $(this).val(formatted);
+});
+
+
+
+});
     </script>
 </x-app-layout>

@@ -11,6 +11,7 @@ class PlotHistoryController extends Controller
     {
         $data = $request->validate([
             'name'         => 'nullable|string',
+            'father_name' => 'nullable|string|max:255',
             'id_card'     => 'nullable',
             'challan_no' => 'nullable',
         ]);
@@ -26,6 +27,7 @@ class PlotHistoryController extends Controller
     {
         $data = $request->validate([
             'name'         => 'nullable|string',
+            'father_name' => 'nullable|string|max:255',
             'id_card'     => 'nullable',
             'challan_no' => 'nullable',
         ]);

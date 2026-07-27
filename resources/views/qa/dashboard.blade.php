@@ -117,7 +117,7 @@
 
             <div class="row mt-2">
                 <div class="col title" style="display:flex;justify-content:center; margin-right:40px;">
-                    <h3>MANGLA DAM HOUSING AUTHORITY (MDHA)</h3>
+                    <h3>MIRPUR HOUSING AUTHORITY (MHA)</h3>
                 </div>
             </div>
 

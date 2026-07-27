@@ -166,8 +166,8 @@
 <body>
   <nav class="navbar navbar-dark bg-dark">
     <!-- Navbar content -->
-      <a class="navbar-brand text-white ml-3"><B>Mangla Dam Housing Authority</B></a>
-      
+      <a class="navbar-brand text-white ml-3"><B>Mirpur Housing Authority</B></a>
+
         {{-- <button class="btn btn-outline-white my-2 my-sm-0 bg-secondary mr-5  text-white" type="submit">Login</button> --}}
         <div>
 
@@ -178,8 +178,8 @@
             Register
           </button></a>
         </div>
-          
-    
+
+
   </nav>
   <main>
     <div class="slider">
@@ -187,18 +187,18 @@
         <button class="slider__btn-left" onclick="prevSlide()">&#10094;</button>
         <button class="slider__btn-right" onclick="nextSlide()">&#10095;</button>
          {{-- @if (Route::has('login'))
-              
+
                     @auth
                         <a href="{{ url('/dashboard') }}"><button class="login-btn">Dashboard</button></a>
                     @else
                         <a href="{{ route('login') }}" ><button class="login-btn">Login</button></a>
 
                     @endauth
-             
+
             @endif --}}
-        
-            
-        
+
+
+
         <div class="slider--feature">
           <p class="slider--text"></p>
         </div>
@@ -213,7 +213,7 @@
   {{-- <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
     Launch demo modal
   </button> --}}
-  
+
   <!-- Modal -->
   <div class="modal fade " style="top:50px !important;" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog mr-0" role="document">
@@ -224,24 +224,24 @@
                 <x-slot name="logo">
                     {{-- <x-authentication-card-logo />   --}}
                 </x-slot>
-        
+
                 <x-validation-errors class="mb-4" />
-        
+
                 @if (session('status'))
                     <div class="mb-4 font-medium text-sm text-green-600">
                         {{ session('status') }}
                     </div>
                 @endif
-        
+
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
-        
+
                     <div>
                         <x-label for="email" value="{{ __('Email Or Cnic') }}" />
                         <x-input id="email" class="block mt-1 w-full" type="text" name="login" :value="old('login')" required autofocus autocomplete="username" placeholder="Email or Cnic" />
 
                     </div>
-        
+
                     <div class="mt-4">
                         <x-label for="password" value="{{ __('Password') }}" />
                         <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" placeholder="Password" />
@@ -249,26 +249,26 @@
                     <div class="form-group captcha-container">
                         <img src="{{ route('captcha.generate') }}?t={{ time() }}" id="captcha-image">
                         <button type="button" onclick="document.getElementById('captcha-image').src = '{{ route('captcha.generate') }}?t=' + Date.now()">↻</button>
-                        
+
                     </div>
                     <div class="mt-4">
                         <x-input id="captcha" class="block mt-1 w-full" type="text" name="captcha" required placeholder="Enter Captcha Here" />
-                    </div>  
-        
+                    </div>
+
                     <div class="block mt-4">
                         <label for="remember_me" class="flex items-center">
                             <x-checkbox id="remember_me" name="remember" />
                             <span class="ml-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
                         </label>
                     </div>
-        
+
                     <div class="flex items-center justify-end mt-4">
                         @if (Route::has('password.request'))
                             <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
                                 {{ __('Forgot your password?') }}
                             </a>
                         @endif
-        
+
                         <x-button class="ml-4">
                             {{ __('Log in') }}
                         </x-button>
@@ -277,13 +277,13 @@
             </x-authentication-card>
         </x-guest-layout>
         </div>
-        
+
       </div>
     </div>
   </div>
- 
+
   {{-- <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script> --}}
-  
+
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>

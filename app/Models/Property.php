@@ -11,7 +11,7 @@ class Property extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $table =  'properties';   
+    protected $table =  'properties';
     // protected $fillable = [
     //     'application_no', 'application_date', 'plot_no', 'sector', 'block',
     //     'kanal', 'marla', 'sqrft', 'approved_scheme',
@@ -21,6 +21,12 @@ class Property extends Model
     //     'category', 'mode_allottment', 'allotment_date', 'balloting_serial_no',
     //     'user_id',
     // ];
+
+    // Property Model mein
+public function sector()
+{
+    return $this->belongsTo(Sector::class, 'sector_id');
+}
 
     public function payment()
     {
@@ -36,6 +42,11 @@ class Property extends Model
     {
         return $this->hasOne(Attchement::class);
     }
+
+    public function block()
+{
+    return $this->belongsTo(Block::class, 'block_id');
+}
 }
 
 

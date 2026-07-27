@@ -19,6 +19,7 @@ use App\Http\Controllers\ADCivilController;
 use App\Http\Controllers\DDCivilController;
 use App\Http\Controllers\EngineerController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FileViewerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -49,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('roles', RoleController::class);
     Route::resource('users', UserController::class);
+
 });
 
 Route::middleware('auth')->group(function () {
@@ -62,6 +64,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/update-form/{id}', [PropertyController::class, 'update'])->name('formUpdate');
     Route::get('/form-delete/{id}', [PropertyController::class, 'formDelete'])->name('formDelete');
 
+    Route::get('properties/dashboard', [PropertyController::class, 'dashboard'])->name('property.dashboard');
+
+
     // Standalone step-wise edit endpoints (optional)
     Route::put('/payment/{propertyId}', [PaymentController::class, 'update'])->name('payment.update');
 
@@ -70,6 +75,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/plot-history/{id}', [PlotHistoryController::class, 'destroy'])->name('plotHistory.destroy');
 
     Route::post('/attachment/{propertyId}', [AttchementController::class, 'update'])->name('attachment.update');
+     Route::get('/file-viewer', [FileViewerController::class, 'show'])
+    ->name('file.viewer');
+    Route::get('/get-blocks/{sectorName}', [PropertyController::class, 'getBlocks'])->name('getBlocks');
 });
 
 // QA Routes
