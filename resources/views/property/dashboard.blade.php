@@ -261,7 +261,7 @@
                         <span class="badge-count">{{ $properties->count() }}</span>
                     </div>
                 @empty
-                    <p class="text-muted">Koi sector record maujood nahi hai.</p>
+                    <p class="text-muted">No sector records found.</p>
                 @endforelse
             </div>
 
@@ -314,7 +314,7 @@
                         <span class="badge-count">{{ $properties->count() }}</span>
                     </div>
                 @empty
-                    <p class="text-muted">Koi block record maujood nahi hai.</p>
+                    <p class="text-muted">No block records found.</p>
                 @endforelse
             </div>
 
@@ -367,7 +367,7 @@
                 <span class="badge-count">{{ $properties->count() }}</span>
             </div>
         @empty
-            <p class="text-muted">Koi user record maujood nahi hai.</p>
+            <p class="text-muted">No user records found.</p>
         @endforelse
     </div>
 
