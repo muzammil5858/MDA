@@ -28,6 +28,12 @@ public function sector()
     return $this->belongsTo(Sector::class, 'sector_id');
 }
 
+// app/Models/Property.php
+public function user()
+{
+    return $this->belongsTo(\App\Models\User::class, 'user_id');
+}
+
     public function payment()
     {
         return $this->hasOne(Payment::class);

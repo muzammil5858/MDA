@@ -41,9 +41,9 @@ class PropertyController extends Controller
     {
         $request->validate([
             // Step 1
-            'application_no'        => 'required|string|unique:properties,application_no',
+            'application_no'        => 'required|string',
             'application_date'      => 'nullable|date',
-            'plot_no'               => 'nullable|string',
+            'plot_no'               => 'required|string',
             'sector_id' => 'nullable|exists:sectors,id',
             'block_id'              => 'nullable|exists:blocks,id',
             'kanal'                 => 'nullable|numeric',
@@ -250,9 +250,9 @@ class PropertyController extends Controller
 
         // Validation
         $request->validate([
-            'application_no'        => 'required|string|unique:properties,application_no,' . $property->id,
+            'application_no'        => 'required|string',
             'application_date'      => 'nullable|date',
-            'plot_no'               => 'nullable|string',
+            'plot_no'               => 'required|string',
             'sector_id'             => 'nullable|exists:sectors,id',
             'block_id'              => 'nullable|exists:blocks,id',
             'kanal'                 => 'nullable|numeric',
@@ -540,13 +540,22 @@ public function dashboard()
             return $property->block->name ?? 'No block Assigned';
         });
 
+            // NEW: User-wise grouped properties
+    $propertiesByUser = Property::with('user')
+        ->orderBy('user_id')
+        ->get()
+        ->groupBy(function ($property) {
+            return $property->user->name ?? 'Unknown User';
+        });
+
     return view('property.dashboard', compact(
         'totalProperties',
         'totalPayments',
         'totalPlotHistory',
         'totalAttachments',
         'propertiesBySector',
-        'propertiesByBlock'
+        'propertiesByBlock',
+         'propertiesByUser'
     ));
 }
 

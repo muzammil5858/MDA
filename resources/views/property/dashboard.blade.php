@@ -231,6 +231,21 @@
                     </div>
                 </div>
             </div>
+                {{-- NEW: Entry User Card --}}
+    <div class="col-md-4 col-sm-6">
+        <div class="card stat-card accent-left h-100" id="userCard" onclick="showSection('user')">
+            <div class="card-body d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="label text-muted mb-1">Entry User</p>
+                    <h2 class="value mb-0" style="color:#408175;">{{ $propertiesByUser->count() }}</h2>
+                    <small class="text-muted">View user-wise entries</small>
+                </div>
+                <div class="icon-box" style="color:#B1D3B9;">
+                    <i class="fa fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </div>
 
         </div>
 
@@ -340,56 +355,106 @@
 
         </div>
 
+        {{-- ===================== USER-WISE SECTION ===================== --}}
+<div id="userListSection" class="group-list-section">
+
+    <h5 class="fw-bold mb-3" style="color:#408175;">Entry Users</h5>
+
+    <div class="group-grid">
+        @forelse ($propertiesByUser as $userName => $properties)
+            <div class="group-card" data-panel="user-panel-{{ $loop->index }}" onclick="showGroupTable(this, 'user')">
+                <span class="name">{{ $userName }}</span>
+                <span class="badge-count">{{ $properties->count() }}</span>
+            </div>
+        @empty
+            <p class="text-muted">Koi user record maujood nahi hai.</p>
+        @endforelse
+    </div>
+
+    @foreach ($propertiesByUser as $userName => $properties)
+        <div class="group-table-panel" id="user-panel-{{ $loop->index }}">
+            <div class="panel-header">
+                <span><i class="fa fa-user me-2"></i>{{ $userName }}</span>
+                <span class="badge-count">{{ $properties->count() }}</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle paginated-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Created At</th>
+                            <th>Application No</th>
+                            <th>Applicant Name</th>
+                            <th>Form No</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($properties as $index => $property)
+                            <tr>
+                                <td>{{ $index + 1 }}</td>
+                                <td>{{ optional($property->created_at)->format('d-m-Y h:i A') ?? '-' }}</td>
+                                <td>{{ $property->application_no ?? '-' }}</td>
+                                <td>{{ $property->applicant_name ?? '-' }}</td>
+                                <td>{{ $property->form_no ?? '-' }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination-controls"></div>
+        </div>
+    @endforeach
+
+</div>
+
     </div>
 
     <script>
-        function showSection(type) {
-            const sectorSection = document.getElementById('sectorListSection');
-            const blockSection = document.getElementById('blockListSection');
-            const sectorCard = document.getElementById('sectorCard');
-            const blockCard = document.getElementById('blockCard');
+function showSection(type) {
+    const sections = {
+        sector: { section: document.getElementById('sectorListSection'), card: document.getElementById('sectorCard') },
+        block:  { section: document.getElementById('blockListSection'),  card: document.getElementById('blockCard') },
+        user:   { section: document.getElementById('userListSection'),   card: document.getElementById('userCard') },
+    };
 
-            if (type === 'sector') {
-                const isOpen = sectorSection.style.display === 'block';
-                sectorSection.style.display = isOpen ? 'none' : 'block';
-                blockSection.style.display = 'none';
+    const target = sections[type];
+    const isOpen = target.section.style.display === 'block';
 
-                sectorCard.classList.toggle('active-card', !isOpen);
-                blockCard.classList.remove('active-card');
+    // Sab sections band karein, sab cards se active-card hatayein
+    Object.values(sections).forEach(({ section, card }) => {
+        section.style.display = 'none';
+        card.classList.remove('active-card');
+    });
 
-                if (!isOpen) {
-                    sectorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            } else {
-                const isOpen = blockSection.style.display === 'block';
-                blockSection.style.display = isOpen ? 'none' : 'block';
-                sectorSection.style.display = 'none';
+    if (!isOpen) {
+        target.section.style.display = 'block';
+        target.card.classList.add('active-card');
+        target.section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
 
-                blockCard.classList.toggle('active-card', !isOpen);
-                sectorCard.classList.remove('active-card');
+function showGroupTable(cardEl, type) {
+    const containers = {
+        sector: document.getElementById('sectorListSection'),
+        block:  document.getElementById('blockListSection'),
+        user:   document.getElementById('userListSection'),
+    };
 
-                if (!isOpen) {
-                    blockSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }
-        }
+    const panelId = cardEl.getAttribute('data-panel');
+    const container = containers[type];
 
-        function showGroupTable(cardEl, type) {
-            const panelId = cardEl.getAttribute('data-panel');
-            const container = type === 'sector'
-                ? document.getElementById('sectorListSection')
-                : document.getElementById('blockListSection');
+    const wasActive = cardEl.classList.contains('active');
 
-                  const wasActive = cardEl.classList.contains('active');
-            // Hide all panels + unmark all cards in this section
-            container.querySelectorAll('.group-table-panel').forEach(p => p.style.display = 'none');
-            container.querySelectorAll('.group-card').forEach(c => c.classList.remove('active'));
-            if (!wasActive) {
-                document.getElementById(panelId).style.display = 'block';
-                cardEl.classList.add('active');
-                document.getElementById(panelId).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
+    // Hide all panels + unmark all cards in this section
+    container.querySelectorAll('.group-table-panel').forEach(p => p.style.display = 'none');
+    container.querySelectorAll('.group-card').forEach(c => c.classList.remove('active'));
+
+    if (!wasActive) {
+        document.getElementById(panelId).style.display = 'block';
+        cardEl.classList.add('active');
+        document.getElementById(panelId).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
 
 
         function paginateTable(table, perPage) {
