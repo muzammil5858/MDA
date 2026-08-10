@@ -14,8 +14,15 @@ class Attchement extends Model
         'complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
         'decision_courts', 'decision_allotment_committee',
         'decision_mda_board', 'decision_revising_authority',
+'status',
+        'entry_date',
     ];
 
+        // Add this mutator to automatically cast entry_date to Carbon
+    protected $casts = [
+        'entry_date' => 'datetime',
+        'status' => 'boolean',
+    ];
     public function property()
     {
         return $this->belongsTo(Property::class);

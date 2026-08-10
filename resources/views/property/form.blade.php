@@ -18,6 +18,7 @@
     margin-bottom:15px;
 }
 
+
 .select2-container--default .select2-selection--single{
     background:#ECEFF1 !important;
     border:1px solid #ccc !important;
@@ -252,7 +253,7 @@
         <div class="row justify-content-center">
             <div class="col-11 col-sm-10 col-md-10 text-center p-0 mt-3 mb-2">
                 <div class="card px-4 pt-4 pb-0 mt-3 mb-3">
-                    <h2 id="heading">MirPur Housing Authority - Property Allotment</h2>
+                    <h2 id="heading">MirPur Development Authority - Property Allotment</h2>
                     <p>Fill all form's fields to go to next step</p>
                     <form id="msform" action="{{ route('formSubmission') }}" method="POST" enctype="multipart/form-data">
                         @csrf
@@ -741,11 +742,8 @@
                         </fieldset>
 
                         {{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
-                        <fieldset id="step-4">
-
-
-
-                                           {{-- NOTE (assumption): "Alternate Allotment" placed here — please confirm --}}
+<fieldset id="step-4">
+                                {{-- NOTE (assumption): "Alternate Allotment" placed here — please confirm --}}
                                 <div class="form-row">
                                     <div class="col-md-4 text-left">
                                         <label>Alternate Allotment </label>
@@ -758,7 +756,6 @@
                                 <div class="col-7"><h2 class="fs-title">Attachments:</h2></div>
                                 <div class="col-5"><h2 class="steps">Step 4 - 4</h2></div>
                             </div>
-
                             <div class="form-row">
                                    <div class="col-md-4 text-left">
                                     <label>Complete Property File</label>
@@ -789,6 +786,8 @@
                                     <input type="file" name="decision_revising_authority">
                                 </div>
                             </div>
+
+
 
                             <button type="submit" id="submit-btn" class="action-button">Submit</button>
                             <input type="button" class="previous action-button-previous" value="Previous">

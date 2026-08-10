@@ -5,8 +5,97 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
 
     <style>
+        .preview-toolbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
+    background:#f1f1f1;
+    padding:6px 10px;
+    border-radius:6px;
+    width:fit-content;
+}
+.preview-toolbar button{
+    background:#03346E;
+    color:#fff;
+    border:none;
+    border-radius:4px;
+    width:28px;
+    height:28px;
+    font-size:16px;
+    line-height:1;
+    cursor:pointer;
+}
+.preview-toolbar button:hover{ background:#022a57; }
+#zoomResetBtn{ width:auto; padding:0 10px; font-size:12px; }
+#zoomLevel{
+    font-size:13px;
+    color:#333;
+    min-width:42px;
+    text-align:center;
+}
+
+/* preview-box ab scroll container hai, transform ke liye */
+.preview-box{
+    overflow:auto !important;
+}
+.pdf-scroll-outer{
+    width:100%;
+    min-height:100%;
+    display:flex;
+    justify-content:center;
+}
+.pdf-viewer-container{
+    transform-origin: top center;
+    transition: transform 0.15s ease;
+    width:100%;
+}
+
+        .pdf-viewer-container{
+    width:100%;
+    height:100%;
+    overflow-y:auto;
+    background:#525659;
+    padding:10px 0;
+        user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+}
+.pdf-page-wrap{
+    position:relative;
+    margin:0 auto 12px auto;
+    background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:200px;
+}
+.pdf-page-wrap canvas{
+    display:block;
+    max-width:100%;
+}
+.pdf-page-loading{
+    color:#888;
+    font-size:13px;
+    text-align:center;
+}
+.pdf-page-number{
+    position:absolute;
+    bottom:6px;
+    right:8px;
+    background:rgba(0,0,0,0.55);
+    color:#fff;
+    font-size:11px;
+    padding:1px 6px;
+    border-radius:3px;
+}
         .current-file-box {
     background: #f1f7ff;
     border: 1px solid #cfe0ff;
@@ -21,6 +110,61 @@
     font-weight: 600;
     margin-right: 4px;
 }
+
+.complete-file-check {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.complete-file-check input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px;
+    max-width: 18px;
+    margin: 0 10px 0 0 !important;
+    padding: 0 !important;
+    display: inline-block !important;
+    flex: 0 0 18px;
+    cursor: pointer;
+    /* accent-color: #03346E; */
+        appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #fff;
+    border: 2px solid #03346E;
+    border-radius: 3px;
+    position: relative;
+}
+.complete-file-check input[type="checkbox"]:checked {
+    background-color: #fff; /* box white hi rahega */
+    border: 2px solid #03346E;
+}
+
+.complete-file-check input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    width: 5px;
+    height: 10px;
+    border: solid #000;       /* 👈 tick mark black */
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.complete-file-check input[type="checkbox"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.complete-file-check label {
+    margin: 0 !important;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+
 .current-file-box a {
     color: #03346E;
     word-break: break-all;
@@ -147,6 +291,9 @@
     border-radius:8px;
     overflow:hidden;
     background:#fafafa;
+        user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
 }
 
 .preview-box iframe{
@@ -247,21 +394,33 @@
                 <div class="row mx-0">
 
                     {{-- ===================== LEFT: DOCUMENT PREVIEW ===================== --}}
-                    <div class="col-lg-7 col-8 preview-col">
-                        <h5 class="mb-2" style="color:#03346E;">Attached Document Preview</h5>
-                        <div class="preview-box">
-                            @if(!empty($property->attachment->complete_property_file))
-                                <iframe src="{{ asset('storage/' . $property->attachment->complete_property_file) }}"></iframe>
-                            @else
-                                <div class="no-preview">"No complete property file has been uploaded yet.<br>Please upload the file from the Attachments step."</div>
-                            @endif
-                        </div>
-                    </div>
+
+{{-- ===================== LEFT: DOCUMENT PREVIEW ===================== --}}
+<div class="col-lg-7 col-8 preview-col">
+    <h5 class="mb-2" style="color:#03346E;">Attached Document Preview</h5>
+
+    <div class="preview-toolbar" id="previewToolbar" style="display:none;">
+        <button type="button" id="zoomOutBtn" title="Zoom Out">−</button>
+        <span id="zoomLevel">100%</span>
+        <button type="button" id="zoomInBtn" title="Zoom In">+</button>
+        <button type="button" id="zoomResetBtn" title="Reset">Reset</button>
+    </div>
+
+    <div class="preview-box" id="previewBox">
+        @if(!empty($property->attachment->complete_property_file))
+            <div class="pdf-scroll-outer" id="pdfScrollOuter">
+                <div id="pdfViewerContainer" class="pdf-viewer-container"></div>
+            </div>
+        @else
+            <div class="no-preview">No complete property file has been uploaded yet.<br>Please upload the file from the Attachments step.</div>
+        @endif
+    </div>
+</div>
 
                     {{-- ===================== RIGHT: FORM ===================== --}}
                     <div class="col-lg-5 col-12 form-col">
                         <div class="card px-4 pt-4 pb-3 shadow-sm">
-                            <h2 id="heading">MirPur Housing Authority - Edit Property</h2>
+                            <h2 id="heading">Mirpur Development  Authority - Edit Property</h2>
                             <p class="text-center">Fill all form's fields to go to next step</p>
 
                             <form id="msform" action="{{ route('formUpdate', $property->id) }}" method="POST" enctype="multipart/form-data">
@@ -677,6 +836,8 @@
 
                                 {{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
 
+{{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
+
 <fieldset id="step-4">
     <div class="form-row">
         <div class="col-md-12 text-left">
@@ -692,96 +853,120 @@
         <div class="col-5"><h2 class="steps">Step 4 - 4</h2></div>
     </div>
 
-<div class="form-row">
-    <div class="col-md-12 text-left">
-        <label>Complete Property File</label>
-        <input type="file" name="complete_property_file">
-        @if(!empty($property->attachment->complete_property_file))
-            <div class="current-file-box">
-                <span class="current-file-label">Current File:</span>
-                <a href="{{ route('file.viewer', ['path' => $property->attachment->complete_property_file]) }}">
-                    {{ basename($property->attachment->complete_property_file) }}
-                </a>
-            </div>
-        @endif
+    <div class="form-row">
+        <div class="col-md-12 text-left">
+            <label>Complete Property File</label>
+            <input type="file" name="complete_property_file" id="complete_property_file_input" accept=".pdf,.jpg,.jpeg,.png">
+            @if(!empty($property->attachment->complete_property_file))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->complete_property_file]) }}" target="_blank">
+                        {{ basename($property->attachment->complete_property_file) }}
+                    </a>
+                    @if(isset($property->attachment->status) && $property->attachment->status)
+                        <span class="badge badge-success ml-2">✓ Confirmed</span>
+                    @endif
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-12 text-left">
+            <label>Adjacent Area Allotment</label>
+            <input type="file" name="adjacent_area_allotment">
+            @if(!empty($property->attachment->adjacent_area_allotment))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->adjacent_area_allotment]) }}" target="_blank">
+                        {{ basename($property->attachment->adjacent_area_allotment) }}
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-12 text-left">
+            <label>Division of Plots</label>
+            <input type="file" name="division_of_plots">
+            @if(!empty($property->attachment->division_of_plots))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->division_of_plots]) }}" target="_blank">
+                        {{ basename($property->attachment->division_of_plots) }}
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-12 text-left">
+            <label>Decision of Courts Against Plot</label>
+            <input type="file" name="decision_courts">
+            @if(!empty($property->attachment->decision_courts))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_courts]) }}" target="_blank">
+                        {{ basename($property->attachment->decision_courts) }}
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-12 text-left">
+            <label>Decision of Allotment Committee</label>
+            <input type="file" name="decision_allotment_committee">
+            @if(!empty($property->attachment->decision_allotment_committee))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_allotment_committee]) }}" target="_blank">
+                        {{ basename($property->attachment->decision_allotment_committee) }}
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-12 text-left">
+            <label>Decision of MDA Board</label>
+            <input type="file" name="decision_mda_board">
+            @if(!empty($property->attachment->decision_mda_board))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_mda_board]) }}" target="_blank">
+                        {{ basename($property->attachment->decision_mda_board) }}
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-12 text-left">
+            <label>Decision of Revising Authority (Cancel/Restore etc)</label>
+            <input type="file" name="decision_revising_authority">
+            @if(!empty($property->attachment->decision_revising_authority))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_revising_authority]) }}" target="_blank">
+                        {{ basename($property->attachment->decision_revising_authority) }}
+                    </a>
+                </div>
+            @endif
+        </div>
     </div>
 
-    <div class="col-md-12 text-left">
-        <label>Adjacent Area Allotment</label>
-        <input type="file" name="adjacent_area_allotment">
-        @if(!empty($property->attachment->adjacent_area_allotment))
-            <div class="current-file-box">
-                <span class="current-file-label">Current File:</span>
-                <a href="{{ route('file.viewer', ['path' => $property->attachment->adjacent_area_allotment]) }}">
-                    {{ basename($property->attachment->adjacent_area_allotment) }}
-                </a>
-            </div>
-        @endif
-    </div>
-
-    <div class="col-md-12 text-left">
-        <label>Division of Plots</label>
-        <input type="file" name="division_of_plots">
-        @if(!empty($property->attachment->division_of_plots))
-            <div class="current-file-box">
-                <span class="current-file-label">Current File:</span>
-                <a href="{{ route('file.viewer', ['path' => $property->attachment->division_of_plots]) }}">
-                    {{ basename($property->attachment->division_of_plots) }}
-                </a>
-            </div>
-        @endif
-    </div>
-
-    <div class="col-md-12 text-left">
-        <label>Decision of Courts Against Plot</label>
-        <input type="file" name="decision_courts">
-        @if(!empty($property->attachment->decision_courts))
-            <div class="current-file-box">
-                <span class="current-file-label">Current File:</span>
-                <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_courts]) }}">
-                    {{ basename($property->attachment->decision_courts) }}
-                </a>
-            </div>
-        @endif
-    </div>
-
-    <div class="col-md-12 text-left">
-        <label>Decision of Allotment Committee</label>
-        <input type="file" name="decision_allotment_committee">
-        @if(!empty($property->attachment->decision_allotment_committee))
-            <div class="current-file-box">
-                <span class="current-file-label">Current File:</span>
-                <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_allotment_committee]) }}">
-                    {{ basename($property->attachment->decision_allotment_committee) }}
-                </a>
-            </div>
-        @endif
-    </div>
-
-    <div class="col-md-12 text-left">
-        <label>Decision of MDA Board</label>
-        <input type="file" name="decision_mda_board">
-        @if(!empty($property->attachment->decision_mda_board))
-            <div class="current-file-box">
-                <span class="current-file-label">Current File:</span>
-                <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_mda_board]) }}">
-                    {{ basename($property->attachment->decision_mda_board) }}
-                </a>
-            </div>
-        @endif
-    </div>
-
-    <div class="col-md-12 text-left">
-        <label>Decision of Revising Authority (Cancel/Restore etc)</label>
-        <input type="file" name="decision_revising_authority">
-        @if(!empty($property->attachment->decision_revising_authority))
-            <div class="current-file-box">
-                <span class="current-file-label">Current File:</span>
-                <a href="{{ route('file.viewer', ['path' => $property->attachment->decision_revising_authority]) }}">
-                    {{ basename($property->attachment->decision_revising_authority) }}
-                </a>
-            </div>
-        @endif
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="complete-file-check">
+            <input
+                type="checkbox"
+                id="check_complete_file"
+                name="check_complete_file"
+                value="1"
+                {{ isset($property->attachment->status) && $property->attachment->status ? 'checked' : '' }}
+                {{ isset($property->attachment->status) && $property->attachment->status ? 'disabled' : '' }}
+            >
+            <label for="check_complete_file">
+                Check this box if you have added the Complete File Data.
+                @if(isset($property->attachment->status) && $property->attachment->status && isset($property->attachment->entry_date))
+                    <span class="text-success">(Confirmed on {{ \Carbon\Carbon::parse($property->attachment->entry_date)->format('Y-m-d H:i') }})</span>
+                @endif
+            </label>
+        </div>
     </div>
 </div>
 
@@ -799,245 +984,430 @@
     </div>
 
     <script>
-    $(document).ready(function () {
-        $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
+$(document).ready(function () {
+    $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
 
-    // Initialize Select2 for sector
+    var $submitBtn = $('#submit-btn');
+    var $completeFileCheck = $('#check_complete_file');
+    var $completeFileInput = $('input[name="complete_property_file"]');
+    var hasExistingFile = {{ !empty($property->attachment->complete_property_file) ? 'true' : 'false' }};
+    var isStatusConfirmed = {{ isset($property->attachment->status) && $property->attachment->status ? 'true' : 'false' }};
+
+    // ================= ZOOM SETUP =================
+    var currentZoom = 1;
+    var ZOOM_STEP = 0.15;
+    var ZOOM_MIN = 0.5;
+    var ZOOM_MAX = 3;
+
+    function applyZoom() {
+        $('#pdfViewerContainer').css('transform', 'scale(' + currentZoom + ')');
+        $('#zoomLevel').text(Math.round(currentZoom * 100) + '%');
+    }
+
+    function showZoomToolbar() {
+        $('#previewToolbar').show();
+    }
+
+    function resetZoom() {
+        currentZoom = 1;
+        applyZoom();
+    }
+
+    $('#zoomInBtn').on('click', function () {
+        currentZoom = Math.min(ZOOM_MAX, currentZoom + ZOOM_STEP);
+        applyZoom();
+    });
+
+    $('#zoomOutBtn').on('click', function () {
+        currentZoom = Math.max(ZOOM_MIN, currentZoom - ZOOM_STEP);
+        applyZoom();
+    });
+
+    $('#zoomResetBtn').on('click', function () {
+        resetZoom();
+    });
+
+    // Ctrl + scroll se bhi zoom ho (sirf preview box ke andar)
+    $('#previewBox').on('wheel', function (e) {
+        if (e.ctrlKey) {
+            e.preventDefault();
+            if (e.originalEvent.deltaY < 0) {
+                currentZoom = Math.min(ZOOM_MAX, currentZoom + 0.1);
+            } else {
+                currentZoom = Math.max(ZOOM_MIN, currentZoom - 0.1);
+            }
+            applyZoom();
+        }
+    });
+
+    // ================= RIGHT-CLICK / SHORTCUT BLOCK =================
+    $('#previewBox').on('contextmenu', function (e) {
+        e.preventDefault();
+        return false;
+    });
+
+    $(document).on('keydown', function (e) {
+        if (
+            (e.ctrlKey && (e.key === 's' || e.key === 'S')) ||
+            (e.ctrlKey && (e.key === 'p' || e.key === 'P')) ||
+            (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+            (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) ||
+            e.key === 'F12'
+        ) {
+            if ($('#previewBox').length) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+
+    // ================= PDF PROGRESSIVE RENDER =================
+    function renderPdfProgressive(url, containerSelector) {
+        var $container = $(containerSelector);
+        $container.empty();
+        $container.html('<div class="pdf-page-loading" style="padding:20px;">Loading document…</div>');
+
+        pdfjsLib.getDocument(url).promise.then(function (pdf) {
+            $container.empty();
+
+            // Zoom toolbar activate karo aur 100% reset karo
+            showZoomToolbar();
+            resetZoom();
+
+            var numPages = pdf.numPages;
+            var pageWraps = [];
+
+            // Step A: sab pages ke placeholder div turant bana do
+            for (var i = 1; i <= numPages; i++) {
+                var $wrap = $('<div class="pdf-page-wrap" data-page="' + i + '">' +
+                    '<div class="pdf-page-loading">Page ' + i + ' loading…</div>' +
+                    '<span class="pdf-page-number">' + i + ' / ' + numPages + '</span>' +
+                    '</div>');
+                $container.append($wrap);
+                pageWraps.push($wrap[0]);
+            }
+
+            function renderPage(pageNum, wrapEl) {
+                if ($(wrapEl).data('rendered')) return;
+                $(wrapEl).data('rendered', true);
+
+                pdf.getPage(pageNum).then(function (page) {
+                    var scale = 1.2;
+                    var viewport = page.getViewport({ scale: scale });
+
+                    var canvas = document.createElement('canvas');
+                    canvas.width = viewport.width;
+                    canvas.height = viewport.height;
+
+                    $(wrapEl).find('.pdf-page-loading').remove();
+                    $(wrapEl).prepend(canvas);
+
+                    var ctx = canvas.getContext('2d');
+                    page.render({ canvasContext: ctx, viewport: viewport });
+                });
+            }
+
+            // Step B: pehla page turant render karo
+            renderPage(1, pageWraps[0]);
+
+            // Step C: baaki pages lazy — jab visible hon tabhi render hon
+            if ('IntersectionObserver' in window) {
+                var observer = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            var pageNum = parseInt($(entry.target).data('page'));
+                            renderPage(pageNum, entry.target);
+                        }
+                    });
+                }, { root: $container[0], rootMargin: '400px 0px', threshold: 0.01 });
+
+                pageWraps.forEach(function (el) { observer.observe(el); });
+            } else {
+                pageWraps.forEach(function (el, idx) { renderPage(idx + 1, el); });
+            }
+        }).catch(function (err) {
+            $container.html('<div class="no-preview" style="padding:40px;">Preview load nahi ho saka.<br>' + err.message + '</div>');
+        });
+    }
+
+    // ================= FILE INPUT CHANGE (naya upload preview) =================
+    $('#complete_property_file_input').on('change', function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+
+        var fileURL = URL.createObjectURL(file);
+        var $previewBox = $('#previewBox');
+
+        if (file.type === 'application/pdf') {
+            $previewBox.html('<div class="pdf-scroll-outer" id="pdfScrollOuter"><div id="pdfViewerContainer" class="pdf-viewer-container"></div></div>');
+            renderPdfProgressive(fileURL, '#pdfViewerContainer');
+
+        } else if (file.type.startsWith('image/')) {
+            $previewBox.html('<div class="pdf-scroll-outer"><div id="pdfViewerContainer" class="pdf-viewer-container"><img src="' + fileURL + '" style="max-width:100%;display:block;margin:auto;"></div></div>');
+            showZoomToolbar();
+            resetZoom();
+
+        } else {
+            $('#previewToolbar').hide();
+            $previewBox.html('<div class="no-preview">Preview not available for this file type.<br>(' + file.name + ')</div>');
+        }
+    });
+
+    // ================= STATUS CHECKBOX LOGIC =================
+    function checkFileAndStatus() {
+        $submitBtn.prop('disabled', false);
+
+        if (isStatusConfirmed) {
+            $completeFileCheck.prop('disabled', true);
+            $completeFileCheck.parent().find('.helper-text').remove();
+            var confirmedDate = '{{ isset($property->attachment->entry_date) ? \Carbon\Carbon::parse($property->attachment->entry_date)->format('Y-m-d H:i') : '' }}';
+            $completeFileCheck.parent().append(
+                '<span class="helper-text text-success" style="font-size:12px;margin-left:5px;">✅ File confirmed on ' + confirmedDate + '</span>'
+            );
+            return;
+        }
+        $completeFileCheck.parent().find('.helper-text').remove();
+    }
+
+    checkFileAndStatus();
+
+    $completeFileInput.on('change', function() {
+        hasExistingFile = true;
+        checkFileAndStatus();
+    });
+
+    $completeFileCheck.on('change', function() {
+        checkFileAndStatus();
+    });
+
+    // ================= SELECT2 =================
     $('#sector').select2({
         placeholder: "Select Sector",
         allowClear: true,
         width: "100%"
     });
 
-    // Initialize Select2 for block
     $('#block').select2({
         placeholder: "Select Block",
         allowClear: true,
         width: "100%"
     });
-        // Store the initially selected values
+
     var initialSector = $('#sector').val();
     var initialBlock = '{{ old('block_id', $property->block_id ?? '') }}';
 
-    console.log('Initial Sector:', initialSector);
-    console.log('Initial Block:', initialBlock);
+    function loadBlocks(sectorId, selectedBlockId) {
+        var blockSelect = $('#block');
 
-    // Store the initially selected block value
-    var initialBlockValue = $('#block').val();
+        blockSelect.empty().append('<option value="">Select Block</option>');
+        blockSelect.val('').trigger('change');
 
-function loadBlocks(sectorId, selectedBlockId) {
-    var blockSelect = $('#block');
+        if (!sectorId) {
+            blockSelect.prop('disabled', true);
+            return;
+        }
 
-    blockSelect.empty().append('<option value="">Select Block</option>');
-    blockSelect.val('').trigger('change');
+        blockSelect.prop('disabled', false);
+        blockSelect.append('<option value="" disabled>Loading blocks...</option>');
 
-    if (!sectorId) {
-        blockSelect.prop('disabled', true);
-        return;
+        $.ajax({
+            url: '/get-blocks/' + sectorId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(blocks) {
+                blockSelect.find('option:disabled').remove();
+
+                if (blocks.length > 0) {
+                    $.each(blocks, function(index, block) {
+                        var isSelected = (selectedBlockId && String(block.id) === String(selectedBlockId)) ? 'selected' : '';
+                        blockSelect.append('<option value="' + block.id + '" ' + isSelected + '>' + block.name + '</option>');
+                    });
+                } else {
+                    blockSelect.append('<option value="" disabled>No blocks available</option>');
+                }
+
+                if (selectedBlockId) {
+                    blockSelect.val(String(selectedBlockId)).trigger('change');
+                } else {
+                    blockSelect.trigger('change');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error fetching blocks:', xhr);
+                blockSelect.find('option:disabled').remove();
+                blockSelect.append('<option value="" disabled>Error loading blocks</option>');
+            }
+        });
     }
 
-    blockSelect.prop('disabled', false);
-    blockSelect.append('<option value="" disabled>Loading blocks...</option>');
-
-    $.ajax({
-        url: '/get-blocks/' + sectorId,
-        type: 'GET',
-        dataType: 'json',
-        success: function(blocks) {
-            blockSelect.find('option:disabled').remove();
-
-            if (blocks.length > 0) {
-                $.each(blocks, function(index, block) {
-                    var isSelected = (selectedBlockId && String(block.id) === String(selectedBlockId)) ? 'selected' : '';
-                    blockSelect.append('<option value="' + block.id + '" ' + isSelected + '>' + block.name + '</option>');
-                });
-            } else {
-                blockSelect.append('<option value="" disabled>No blocks available</option>');
-            }
-
-            if (selectedBlockId) {
-                blockSelect.val(String(selectedBlockId)).trigger('change');
-            } else {
-                blockSelect.trigger('change');
-            }
-        },
-        error: function(xhr) {
-            console.error('Error fetching blocks:', xhr);
-            blockSelect.find('option:disabled').remove();
-            blockSelect.append('<option value="" disabled>Error loading blocks</option>');
-        }
-    });
-}
-
-    // When sector changes, load blocks
     $('#sector').on('change', function() {
-   loadBlocks($(this).val(), null);
+        loadBlocks($(this).val(), null);
     });
-
-    // FOR EDIT MODE: Load blocks for initially selected sector
 
     if (initialSector) {
-        // Load blocks with the initially selected block
         loadBlocks(initialSector, initialBlock);
     } else {
-        // If no sector selected, disable block dropdown
         $('#block').prop('disabled', true);
     }
 
-        var stepIds = ['#step-1', '#step-2', '#step-3', '#step-4'];
-        var current = 0;
+    // ================= STEPPER =================
+    var stepIds = ['#step-1', '#step-2', '#step-3', '#step-4'];
+    var current = 0;
 
-        function setProgressBar(stepIndex) {
-            var percent = (100 / stepIds.length) * (stepIndex + 1);
-            $('.progress-bar').css('width', percent.toFixed() + '%');
-        }
+    function setProgressBar(stepIndex) {
+        var percent = (100 / stepIds.length) * (stepIndex + 1);
+        $('.progress-bar').css('width', percent.toFixed() + '%');
+    }
 
-        function goToStep(index) {
-            if (index < 0 || index >= stepIds.length) return;
+    function goToStep(index) {
+        if (index < 0 || index >= stepIds.length) return;
 
-            var current_fs = $(stepIds[current]);
-            var target_fs = $(stepIds[index]);
+        var current_fs = $(stepIds[current]);
+        var target_fs = $(stepIds[index]);
 
-            $('#progressbar li').removeClass('active');
-            $('#progressbar li').each(function (i) {
-                if (i <= index) $(this).addClass('active');
-            });
-
-            current_fs.hide();
-            target_fs.show();
-
-            current = index;
-            setProgressBar(current);
-        }
-
-        $(document).off('click', '.next').on('click', '.next', function (e) {
-            e.preventDefault();
-            goToStep(current + 1);
+        $('#progressbar li').removeClass('active');
+        $('#progressbar li').each(function (i) {
+            if (i <= index) $(this).addClass('active');
         });
 
-        $(document).off('click', '.previous').on('click', '.previous', function (e) {
-            e.preventDefault();
-            goToStep(current - 1);
-        });
+        current_fs.hide();
+        target_fs.show();
 
-        $('#progressbar li').on('click', function () {
-            var index = $('#progressbar li').index(this);
-            goToStep(index);
-        });
+        current = index;
+        setProgressBar(current);
+    }
 
-        var transfereeIndex = {{ $property->plotHistories->count() > 0 ? $property->plotHistories->count() : 1 }};
-        $('#add-transferee').click(function () {
-            var block = `
-                <div class="transferee-block" data-index="${transfereeIndex}">
-                    <button type="button" class="remove-transferee">Remove</button>
-                    <div class="form-row">
-                        <div class="col-md-12">
-                            <label>Transferees Name</label>
-                            <input type="text" class="form-control" placeholder="Transferees Name"
-                                name="transferees[${transfereeIndex}][name]">
-                        </div>
-                        <div class="col-md-12">
-                            <label>ID Card</label>
-                            <input type="text" placeholder="ID Card" class="form-control"
-                                name="transferees[${transfereeIndex}][id_card]">
-                        </div>
-                        <div class="col-md-12">
-                            <label>Challan No.</label>
-                            <input type="text" placeholder="Challan No." class="form-control"
-                                name="transferees[${transfereeIndex}][challan_no]">
-                        </div>
+    $(document).off('click', '.next').on('click', '.next', function (e) {
+        e.preventDefault();
+        goToStep(current + 1);
+    });
+
+    $(document).off('click', '.previous').on('click', '.previous', function (e) {
+        e.preventDefault();
+        goToStep(current - 1);
+    });
+
+    $('#progressbar li').on('click', function () {
+        var index = $('#progressbar li').index(this);
+        goToStep(index);
+    });
+
+    // ================= TRANSFEREES =================
+    var transfereeIndex = {{ $property->plotHistories->count() > 0 ? $property->plotHistories->count() : 1 }};
+    $('#add-transferee').click(function () {
+        var block = `
+            <div class="transferee-block" data-index="${transfereeIndex}">
+                <button type="button" class="remove-transferee">Remove</button>
+                <div class="form-row">
+                    <div class="col-md-12">
+                        <label>Transferees Name</label>
+                        <input type="text" class="form-control" placeholder="Transferees Name"
+                            name="transferees[${transfereeIndex}][name]">
                     </div>
-                </div>`;
-            $('#transferees-wrapper').append(block);
-            transfereeIndex++;
-        });
+                    <div class="col-md-12">
+                        <label>ID Card</label>
+                        <input type="text" placeholder="ID Card" class="form-control"
+                            name="transferees[${transfereeIndex}][id_card]">
+                    </div>
+                    <div class="col-md-12">
+                        <label>Challan No.</label>
+                        <input type="text" placeholder="Challan No." class="form-control"
+                            name="transferees[${transfereeIndex}][challan_no]">
+                    </div>
+                </div>
+            </div>`;
+        $('#transferees-wrapper').append(block);
+        transfereeIndex++;
+    });
 
-        $(document).on('click', '.remove-transferee', function (e) {
-            e.preventDefault();
-            $(this).closest('.transferee-block').remove();
-        });
+    $(document).on('click', '.remove-transferee', function (e) {
+        e.preventDefault();
+        $(this).closest('.transferee-block').remove();
+    });
 
-        function showAlert(type, message) {
-            var box = $('#form-alert-box');
-            box.removeClass('alert-success alert-danger').addClass('alert-' + type);
-            box.html(message);
-            box.show();
-            $('html, body').animate({ scrollTop: box.offset().top - 100 }, 300);
-        }
+    // ================= FORM SUBMIT (AJAX) =================
+    function showAlert(type, message) {
+        var box = $('#form-alert-box');
+        box.removeClass('alert-success alert-danger').addClass('alert-' + type);
+        box.html(message);
+        box.show();
+        $('html, body').animate({ scrollTop: box.offset().top - 100 }, 300);
+    }
 
-        $('#msform').on('submit', function (e) {
-            e.preventDefault();
+    $('#msform').on('submit', function (e) {
+        e.preventDefault();
 
-            var form = this;
-            var formData = new FormData(form);
-            var $submitBtn = $('#submit-btn');
+        var form = this;
+        var formData = new FormData(form);
+        var $submitBtn = $('#submit-btn');
 
-            $submitBtn.prop('disabled', true).text('Saving...');
-            $('#form-alert-box').hide();
+        $submitBtn.prop('disabled', true).text('Saving...');
+        $('#form-alert-box').hide();
 
-            $.ajax({
-                url: $(form).attr('action'),
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                },
-                success: function (response) {
-                    showAlert('success', response.message || 'Data updated successfully.');
-                    if (response.redirect) {
-                        setTimeout(function () {
-                            window.location.href = response.redirect;
-                        }, 1500);
-                    }
-                    else {
-                    // Agar redirect nahi hai toh page reload karein
+        $.ajax({
+            url: $(form).attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            success: function (response) {
+                showAlert('success', response.message || 'Data updated successfully.');
+                if (response.redirect) {
+                    setTimeout(function () {
+                        window.location.href = response.redirect;
+                    }, 1500);
+                } else {
                     setTimeout(function () {
                         location.reload();
                     }, 1500);
                 }
-                },
-                error: function (xhr) {
-                    var message = 'Something went wrong. Please try again.';
+            },
+            error: function (xhr) {
+                var message = 'Something went wrong. Please try again.';
 
-                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                        var errors = xhr.responseJSON.errors;
-                        var list = '<ul class="mb-0">';
-                        $.each(errors, function (field, messages) {
-                            list += '<li>' + messages[0] + '</li>';
-                        });
-                        list += '</ul>';
-                        message = list;
-                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                        message = xhr.responseJSON.message;
-                    }else if (xhr.responseText) {
-                    // Agar raw response aaye toh usko parse karein
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    var errors = xhr.responseJSON.errors;
+                    var list = '<ul class="mb-0">';
+                    $.each(errors, function (field, messages) {
+                        list += '<li>' + messages[0] + '</li>';
+                    });
+                    list += '</ul>';
+                    message = list;
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                } else if (xhr.responseText) {
                     try {
                         var jsonResponse = JSON.parse(xhr.responseText);
                         if (jsonResponse.message) {
                             message = jsonResponse.message;
                         }
                     } catch (e) {
-                        // Agar parse na ho toh raw text show karein
                         message = xhr.responseText;
                     }
                 }
 
-                   showAlert('danger', message);
-                      // Error ke baad bhi submit button enable karein
+                showAlert('danger', message);
                 $submitBtn.prop('disabled', false).text('Update');
-                },
-                complete: function () {
-                     if ($submitBtn.prop('disabled')) {
+            },
+            complete: function () {
+                if ($submitBtn.prop('disabled')) {
                     $submitBtn.prop('disabled', false).text('Update');
                 }
-                  //  $submitBtn.prop('disabled', false).text('Update');
-                }
-            });
+            }
         });
     });
+
+    // ================= PAGE LOAD: EXISTING FILE RENDER =================
+    @if(!empty($property->attachment->complete_property_file))
+        renderPdfProgressive("{{ asset('storage/' . $property->attachment->complete_property_file) }}", '#pdfViewerContainer');
+    @endif
+
+});
     </script>
 </x-app-layout>

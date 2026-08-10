@@ -92,16 +92,16 @@ class PropertyController extends Controller
 
             // Step 4
             'alternate_allotment'          => 'nullable|string',
-            'complete_property_file'       => 'nullable|file|max:5120',
-            'adjacent_area_allotment'      => 'nullable|file|max:5120',
-            'division_of_plots'            => 'nullable|file|max:5120',
-            'decision_courts'              => 'nullable|file|max:5120',
-            'decision_allotment_committee' => 'nullable|file|max:5120',
-            'decision_mda_board'           => 'nullable|file|max:5120',
-            'decision_revising_authority'  => 'nullable|file|max:5120',
+            'complete_property_file'       => 'required|file',
+            'adjacent_area_allotment'      => 'nullable|file',
+            'division_of_plots'            => 'nullable|file',
+            'decision_courts'              => 'nullable|file',
+            'decision_allotment_committee' => 'nullable|file',
+            'decision_mda_board'           => 'nullable|file',
+            'decision_revising_authority'  => 'nullable|file',
         ], [
-            'application_no.unique' => 'This Application No already exists. Please use a different number.',
-            'application_no.required' => 'The Application No is required.',
+            'application_no.unique' => 'This Application No. already exists. Please use a different number.',
+            'application_no.required' => 'The Application No. is required.',
         ]);
 
         DB::beginTransaction();
@@ -176,6 +176,8 @@ class PropertyController extends Controller
             $attachmentData = [
                 'property_id'         => $property->id,
                 'alternate_allotment' => $request->alternate_allotment,
+                'status'              => false, // Default status
+                'entry_date'          => null,
             ];
 
             $this->storeAttachmentFiles($request, $property, $attachmentData);
@@ -205,13 +207,50 @@ class PropertyController extends Controller
     }
 
     /**
-     * List of all submitted properties (with related data).
-     */
-    public function formList()
-    {
-        $data = Property::with(['payment', 'plotHistories', 'attachment','sector','block'])->latest()->get();
-        return view('property.formlist', compact('data'));
-    }
+ * List of all submitted properties (with related data).
+ */
+/**
+ * List of all submitted properties (with related data).
+ */
+/**
+ * List of properties with missing complete_property_file.
+ */
+public function formList()
+{
+    $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+        ->whereDoesntHave('attachment', function($query) {
+            $query->whereNotNull('complete_property_file');
+        })
+        ->orWhereHas('attachment', function($query) {
+            $query->whereNull('complete_property_file');
+        })
+        ->latest()
+        ->get();
+
+    return view('property.formlist', compact('data'));
+}
+
+/**
+ * List of properties created by the logged-in user.
+ */
+public function entriesList()
+{
+    $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+        ->where('user_id', auth()->id())
+        ->latest()
+        ->get();
+
+    return view('property.Entries_List', compact('data'));
+}
+
+    // /**
+    //  * List of all submitted properties (with related data).
+    //  */
+    // public function formList()
+    // {
+    //     $data = Property::with(['payment', 'plotHistories', 'attachment','sector','block'])->latest()->get();
+    //     return view('property.formlist', compact('data'));
+    // }
 
     /**
      * Show a single property's full detail.
@@ -295,13 +334,13 @@ class PropertyController extends Controller
             'transferees.*.id_card' => 'nullable|string',
             'transferees.*.challan_no' => 'nullable|string',
             'alternate_allotment'   => 'nullable|string',
-            'complete_property_file' => 'nullable|file|max:5120',
-            'adjacent_area_allotment' => 'nullable|file|max:5120',
-            'division_of_plots'     => 'nullable|file|max:5120',
-            'decision_courts'       => 'nullable|file|max:5120',
-            'decision_allotment_committee' => 'nullable|file|max:5120',
-            'decision_mda_board'    => 'nullable|file|max:5120',
-            'decision_revising_authority' => 'nullable|file|max:5120',
+            'complete_property_file' => 'nullable|file',
+            'adjacent_area_allotment' => 'nullable|file',
+            'division_of_plots'     => 'nullable|file',
+            'decision_courts'       => 'nullable|file',
+            'decision_allotment_committee' => 'nullable|file',
+            'decision_mda_board'    => 'nullable|file',
+            'decision_revising_authority' => 'nullable|file',
         ], [
             'application_no.unique' => 'This Application No already exists. Please use a different number.',
             'application_no.required' => 'The Application No is required.',
@@ -312,6 +351,11 @@ class PropertyController extends Controller
         try {
             $oldApplicationNo = $property->application_no;
             $newApplicationNo = $request->application_no;
+
+    $confirmChecked = $request->has('check_complete_file') && $request->check_complete_file == '1';
+
+    $userId = $confirmChecked ? auth()->id() : $property->user_id;
+
 
             // 1) Update Property
             $property->update([
@@ -339,6 +383,7 @@ class PropertyController extends Controller
                 'mode_allottment'      => $request->mode_allottment,
                 'allotment_date'       => $request->allotment_date,
                 'balloting_serial_no'  => $request->balloting_serial_no,
+                 'user_id'              => $userId,
             ]);
 
             // 2) Update Payment
@@ -382,20 +427,36 @@ class PropertyController extends Controller
             }
 
             // 4) Rename folder if application_no changed
-            if ($oldApplicationNo && $oldApplicationNo !== $newApplicationNo) {
-                $this->renameAttachmentFolder($oldApplicationNo, $newApplicationNo);
-            }
-
+           if ($oldApplicationNo && $oldApplicationNo !== $newApplicationNo) {
+    $this->renameAttachmentFolder(
+        $oldApplicationNo,
+        $newApplicationNo,
+        $property->id
+    );
+}
             // 5) Update Attachments
-            $attachmentData = ['alternate_allotment' => $request->alternate_allotment];
-            $this->storeAttachmentFiles($request, $property, $attachmentData);
+    $attachmentData = ['alternate_allotment' => $request->alternate_allotment];
+    $this->storeAttachmentFiles($request, $property, $attachmentData);
 
-            Attchement::updateOrCreate(
-                ['property_id' => $property->id],
-                $attachmentData
-            );
+    $attachment = Attchement::where('property_id', $property->id)->first();
+    $hasFile = $request->hasFile('complete_property_file') ||
+               ($attachment && !empty($attachment->complete_property_file));
 
-            DB::commit();
+    // Sirf checkbox check hone par hi status/entry_date confirm hoga
+    if ($confirmChecked && $attachment && !$attachment->status && $hasFile) {
+        $attachmentData['status']     = true;
+        $attachmentData['entry_date'] = now();
+    }
+    // Checkbox uncheck ho to status/entry_date ko touch nahi karenge (as-is rahenge)
+
+    if ($attachment) {
+        $attachment->update($attachmentData);
+    } else {
+        $attachmentData['property_id'] = $property->id;
+        Attchement::create($attachmentData);
+    }
+
+    DB::commit();
 
             // ✅ JSON Response for AJAX
             if ($request->wantsJson()) {
@@ -481,37 +542,60 @@ class PropertyController extends Controller
         }
     }
 
-    private function renameAttachmentFolder(string $oldApplicationNo, string $newApplicationNo)
-    {
-        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+ private function renameAttachmentFolder(
+    string $oldApplicationNo,
+    string $newApplicationNo,
+    int $propertyId
+) {
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
 
-        $oldFolder = $this->sanitizeFolderName($oldApplicationNo, 0);
-        $newFolder = $this->sanitizeFolderName($newApplicationNo, 0);
+    $oldFolder = $this->sanitizeFolderName($oldApplicationNo, $propertyId);
+    $newFolder = $this->sanitizeFolderName($newApplicationNo, $propertyId);
 
-        if ($oldFolder !== $newFolder && $disk->exists($oldFolder)) {
-            $files = $disk->allFiles($oldFolder);
+    if ($oldFolder === $newFolder || !$disk->exists($oldFolder)) {
+        return;
+    }
 
-            foreach ($files as $filePath) {
-                $newPath = str_replace($oldFolder . '/', $newFolder . '/', $filePath);
-                $disk->move($filePath, $newPath);
-            }
+    $files = $disk->allFiles($oldFolder);
 
-            $attachment = Attchement::whereHas('property', function ($q) use ($newApplicationNo) {
-                $q->where('application_no', $newApplicationNo);
-            })->first();
+    foreach ($files as $filePath) {
+        $newPath = str_replace(
+            $oldFolder . '/',
+            $newFolder . '/',
+            $filePath
+        );
 
-            if ($attachment) {
-                foreach (['complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
-                          'decision_courts', 'decision_allotment_committee',
-                          'decision_mda_board', 'decision_revising_authority'] as $field) {
-                    if (!empty($attachment->$field)) {
-                        $attachment->$field = str_replace($oldFolder . '/', $newFolder . '/', $attachment->$field);
-                    }
-                }
-                $attachment->save();
+        $disk->makeDirectory(dirname($newPath));
+        $disk->move($filePath, $newPath);
+    }
+
+    // Attachment directly by property_id
+    $attachment = Attchement::where('property_id', $propertyId)->first();
+
+    if ($attachment) {
+        $fields = [
+            'complete_property_file',
+            'adjacent_area_allotment',
+            'division_of_plots',
+            'decision_courts',
+            'decision_allotment_committee',
+            'decision_mda_board',
+            'decision_revising_authority',
+        ];
+
+        foreach ($fields as $field) {
+            if (!empty($attachment->$field)) {
+                $attachment->$field = str_replace(
+                    $oldFolder . '/',
+                    $newFolder . '/',
+                    $attachment->$field
+                );
             }
         }
+
+        $attachment->save();
     }
+}
 
 
 
@@ -558,6 +642,8 @@ public function dashboard()
          'propertiesByUser'
     ));
 }
+
+
 
 
 

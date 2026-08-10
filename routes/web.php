@@ -59,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/submit-form', [PropertyController::class, 'store'])->name('formSubmission');
 
     Route::get('/form-list', [PropertyController::class, 'formList'])->name('formList');
+       Route::get('/entries-list', [PropertyController::class, 'entriesList'])->name('entriesList');
     Route::get('/form-detail/{id}', [PropertyController::class, 'formDetail'])->name('formDetail');
     Route::get('/form-edit/{id}', [PropertyController::class, 'formEdit'])->name('formEdit');
     Route::post('/update-form/{id}', [PropertyController::class, 'update'])->name('formUpdate');
@@ -75,7 +76,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/plot-history/{id}', [PlotHistoryController::class, 'destroy'])->name('plotHistory.destroy');
 
     Route::post('/attachment/{propertyId}', [AttchementController::class, 'update'])->name('attachment.update');
-     Route::get('/file-viewer', [FileViewerController::class, 'show'])
+// Update the controller route to accept path parameter
+Route::get('/file-viewer', [FileViewerController::class, 'show'])
     ->name('file.viewer');
     Route::get('/get-blocks/{sectorName}', [PropertyController::class, 'getBlocks'])->name('getBlocks');
 });

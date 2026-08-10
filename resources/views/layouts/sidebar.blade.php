@@ -530,14 +530,14 @@
             </a>
           </li>
           @else
-          <li class="nav-item">
+          {{-- <li class="nav-item">
             <a href="{{route('dashboard')}}" class="nav-link side-item">
               <i class="nav-icon fas fa-desktop"></i>
               <p class="nav-heading">
                 Dashboard
               </p>
             </a>
-          </li>
+          </li> --}}
           <li class="nav-item">
             <a href="#" class="nav-link side-item">
               <i class="nav-icon fas fa-tachometer-alt"></i>
