@@ -15,7 +15,7 @@ class Attchement extends Model
         'decision_courts', 'decision_allotment_committee',
         'decision_mda_board', 'decision_revising_authority',
 'status',
-        'entry_date',
+        'entry_date','complete_file_pages',
     ];
 
         // Add this mutator to automatically cast entry_date to Carbon

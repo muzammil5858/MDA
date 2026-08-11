@@ -42,19 +42,23 @@
 }
 
 /* preview-box ab scroll container hai, transform ke liye */
-.preview-box{
-    overflow:auto !important;
+.preview-box {
+    overflow: auto !important;
+    position: relative;
 }
-.pdf-scroll-outer{
-    width:100%;
-    min-height:100%;
-    display:flex;
-    justify-content:center;
+
+.preview-box .pdf-scroll-outer {
+    display: block;
+    width: 100%;
+    min-height: 100%;
 }
-.pdf-viewer-container{
-    transform-origin: top center;
+
+.preview-box .pdf-viewer-container {
+    transform-origin: top left;
     transition: transform 0.15s ease;
-    width:100%;
+    width: fit-content;
+    min-width: 100%;
+    min-height: 100%;
 }
 
         .pdf-viewer-container{
@@ -127,8 +131,7 @@
     display: inline-block !important;
     flex: 0 0 18px;
     cursor: pointer;
-    /* accent-color: #03346E; */
-        appearance: none;
+    appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
     background-color: #fff;
@@ -137,7 +140,7 @@
     position: relative;
 }
 .complete-file-check input[type="checkbox"]:checked {
-    background-color: #fff; /* box white hi rahega */
+    background-color: #fff;
     border: 2px solid #03346E;
 }
 
@@ -148,7 +151,7 @@
     top: 0px;
     width: 5px;
     height: 10px;
-    border: solid #000;       /* 👈 tick mark black */
+    border: solid #000;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
@@ -256,9 +259,7 @@
         .existing-file-link { font-size: 13px; margin-top: -10px; margin-bottom: 15px; display:block; color:#03346E; }
         #form-alert-box { display: none; text-align: left; }
 
-        /* ===== Split layout: preview + form (poori screen cover nahi karta) ===== */
-/* ================= MAIN LAYOUT ================= */
-
+        /* ===== Split layout: preview + form ===== */
 .py-4{
     height:calc(100vh - 80px);
     overflow:hidden;
@@ -394,8 +395,6 @@
                 <div class="row mx-0">
 
                     {{-- ===================== LEFT: DOCUMENT PREVIEW ===================== --}}
-
-{{-- ===================== LEFT: DOCUMENT PREVIEW ===================== --}}
 <div class="col-lg-7 col-8 preview-col">
     <h5 class="mb-2" style="color:#03346E;">Attached Document Preview</h5>
 
@@ -420,8 +419,8 @@
                     {{-- ===================== RIGHT: FORM ===================== --}}
                     <div class="col-lg-5 col-12 form-col">
                         <div class="card px-4 pt-4 pb-3 shadow-sm">
-                            <h2 id="heading">Mirpur Development  Authority - Edit Property</h2>
-                            <p class="text-center">Fill all form's fields to go to next step</p>
+                            <h2 id="heading">Mirpur Development Authority - Edit Property</h2>
+                            <p class="text-center">Fill form fields as needed (all fields are optional)</p>
 
                             <form id="msform" action="{{ route('formUpdate', $property->id) }}" method="POST" enctype="multipart/form-data">
                                 @csrf
@@ -648,9 +647,6 @@
               placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
 </div>
 
-
-
-
                                         </div>
                                     </div>
 
@@ -658,7 +654,6 @@
                                 </fieldset>
 
                                 {{-- ===================== STEP 2 : PAYMENT ===================== --}}
-{{-- ===================== STEP 2 : PAYMENT ===================== --}}
 <fieldset id="step-2">
     <div class="form-card">
         <div class="row">
@@ -835,18 +830,45 @@
                                 </fieldset>
 
                                 {{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
-
-{{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
-
 <fieldset id="step-4">
+      {{-- Alternate Allotment + Complete File Pages in one row --}}
     <div class="form-row">
-        <div class="col-md-12 text-left">
+        <div class="col-md-6 text-left">
             <label>Alternate Allotment</label>
             <input type="text" class="form-control" name="alternate_allotment"
                 placeholder="Alternate Allotment"
                 value="{{ old('alternate_allotment', $property->attachment->alternate_allotment ?? '') }}">
         </div>
+
+        <div class="col-md-6 text-left">
+            <label>Complete File Pages</label>
+            <input type="number"
+                   class="form-control"
+                   name="complete_file_pages"
+                   id="complete_file_pages"
+                   placeholder="Total Pages"
+                   value="{{ old('complete_file_pages', $property->attachment->complete_file_pages ?? '') }}">
+
+        </div>
     </div>
+
+
+            <!-- Current File -->
+            <div class="col-md-12 text-left">
+                @if(!empty($property->attachment->complete_property_file))
+                    <label>Current File</label>
+
+                    <div class="current-file-box">
+                        <a href="{{ route('file.viewer', ['path' => $property->attachment->complete_property_file]) }}"
+                           target="_blank">
+                            {{ basename($property->attachment->complete_property_file) }}
+                        </a>
+
+
+                    </div>
+                @endif
+            </div>
+
 
     <div class="row">
         <div class="col-7"><h2 class="fs-title">Attachments:</h2></div>
@@ -863,9 +885,7 @@
                     <a href="{{ route('file.viewer', ['path' => $property->attachment->complete_property_file]) }}" target="_blank">
                         {{ basename($property->attachment->complete_property_file) }}
                     </a>
-                    @if(isset($property->attachment->status) && $property->attachment->status)
-                        <span class="badge badge-success ml-2">✓ Confirmed</span>
-                    @endif
+                
                 </div>
             @endif
         </div>
@@ -997,7 +1017,7 @@ $(document).ready(function () {
     var currentZoom = 1;
     var ZOOM_STEP = 0.15;
     var ZOOM_MIN = 0.5;
-    var ZOOM_MAX = 3;
+    var ZOOM_MAX = 5;
 
     function applyZoom() {
         $('#pdfViewerContainer').css('transform', 'scale(' + currentZoom + ')');
@@ -1040,6 +1060,70 @@ $(document).ready(function () {
         }
     });
 
+    // ================= COUNT PAGES FOR COMPLETE PROPERTY FILE =================
+    $('#countPagesBtn').on('click', function() {
+        var $fileInput = $('#complete_property_file_input');
+        var $pagesInput = $('#complete_file_pages');
+        var file = $fileInput[0].files[0];
+
+        if (!file) {
+            showAlert('info', 'Please select a file first to count pages, or enter manually.');
+            return;
+        }
+
+        if (file.type === 'application/pdf') {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var typedarray = new Uint8Array(e.target.result);
+                    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                        var totalPages = pdf.numPages;
+                        $pagesInput.val(totalPages);
+                        showAlert('success', 'Total pages detected: ' + totalPages);
+                    }).catch(function(err) {
+                        showAlert('danger', 'Error reading PDF: ' + err.message);
+                    });
+                } catch(err) {
+                    showAlert('danger', 'Error processing file: ' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else if (file.type.startsWith('image/')) {
+            $pagesInput.val(1);
+            showAlert('success', 'Image file detected. Pages: 1');
+        } else {
+            showAlert('warning', 'Unsupported file type. Please enter pages manually.');
+        }
+    });
+
+    // Jab naya file upload ho toh auto-detect pages (optional)
+    $('#complete_property_file_input').on('change', function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+
+        var $pagesInput = $('#complete_file_pages');
+
+        if (file.type === 'application/pdf') {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var typedarray = new Uint8Array(e.target.result);
+                    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                        var totalPages = pdf.numPages;
+                        $pagesInput.val(totalPages);
+                    }).catch(function() {
+                        // Silent fail
+                    });
+                } catch(err) {
+                    // Silent fail
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else if (file.type.startsWith('image/')) {
+            $pagesInput.val(1);
+        }
+    });
+
     // ================= RIGHT-CLICK / SHORTCUT BLOCK =================
     $('#previewBox').on('contextmenu', function (e) {
         e.preventDefault();
@@ -1071,14 +1155,12 @@ $(document).ready(function () {
         pdfjsLib.getDocument(url).promise.then(function (pdf) {
             $container.empty();
 
-            // Zoom toolbar activate karo aur 100% reset karo
             showZoomToolbar();
             resetZoom();
 
             var numPages = pdf.numPages;
             var pageWraps = [];
 
-            // Step A: sab pages ke placeholder div turant bana do
             for (var i = 1; i <= numPages; i++) {
                 var $wrap = $('<div class="pdf-page-wrap" data-page="' + i + '">' +
                     '<div class="pdf-page-loading">Page ' + i + ' loading…</div>' +
@@ -1108,10 +1190,8 @@ $(document).ready(function () {
                 });
             }
 
-            // Step B: pehla page turant render karo
             renderPage(1, pageWraps[0]);
 
-            // Step C: baaki pages lazy — jab visible hon tabhi render hon
             if ('IntersectionObserver' in window) {
                 var observer = new IntersectionObserver(function (entries) {
                     entries.forEach(function (entry) {
@@ -1127,7 +1207,7 @@ $(document).ready(function () {
                 pageWraps.forEach(function (el, idx) { renderPage(idx + 1, el); });
             }
         }).catch(function (err) {
-            $container.html('<div class="no-preview" style="padding:40px;">Preview load nahi ho saka.<br>' + err.message + '</div>');
+            $container.html('<div class="no-preview" style="padding:40px;">Preview could not be loaded.<br>' + err.message + '</div>');
         });
     }
 
@@ -1329,7 +1409,7 @@ $(document).ready(function () {
     // ================= FORM SUBMIT (AJAX) =================
     function showAlert(type, message) {
         var box = $('#form-alert-box');
-        box.removeClass('alert-success alert-danger').addClass('alert-' + type);
+        box.removeClass('alert-success alert-danger alert-info alert-warning').addClass('alert-' + type);
         box.html(message);
         box.show();
         $('html, body').animate({ scrollTop: box.offset().top - 100 }, 300);

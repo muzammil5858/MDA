@@ -114,6 +114,8 @@
                                         <th>Applicant Name</th>
                                         <th>Application No</th>
                                         <th>Plot No</th>
+                                         <th>Sector</th>
+                                          <th>Block</th>
                                         <th>Created Date</th>
                                         <th>File Status</th>
                                         <th>Action</th>
@@ -126,7 +128,9 @@
                                             <td>{{ $dat->applicant_name ?? 'N/A' }}</td>
                                             <td>{{ $dat->application_no ?? 'N/A' }}</td>
                                             <td>{{ $dat->plot_no ?? 'N/A' }}</td>
-                                        
+                                            <td>{{ $dat->sector->name ?? 'N/A' }}</td>
+                                            <td>{{ $dat->block->name ?? 'N/A' }}</td>
+
                                             <td>{{ $dat->created_at ? date('d-m-Y', strtotime($dat->created_at)) : 'N/A' }}</td>
                                             <td>
                                                 @if($dat->attachment && $dat->attachment->complete_property_file)

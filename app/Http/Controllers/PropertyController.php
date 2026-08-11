@@ -176,6 +176,7 @@ class PropertyController extends Controller
             $attachmentData = [
                 'property_id'         => $property->id,
                 'alternate_allotment' => $request->alternate_allotment,
+                'complete_file_pages' =>$request->complete_file_pages,
                 'status'              => false, // Default status
                 'entry_date'          => null,
             ];
@@ -334,6 +335,7 @@ public function entriesList()
             'transferees.*.id_card' => 'nullable|string',
             'transferees.*.challan_no' => 'nullable|string',
             'alternate_allotment'   => 'nullable|string',
+            'complete_file_pages'   =>'required|integer',
             'complete_property_file' => 'nullable|file',
             'adjacent_area_allotment' => 'nullable|file',
             'division_of_plots'     => 'nullable|file',
@@ -435,7 +437,11 @@ public function entriesList()
     );
 }
             // 5) Update Attachments
-    $attachmentData = ['alternate_allotment' => $request->alternate_allotment];
+    $attachmentData = [
+        'alternate_allotment' => $request->alternate_allotment,
+         'complete_file_pages' => $request->complete_file_pages,
+
+        ];
     $this->storeAttachmentFiles($request, $property, $attachmentData);
 
     $attachment = Attchement::where('property_id', $property->id)->first();
