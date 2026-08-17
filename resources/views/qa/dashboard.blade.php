@@ -117,7 +117,7 @@
 
             <div class="row mt-2">
                 <div class="col title" style="display:flex;justify-content:center; margin-right:40px;">
-                    <h3>MIRPUR HOUSING AUTHORITY (MHA)</h3>
+                    <h3>MIRPUR Development AUTHORITY (MDA)</h3>
                 </div>
             </div>
 
@@ -188,7 +188,7 @@
             <!-- Allotment Row -->
             <div id="allotment-row" class="row px-1"
                 style="margin-top:-12px; margin-left:2px; margin-right:2px; margin-bottom:50px;">
-                @php
+                {{-- @php
                     $labels = [
                         'Original Allottee' => $allotmentStages->original_allottee,
                         '1st Transfer'      => $allotmentStages->first_transfer,
@@ -197,8 +197,8 @@
                         '4th Transfer'      => $allotmentStages->fourth_transfer,
                         '5th Transfer'      => $allotmentStages->fifth_transfer,
                     ];
-                @endphp
-                @foreach ($labels as $label => $count)
+                @endphp --}}
+                {{-- @foreach ($labels as $label => $count)
                     <div class="col-lg-2 col-md-4 col-sm-6 col-12 mb-2 stage-box"
                         data-stage="{{ $label }}" style="cursor:pointer; color:#333 !important">
                         <div class="small-box bg-secondary p-2" style="height:30px;">
@@ -208,7 +208,7 @@
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @endforeach --}}
             </div>
 
             <div id="stage-details" style="margin-top:-40px; margin-bottom:20px; position:relative; z-index:2;"></div>
@@ -434,7 +434,7 @@ $tables = [
                 <div class="col-lg-6">
                     <div class="card card-info equal-height-card">
                         <div class="card-header">
-                            <h3 class="card-title">MDHA-Total Representation</h3>
+                            <h3 class="card-title">MDA-Total Representation</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                                 <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
@@ -448,7 +448,7 @@ $tables = [
                 <div class="col-lg-6">
                     <div class="card card-success equal-height-card">
                         <div class="card-header">
-                            <h3 class="card-title">MDHA-Town Wise</h3>
+                            <h3 class="card-title">MDA-Town Wise</h3>
                             <div class="card-tools">
                                 <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                                 <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
@@ -465,7 +465,7 @@ $tables = [
         <div class="col-lg-12">
             <div class="card card-info" id="center">
                 <div class="card-header">
-                    <h3 class="card-title" id="title-graph">MDHA- Sector Wise</h3>
+                    <h3 class="card-title" id="title-graph">MDA- Sector Wise</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                         <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
@@ -480,7 +480,7 @@ $tables = [
         <div class="col-lg-12" style="width:calc(100% - 250px); margin-left:250px;">
             <div class="card card-success" id="center">
                 <div class="card-header">
-                    <h3 class="card-title" id="title-graph">MDHA - Size Wise Representation</h3>
+                    <h3 class="card-title" id="title-graph">MDA - Size Wise Representation</h3>
                     <div class="card-tools">
                         <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
                         <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
