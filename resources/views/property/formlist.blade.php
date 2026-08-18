@@ -93,9 +93,7 @@
                                                 <a href="{{ route('formDelete', $dat->id) }}" onclick="return confirm('Are you sure you want to delete this property?')">
                                                     <i class="fa fa-trash ml-3 delete" aria-hidden="true"></i>
                                                 </a>
-                                                <a href="{{ route('formEdit', $dat->id) }}#step-4" class="ml-3">
-                                                    <i class="fa fa-upload text-success" data-toggle="tooltip" data-placement="top" title="Upload File"></i>
-                                                </a>
+                                              
                                             </td>
                                         </tr>
                                     @empty

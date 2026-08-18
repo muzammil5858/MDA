@@ -65,6 +65,9 @@ class PropertyController extends Controller
             'mode_allottment'       => 'nullable|string',
             'allotment_date'        => 'nullable|date',
             'balloting_serial_no'   => 'nullable|string',
+        'transfer_count'        => 'nullable|integer|min:0',
+        'ownership_type'        => 'nullable|in:single,multiple',
+        'allotment_type'        => 'nullable|in:original,transferee',
 
             // Step 2
             'total_price'             => 'nullable|numeric',
@@ -134,6 +137,9 @@ class PropertyController extends Controller
                 'allotment_date'       => $request->allotment_date,
                 'balloting_serial_no'  => $request->balloting_serial_no,
                 'user_id'              => auth()->id(),
+                'transfer_count'       => $request->transfer_count,
+                'ownership_type'       => $request->ownership_type,
+                'allotment_type'       => $request->allotment_type,
             ]);
 
             // 2) Payment
@@ -216,15 +222,24 @@ class PropertyController extends Controller
 /**
  * List of properties with missing complete_property_file.
  */
+// public function formList()
+// {
+//     $data = Property::with(['properties','payment', 'plotHistories', 'attachment', 'sector', 'block'])
+//         ->whereDoesntHave('properties', function($query) {
+//             $query->whereNotNull('user_id');
+//         })
+//         ->orWhereHas('properties', function($query) {
+//             $query->whereNull('user_id');
+//         })
+//         ->latest()
+//         ->get();
+
+//     return view('property.formlist', compact('data'));
+// }
 public function formList()
 {
     $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
-        ->whereDoesntHave('attachment', function($query) {
-            $query->whereNotNull('complete_property_file');
-        })
-        ->orWhereHas('attachment', function($query) {
-            $query->whereNull('complete_property_file');
-        })
+        ->whereNull('user_id')  // Only properties without a user
         ->latest()
         ->get();
 
@@ -314,6 +329,9 @@ public function entriesList()
             'mode_allottment'       => 'nullable|string',
             'allotment_date'        => 'nullable|date',
             'balloting_serial_no'   => 'nullable|string',
+                    'transfer_count'        => 'nullable|integer|min:0',
+        'ownership_type'        => 'nullable|in:single,multiple',
+        'allotment_type'        => 'nullable|in:original,transferee',
             'total_price'           => 'nullable|numeric',
             'amount_deposited'      => 'nullable|numeric',
             'remaining_amount'      => 'nullable|numeric',
@@ -385,6 +403,9 @@ public function entriesList()
                 'mode_allottment'      => $request->mode_allottment,
                 'allotment_date'       => $request->allotment_date,
                 'balloting_serial_no'  => $request->balloting_serial_no,
+                    'transfer_count'       => $request->transfer_count,
+    'ownership_type'       => $request->ownership_type,
+    'allotment_type'       => $request->allotment_type,
                  'user_id'              => $userId,
             ]);
 

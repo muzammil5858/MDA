@@ -28,6 +28,11 @@
     display:flex;
     align-items:center;
 }
+.required-star {
+    color: red;
+    font-weight: bold;
+    margin-left: 2px;
+}
 
 .select2-container--default .select2-selection__rendered{
     color:#2C3E50 !important;
@@ -303,7 +308,7 @@
                                     <div class="col-md-3">
                                         <div class="form-row mx-1 ">
                                             <div class="col-6 px-0">
-                                        <label>Application No.</label>
+                                        <label>Application No. <span class="required-star">*</span></label>
                                         <input type="text" class="form-control" name="application_no"
                                         placeholder="Application No."
                                             value="{{ $property->application_no ?? '' }}">
@@ -320,7 +325,7 @@
                                     </div>
 
                                                                         <div class="col-md-3">
-                                        <label>Plot No.</label>
+                                        <label>Plot No. <span class="required-star">*</span></label>
                                         <input type="text" class="form-control" name="plot_no"
                                         placeholder="Plot No."
                                             value="{{ $property->plot_no ?? '' }}">
@@ -503,11 +508,12 @@
 
                                                   <select name="category" id="" class="form-control">
                                                      <option value="">Select Category</option>
-                                                      <option {{$property && $property->category == 'Lawyer' ? 'selected' : ''}} value="Lawyer">Lawyer</option>
-                                                     <option {{$property && $property->category == 'Overseas' ? 'selected' : ''}} value="Overseas">Overseas</option>
-                                                     <option{{$property && $property->category == 'Permanent_Employee' ? 'selected' : ''}} value="Permanent_Employee">Permanent Employee</option>
+                                                      <option {{$property && $property->category == 'House' ? 'selected' : ''}} value="House">House</option>
+                                                     <option {{$property && $property->category == 'Commercial' ? 'selected' : ''}} value="Commercial">Commercial</option>
+                                                     <option{{$property && $property->category == 'Plot' ? 'selected' : ''}} value="Plot">Plot</option>
 
-                                                           </select> </div>
+                                                           </select>
+                                                         </div>
 
                                                                 <div class="col-md-3">
     <label for="approved_scheme">Mode of Allottment</label>
@@ -547,6 +553,47 @@
                                         placeholder="Serial No of Balloting"
                                             value="{{ $property->balloting_serial_no ?? '' }}">
                                     </div>
+
+                                                <div class="col-md-3">
+                <label>Transfer Count</label>
+                <input type="number"
+                       class="form-control"
+                       name="transfer_count"
+                       id="transfer_count"
+                       placeholder="Number of Transfers"
+                       min="0"
+                       value="{{ old('transfer_count', $property->transfer_count ?? '') }}">
+            </div>
+
+            <div class="col-md-3">
+                <label>Ownership Type</label>
+                <select name="ownership_type" id="ownership_type" class="form-control">
+                    <option value="">Select Ownership Type</option>
+                    <option value="single"
+                        {{ old('ownership_type', $property->ownership_type ?? '') == 'single' ? 'selected' : '' }}>
+                        Single Owner
+                    </option>
+                    <option value="multiple"
+                        {{ old('ownership_type', $property->ownership_type ?? '') == 'multiple' ? 'selected' : '' }}>
+                        Multiple Owner
+                    </option>
+                </select>
+            </div>
+<div class="col-md-3">
+    <label>Allotment Type</label>
+    <select name="allotment_type" id="allotment_type" class="form-control">
+        <option value="">Select Allotment</option>
+        <option value="original"
+            {{ old('allotment_type', $property->allotment_type ?? '') == 'original' ? 'selected' : '' }}>
+            Original Allottee
+        </option>
+        <option value="transferee"
+            {{ old('allotment_type', $property->allotment_type ?? '') == 'transferee' ? 'selected' : '' }}>
+            Transferee
+        </option>
+    </select>
+</div>
+
                                <div class="col-md-3">
     <label>Remarks</label>
     <textarea class="form-control"
@@ -554,8 +601,11 @@
               rows="3"
               placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
 </div>
+
+
                                 </div>
-                            </div>
+                                </div>
+
 
                             <input type="button" class="next action-button" value="Next">
                         </fieldset>
@@ -752,13 +802,14 @@
                                             value="{{ $property->alternate_allotment ?? '' }}">
                                     </div>
                                 </div>
+
                             <div class="row">
                                 <div class="col-7"><h2 class="fs-title">Attachments:</h2></div>
                                 <div class="col-5"><h2 class="steps">Step 4 - 4</h2></div>
                             </div>
                             <div class="form-row">
                                    <div class="col-md-4 text-left">
-                                    <label>Complete Property File</label>
+                                    <label>Complete Property File <span class="required-star">*</span></label>
                                     <input type="file" name="complete_property_file">
                                 </div>
                                 <div class="col-md-4 text-left">
@@ -817,6 +868,8 @@
         allowClear: true,
         width: "100%"
     });
+
+
 
     // When sector changes, load blocks
             // Clear current options

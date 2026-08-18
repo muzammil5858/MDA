@@ -21,6 +21,12 @@
     border-radius:6px;
     width:fit-content;
 }
+
+.required-star {
+    color: red;
+    font-weight: bold;
+    margin-left: 2px;
+}
 .preview-toolbar button{
     background:#03346E;
     color:#fff;
@@ -467,7 +473,7 @@
 
                                         <div class="form-row">
                                             <div class="col-md-6">
-                                                <label>Application No.</label>
+                                                <label>Application No. <span class="required-star">*</span></label>
                                                 <input type="text" class="form-control" name="application_no"
                                                     placeholder="Application No."
                                                     value="{{ old('application_no', $property->application_no ?? '') }}">
@@ -480,7 +486,7 @@
                                             </div>
 
                                             <div class="col-md-6">
-                                                <label>Plot No.</label>
+                                                <label>Plot No. <span class="required-star">*</span></label>
                                                 <input type="text" class="form-control" name="plot_no"
                                                     placeholder="Plot No."
                                                     value="{{ old('plot_no', $property->plot_no ?? '') }}">
@@ -611,9 +617,9 @@
                                                 <label>Category</label>
                                                 <select name="category" class="form-control">
                                                     <option value="">Select Category</option>
-                                                    <option value="Lawyer" {{ old('category', $property->category ?? '') == 'Lawyer' ? 'selected' : '' }}>Lawyer</option>
-                                                    <option value="Overseas" {{ old('category', $property->category ?? '') == 'Overseas' ? 'selected' : '' }}>Overseas</option>
-                                                    <option value="Permanent_Employee" {{ old('category', $property->category ?? '') == 'Permanent_Employee' ? 'selected' : '' }}>Permanent Employee</option>
+                                                    <option value="House" {{ old('category', $property->category ?? '') == 'House' ? 'selected' : '' }}>House</option>
+                                                    <option value="Commercial" {{ old('category', $property->category ?? '') == 'Commercial' ? 'selected' : '' }}>Commercial</option>
+                                                    <option value="Plot" {{ old('category', $property->category ?? '') == 'Plot' ? 'selected' : '' }}>Plot</option>
                                                 </select>
                                             </div>
 
@@ -639,6 +645,45 @@
                                                     placeholder="Serial No of Balloting"
                                                     value="{{ old('balloting_serial_no', $property->balloting_serial_no ?? '') }}">
                                             </div>
+                                                        <div class="col-md-6">
+                <label>Transfer Count</label>
+                <input type="number"
+                       class="form-control"
+                       name="transfer_count"
+                       id="transfer_count"
+                       placeholder="Number of Transfers"
+                       min="0"
+                       value="{{ old('transfer_count', $property->transfer_count ?? '') }}">
+            </div>
+
+            <div class="col-md-6">
+                <label>Ownership Type</label>
+                <select name="ownership_type" id="ownership_type" class="form-control">
+                    <option value="">Select Ownership Type</option>
+                    <option value="single"
+                        {{ old('ownership_type', $property->ownership_type ?? '') == 'single' ? 'selected' : '' }}>
+                        Single Owner
+                    </option>
+                    <option value="multiple"
+                        {{ old('ownership_type', $property->ownership_type ?? '') == 'multiple' ? 'selected' : '' }}>
+                        Multiple Owner
+                    </option>
+                </select>
+            </div>
+<div class="col-md-6">
+    <label>Allotment Type</label>
+    <select name="allotment_type" id="allotment_type" class="form-control">
+        <option value="">Select Allotment</option>
+        <option value="original"
+            {{ old('allotment_type', $property->allotment_type ?? '') == 'original' ? 'selected' : '' }}>
+            Original Allottee
+        </option>
+        <option value="transferee"
+            {{ old('allotment_type', $property->allotment_type ?? '') == 'transferee' ? 'selected' : '' }}>
+            Transferee
+        </option>
+    </select>
+</div>
                                                                            <div class="col-md-6">
     <label>Remarks</label>
     <textarea class="form-control"
@@ -646,6 +691,8 @@
               rows="3"
               placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
 </div>
+
+
 
                                         </div>
                                     </div>
@@ -841,7 +888,7 @@
         </div>
 
         <div class="col-md-6 text-left">
-            <label>Complete File Pages</label>
+            <label>Complete File Pages <span class="required-star">*</span></label>
             <input type="number"
                    class="form-control"
                    name="complete_file_pages"
@@ -877,7 +924,7 @@
 
     <div class="form-row">
         <div class="col-md-12 text-left">
-            <label>Complete Property File</label>
+            <label>Complete Property File <span class="required-star">*</span></label>
             <input type="file" name="complete_property_file" id="complete_property_file_input" accept=".pdf,.jpg,.jpeg,.png">
             @if(!empty($property->attachment->complete_property_file))
                 <div class="current-file-box">
@@ -885,7 +932,7 @@
                     <a href="{{ route('file.viewer', ['path' => $property->attachment->complete_property_file]) }}" target="_blank">
                         {{ basename($property->attachment->complete_property_file) }}
                     </a>
-                
+
                 </div>
             @endif
         </div>
