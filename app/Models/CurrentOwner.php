@@ -1,27 +1,27 @@
 <?php
-// app/Models/PlotHistory.php
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PlotHistory extends Model
+class CurrentOwner extends Model
 {
     use HasFactory;
 
-    protected $table = 'plot_histories';
+    protected $table = 'current_owners';
 
     protected $fillable = [
         'property_id',
-        'name',
-        'father_name',
-        'id_card',
-        'challan_no',
-        'address',        // New field
-        'allottee_date',  // New field
+        'applicant_name',
+        'father_husband_name',
+        'old_nic',
+        'cnic',
+        'address_temporary',
+        'address_permanent'
     ];
 
+    // Relationship with Property
     public function property()
     {
         return $this->belongsTo(Property::class, 'property_id');

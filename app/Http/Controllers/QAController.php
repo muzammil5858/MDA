@@ -16,780 +16,681 @@ use DB;
 
 class QAController extends Controller
 {
-public function dashboard()
-{
-    // Total properties count
-    $totalProperties = Property::count();
+    public function dashboard()
+    {
+        // Total properties count
+        $totalProperties = Property::count();
 
-    // Category counts for all properties
-    $categoryCounts = Property::select('category')
-        ->groupBy('category')
-        ->selectRaw('category, COUNT(*) as count')
-        ->pluck('count', 'category')
-        ->toArray();
+        // Category counts for all properties
+        $categoryCounts = Property::select('category')
+            ->groupBy('category')
+            ->selectRaw('category, COUNT(*) as count')
+            ->pluck('count', 'category')
+            ->toArray();
 
-    // Ensure all categories are present, even if count is 0
-    $categories = ['Commercial', 'House',  'Plot'];
-    $categoryData = [];
-    foreach ($categories as $category) {
-        $categoryData[$category] = $categoryCounts[$category] ?? 0;
-    }
+        $categories = ['Commercial', 'House', 'Plot'];
+        $categoryData = [];
+        foreach ($categories as $category) {
+            $categoryData[$category] = $categoryCounts[$category] ?? 0;
+        }
 
-    // Allowed town IDs and their names
-    $allowedTownIds = [1, 2, 3, 4, 5];
-    $townOrder = [
-        1 => 'NST Siakh',
-        2 => 'NST Dudyal',
-        3 => 'NC Mirpur',
-        4 => 'NST Islamgarh',
-        5 => 'NST Chaksawari',
-    ];
+        // ✅ Sectors from sectors table
+    $sectorsList = DB::table('sectors')->orderBy('name', 'desc')->get(['id', 'name']);
 
-    // Fetch category counts per town
-    $townCategoryData = Property::whereIn('sector_id', $allowedTownIds)
-        ->select('sector_id', 'category')
-        ->groupBy('sector_id', 'category')
-        ->selectRaw('sector_id, category, COUNT(*) as count')
-        ->get()
-        ->groupBy('sector_id')
-        ->map(function ($rows) use ($categories) {
-            $counts = [];
-            foreach ($categories as $category) {
-                $counts[$category] = 0;
-            }
-            foreach ($rows as $row) {
-                $categoryKey = ucfirst(strtolower($row->category));
-                if (array_key_exists($categoryKey, $counts)) {
-                    $counts[$categoryKey] = $row->count;
+        // ✅ Blocks from blocks table
+        $blocksList = DB::table('blocks')->orderBy('name')->get(['id', 'name', 'sector_id']);
+
+        // Sector-wise category counts
+        $sectorCategoryDataRaw = Property::whereIn('sector_id', $sectorsList->pluck('id'))
+            ->select('sector_id', 'category')
+            ->groupBy('sector_id', 'category')
+            ->selectRaw('sector_id, category, COUNT(*) as count')
+            ->get()
+            ->groupBy('sector_id')
+            ->map(function ($rows) use ($categories) {
+                $counts = array_fill_keys($categories, 0);
+                foreach ($rows as $row) {
+                    $key = ucfirst(strtolower($row->category));
+                    if (array_key_exists($key, $counts)) {
+                        $counts[$key] = $row->count;
+                    }
                 }
-            }
-            return $counts;
-        })->toArray();
+                return $counts;
+            });
 
-    // Ensure all towns are present, even if no data
-    $orderedTownCategoryData = [];
-    foreach ($townOrder as $id => $name) {
-        $orderedTownCategoryData[$name] = $townCategoryData[$id] ?? array_fill_keys($categories, 0);
-    }
-
-    // Category-based chart data (town|sector with category counts)
-    $sectors = ['A', 'B', 'C', 'D', 'E', 'F'];
-    $categoryChartData = [];
-    foreach ($townOrder as $townId => $townName) {
-        foreach ($sectors as $sector) {
-            $label = "$townName|$sector";
-            $categoryChartData[$label] = array_fill_keys($categories, 0);
+        $orderedSectorCategoryData = [];
+        foreach ($sectorsList as $sector) {
+            $orderedSectorCategoryData[$sector->name] = $sectorCategoryDataRaw[$sector->id] ?? array_fill_keys($categories, 0);
         }
-    }
-    $rawData = Property::whereIn('sector_id', array_keys($townOrder))
-        ->whereIn('sector_id', $sectors)
-        ->select('sector_id', 'block_id', 'category')
-        ->groupBy('sector_id','block_id', 'category')
-        ->selectRaw('sector_id,block_id, category, COUNT(*) as count')
-        ->get();
-    foreach ($rawData as $row) {
-        $label = $townOrder[$row->town] . '|' . $row->sector;
-        $key = ucfirst(strtolower($row->category));
-        if (isset($categoryChartData[$label][$key])) {
-            $categoryChartData[$label][$key] = $row->count;
-        }
-    }
 
-    // Town and sector data with request counts
-    $towns = DB::table('sectors')
-        ->leftJoin('properties', 'sectors.id', '=', 'properties.sector_id')
-        ->leftJoin('requests as pt_requests', function ($join) {
-            $join->on('pt_requests.town', '=', 'sectors.id')
-                ->on('pt_requests.sector', '=', 'properties.sector_id')
-                ->where('pt_requests.request_type', '=', function ($query) {
-                    $query->select('id')->from('request_types')->where('name', 'Property Transfer')->limit(1);
-                });
-        })
-        ->leftJoin('requests as pm_requests', function ($join) {
-            $join->on('pm_requests.town', '=', 'sectors.id')
-                ->on('pm_requests.sector', '=', 'properties.sector_id')
-                ->where('pm_requests.request_type', '=', function ($query) {
-                    $query->select('id')->from('request_types')->where('name', 'Property Mapping')->limit(1);
-                });
-        })
-        ->leftJoin('requests as noc_requests', function ($join) {
-            $join->on('noc_requests.town', '=', 'sectors.id')
-                ->on('noc_requests.sector', '=', 'properties.sector_id')
-                ->where('noc_requests.request_type', '=', function ($query) {
-                    $query->select('id')->from('request_types')->where('name', 'NOC')->limit(1);
-                });
-        })
-        ->select(
-            'sectors.id as town_id',
-            'sectors.name as town_name',
-            'properties.sector_id as sector',
-            DB::raw('GROUP_CONCAT(DISTINCT properties.sector_id ORDER BY properties.sector_id ASC) as sectors'),
-            DB::raw('COUNT(DISTINCT pt_requests.id) as property_transfer_count'),
-            DB::raw('COUNT(DISTINCT pm_requests.id) as property_mapping_count'),
-            DB::raw('COUNT(DISTINCT noc_requests.id) as noc_count')
-        )
-        ->groupBy('sectors.id', 'sectors.name', 'properties.sector_id')
-        ->get();
+        // ✅ Sector -> Block category breakdown
+        $rawData = Property::whereIn('sector_id', $sectorsList->pluck('id'))
+            ->whereNotNull('block_id')
+            ->select('sector_id', 'block_id', 'category')
+            ->groupBy('sector_id', 'block_id', 'category')
+            ->selectRaw('sector_id, block_id, category, COUNT(*) as count')
+            ->get();
 
-    // Transform the data to group sectors under each town
-    $townsGrouped = $towns->groupBy('town_id')->map(function ($townGroup) {
-        $sectors = $townGroup->map(function ($row) {
-            return [
-                'sector' => $row->sector,
-                'property_transfer_count' => $row->property_transfer_count,
-                'property_mapping_count' => $row->property_mapping_count,
-                'noc_count' => $row->noc_count,
+        $categoryChartData = [];
+        $sectorBlockData   = [];
+
+        foreach ($sectorsList as $sector) {
+            $sectorBlocks = $blocksList->where('sector_id', $sector->id);
+            $sectorBlockData[$sector->id] = [
+                'name'   => $sector->name,
+                'blocks' => [],
             ];
-        })->filter(function ($row) {
-            return !is_null($row['sector']);
+            foreach ($sectorBlocks as $block) {
+                $label = $sector->name . '|' . $block->name;
+                $categoryChartData[$label] = array_fill_keys($categories, 0);
+                $sectorBlockData[$sector->id]['blocks'][$block->name] = array_fill_keys($categories, 0);
+            }
+        }
+
+        foreach ($rawData as $row) {
+            $sector = $sectorsList->firstWhere('id', $row->sector_id);
+            $block  = $blocksList->firstWhere('id', $row->block_id);
+            if (!$sector || !$block) continue;
+
+            $key   = ucfirst(strtolower($row->category));
+            $label = $sector->name . '|' . $block->name;
+
+            if (isset($categoryChartData[$label][$key])) {
+                $categoryChartData[$label][$key] = $row->count;
+            }
+            if (isset($sectorBlockData[$sector->id]['blocks'][$block->name][$key])) {
+                $sectorBlockData[$sector->id]['blocks'][$block->name][$key] = $row->count;
+            }
+        }
+
+        // ✅ Sector totals for chart
+        $sectorSummary = [];
+        foreach ($sectorsList as $sector) {
+            $sectorSummary[] = [
+                'id'     => $sector->id,
+                'name'   => $sector->name,
+                'counts' => $orderedSectorCategoryData[$sector->name] ?? array_fill_keys($categories, 0),
+            ];
+        }
+
+        // ── SECTOR WISE REQUEST STATS (No Town) ──
+        $sectorRequestStats = DB::table('requests')
+            ->join('sectors', 'requests.sector', '=', 'sectors.name')
+            ->selectRaw('
+                sectors.id as sector_id,
+                sectors.name as sector_name,
+                COUNT(requests.id) as total_requests,
+
+                -- Original Allottee (request_type = 1)
+                SUM(CASE WHEN request_type = 1 AND dd_action = 1 THEN 1 ELSE 0 END) as original_allottee_completed,
+                SUM(CASE WHEN request_type = 1 AND deo_action = 1 AND dd_action IS NULL THEN 1 ELSE 0 END) as original_allottee_inprocess,
+                SUM(CASE WHEN request_type = 1 AND deo_action = 0 THEN 1 ELSE 0 END) as original_allottee_rejected,
+                SUM(CASE WHEN request_type = 1 AND dd_action IS NULL AND deo_action IS NULL THEN 1 ELSE 0 END) as original_allottee_pending,
+
+                -- Transfer Allottee (request_type = 2 or 3)
+                SUM(CASE WHEN request_type IN (2,3) AND dd_action = 1 THEN 1 ELSE 0 END) as transfer_allottee_completed,
+                SUM(CASE WHEN request_type IN (2,3) AND deo_action = 1 AND dd_action IS NULL THEN 1 ELSE 0 END) as transfer_allottee_inprocess,
+                SUM(CASE WHEN request_type IN (2,3) AND deo_action = 0 THEN 1 ELSE 0 END) as transfer_allottee_rejected,
+                SUM(CASE WHEN request_type IN (2,3) AND dd_action IS NULL AND deo_action IS NULL THEN 1 ELSE 0 END) as transfer_allottee_pending
+            ')
+            ->groupBy('sectors.id', 'sectors.name')
+            ->orderBy('sectors.name')
+            ->get();
+
+        // ── SECTOR WISE DETAIL (Properties by Sector with Block Data) ──
+        $sectorWiseDetails = DB::table('sectors')
+            ->leftJoin('properties', 'sectors.id', '=', 'properties.sector_id')
+            ->select(
+                'sectors.id as sector_id',
+                'sectors.name as sector_name',
+                DB::raw('COUNT(properties.id) as total_properties'),
+                DB::raw('SUM(CASE WHEN properties.category = "Plot" THEN 1 ELSE 0 END) as plot_count'),
+                DB::raw('SUM(CASE WHEN properties.category = "House" THEN 1 ELSE 0 END) as house_count'),
+                DB::raw('SUM(CASE WHEN properties.category = "Commercial" THEN 1 ELSE 0 END) as commercial_count')
+            )
+            ->groupBy('sectors.id', 'sectors.name')
+            ->orderBy('sectors.name')
+            ->get();
+
+        // ── SECTOR WISE BLOCK DETAIL ──
+        $sectorBlockWiseDetails = DB::table('sectors')
+            ->leftJoin('blocks', 'sectors.id', '=', 'blocks.sector_id')
+            ->leftJoin('properties', 'blocks.id', '=', 'properties.block_id')
+            ->select(
+                'sectors.id as sector_id',
+                'sectors.name as sector_name',
+                'blocks.id as block_id',
+                'blocks.name as block_name',
+                DB::raw('COUNT(properties.id) as total_properties'),
+                DB::raw('SUM(CASE WHEN properties.category = "Plot" THEN 1 ELSE 0 END) as plot_count'),
+                DB::raw('SUM(CASE WHEN properties.category = "House" THEN 1 ELSE 0 END) as house_count'),
+                DB::raw('SUM(CASE WHEN properties.category = "Commercial" THEN 1 ELSE 0 END) as commercial_count')
+            )
+            ->groupBy('sectors.id', 'sectors.name', 'blocks.id', 'blocks.name')
+            ->orderBy('sectors.name')
+            ->orderBy('blocks.name')
+            ->get();
+
+        // ── SECTOR WISE DETAIL GROUPED WITH BLOCK DATA ──
+        $sectorWiseDetailsGrouped = $sectorWiseDetails->map(function ($row) use ($sectorBlockWiseDetails) {
+            // Get all blocks for this sector
+            $blocks = $sectorBlockWiseDetails
+                ->where('sector_id', $row->sector_id)
+                ->map(function ($block) {
+                    return [
+                        'block' => $block->block_name,
+                        'total_properties' => $block->total_properties ?? 0,
+                        'plot_count' => $block->plot_count ?? 0,
+                        'house_count' => $block->house_count ?? 0,
+                        'commercial_count' => $block->commercial_count ?? 0,
+                    ];
+                })
+                ->values()
+                ->toArray();
+
+            // Get block names in order for the data-block-order attribute
+            $blockOrder = array_map(function ($block) {
+                return $block['block'];
+            }, $blocks);
+
+            return [
+                'id' => $row->sector_id,
+                'name' => $row->sector_name,
+                'total_properties' => $row->total_properties ?? 0,
+                'plot_count' => $row->plot_count ?? 0,
+                'house_count' => $row->house_count ?? 0,
+                'commercial_count' => $row->commercial_count ?? 0,
+                'block_data' => $blocks,
+                'block_order' => $blockOrder,
+            ];
         })->values();
 
-        return [
-            'id' => $townGroup->first()->town_id,
-            'name' => $townGroup->first()->town_name,
-            'sectors' => $sectors->isNotEmpty() ? $sectors->pluck('sector')->unique()->implode(',') : '',
-            'sector_data' => $sectors,
-            'property_transfer_count' => $townGroup->sum('property_transfer_count'),
-            'property_mapping_count' => $townGroup->sum('property_mapping_count'),
-            'noc_count' => $townGroup->sum('noc_count'),
+        // Size counts for properties
+        $sizeCounts = [
+            '5 Marla' => DB::table('properties')->whereBetween('marla', [1, 6])->count(),
+            '7 Marla' => DB::table('properties')->whereBetween('marla', [6, 8.5])->count(),
+            '10 Marla' => DB::table('properties')->whereBetween('marla', [8.5, 11])->count(),
+            '12 Marla' => DB::table('properties')->whereBetween('marla', [11, 13.5])->count(),
+            '15 Marla' => DB::table('properties')->whereBetween('marla', [13.5, 17.5])->count(),
+            '1 Kanal' => DB::table('properties')->where(function ($query) {
+                $query->where('kanal', 1)->orWhere('marla', '>', 17.5);
+            })->count(),
         ];
-    })->values();
 
-
-    $townWiseDetails = DB::table('sectors')
-    ->leftJoin('properties', 'sectors.id', '=', 'properties.sector_id')
-    ->select(
-        'sectors.id as town_id',
-        'sectors.name as town_name',
-        'properties.sector_id as sector',
-        DB::raw('GROUP_CONCAT(DISTINCT properties.sector_id ORDER BY properties.sector_id ASC) as sectors'),
-        DB::raw('COUNT(properties.id) as total_properties'),
-        DB::raw('SUM(CASE WHEN properties.category = "Plot" THEN 1 ELSE 0 END) as plot_count'),
-        DB::raw('SUM(CASE WHEN properties.category = "House" THEN 1 ELSE 0 END) as house_count'),
-        DB::raw('SUM(CASE WHEN properties.category = "Commercial" THEN 1 ELSE 0 END) as commercial_count')
-
-        // ⚠️ Commented out: 'transfer_count' column does not exist in properties table
-        // DB::raw("COUNT(CASE WHEN properties.transfer_count IS NULL THEN 1 END) as original_allottee"),
-        // DB::raw("COUNT(CASE WHEN properties.transfer_count = 1 THEN 1 END) as first_transfer"),
-        // DB::raw("COUNT(CASE WHEN properties.transfer_count = 2 THEN 1 END) as second_transfer"),
-        // DB::raw("COUNT(CASE WHEN properties.transfer_count = 3 THEN 1 END) as third_transfer"),
-        // DB::raw("COUNT(CASE WHEN properties.transfer_count = 4 THEN 1 END) as fourth_transfer"),
-        // DB::raw("COUNT(CASE WHEN properties.transfer_count >= 5 THEN 1 END) as fifth_transfer")
-    )
-    ->groupBy('sectors.id', 'sectors.name', 'properties.sector_id')
-    ->get();
-
-    // dd($townWiseDetails);
-
-// Transform the data to group sectors under each town
-$townWiseDetailsGrouped = $townWiseDetails->groupBy('town_id')->map(function ($townGroup) {
-    $sectors = $townGroup->map(function ($row) {
-        return [
-            'sector' => $row->sector,
-            'total_properties' => $row->total_properties,
-            'plot_count' => $row->plot_count,
-            'house_count' => $row->house_count,
-            'commercial_count' => $row->commercial_count,
-          //  'original_allottee' => $row->original_allottee ?? 0,
-            'first_transfer' => $row->first_transfer ?? 0,
-            'second_transfer' => $row->second_transfer ?? 0,
-            'third_transfer' => $row->third_transfer ?? 0,
-            'fourth_transfer' => $row->fourth_transfer ?? 0,
-            'fifth_transfer' => $row->fifth_transfer ?? 0,
+        // Size definitions
+        $sizes = [
+            '5 Marla' => ['marla', [1, 6]],
+            '7 Marla' => ['marla', [6, 8.5]],
+            '10 Marla' => ['marla', [8.5, 11]],
+            '12 Marla' => ['marla', [11, 13.5]],
+            '15 Marla' => ['marla', [13.5, 17.5]],
+            '1 Kanal' => ['mixed', [17.5]],
         ];
-    })->filter(function ($row) {
-        return !is_null($row['sector']);
-    })->values();
 
-    return [
-        'id' => $townGroup->first()->town_id,
-        'name' => $townGroup->first()->town_name,
-        'sectors' => $sectors->isNotEmpty() ? $sectors->pluck('sector')->unique()->implode(',') : '',
-        'sector_data' => $sectors,
-        'total_properties' => $townGroup->sum('total_properties'),
-        'plot_count' => $townGroup->sum('plot_count'),
-        'house_count' => $townGroup->sum('house_count'),
-        'commercial_count' => $townGroup->sum('commercial_count'),
-    ];
-})->values();
+        // Size-based chart data
+        $sizeChartData = [];
+        foreach ($sizes as $label => [$column, $range]) {
+            $data = [];
+            foreach ($sectorsList as $sector) {
+                foreach ($blocksList->where('sector_id', $sector->id) as $block) {
+                    $data[$sector->name . '|' . $block->name] = 0;
+                }
+            }
 
- // Size counts for properties
-$sizeCounts = [
-    '5 Marla' => DB::table('properties')->whereBetween('marla', [1, 6])->count(),
-    '7 Marla' => DB::table('properties')->whereBetween('marla', [6, 8.5])->count(),
-    '10 Marla' => DB::table('properties')->whereBetween('marla', [8.5, 11])->count(),
-    '12 Marla' => DB::table('properties')->whereBetween('marla', [11, 13.5])->count(),
-    '15 Marla' => DB::table('properties')->whereBetween('marla', [13.5, 17.5])->count(),
-    '1 Kanal' => DB::table('properties')->where(function ($query) {
-        $query->where('kanal', 1)->orWhere('marla', '>', 17.5);
-    })->count(),
-];
+            $query = Property::whereIn('sector_id', $sectorsList->pluck('id'))->whereNotNull('block_id');
 
-// Size-based chart data (town|sector with size counts)
-$sizes = [
-    '5 Marla' => ['marla', [1, 6]],
-    '7 Marla' => ['marla', [6, 8.5]],
-    '10 Marla' => ['marla', [8.5, 11]],
-    '12 Marla' => ['marla', [11, 13.5]],
-    '15 Marla' => ['marla', [13.5, 17.5]],
-    '1 Kanal' => ['mixed', [17.5]], // 'mixed' indicates using both kanal and marla
-];
+            if ($label === '1 Kanal') {
+                $query->where(function ($q) use ($range) {
+                    $q->where('kanal', 1)->orWhere('marla', '>', $range[0]);
+                });
+            } else {
+                $query->whereBetween('marla', $range);
+            }
 
-$sizeChartData = [];
-foreach ($sizes as $label => [$column, $range]) {
-    $data = [];
-    foreach ($townOrder as $townId => $townName) {
-        foreach ($sectors as $sector) {
-            $key = "$townName|$sector";
-            $data[$key] = 0;
+            $rows = $query->select('sector_id', 'block_id')
+                ->selectRaw('COUNT(*) as count')
+                ->groupBy('sector_id', 'block_id')
+                ->get();
+
+            foreach ($rows as $row) {
+                $sector = $sectorsList->firstWhere('id', $row->sector_id);
+                $block  = $blocksList->firstWhere('id', $row->block_id);
+                if (!$sector || !$block) continue;
+                $key = $sector->name . '|' . $block->name;
+                if (isset($data[$key])) {
+                    $data[$key] = $row->count;
+                }
+            }
+            $sizeChartData[$label] = $data;
         }
+
+        // Stats
+        $stats = DB::table('requests')
+            ->selectRaw('
+                COUNT(id) as total_requests,
+                SUM(CASE WHEN dd_action = 1 THEN 1 ELSE 0 END) as completed_count,
+                SUM(CASE WHEN deo_action = 0 THEN 1 ELSE 0 END) as rejected_count,
+                SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL THEN 1 ELSE 0 END) as in_process_count,
+                SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) THEN 1 ELSE 0 END) as pending_new_count,
+                SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) THEN 1 ELSE 0 END) as pending_overdue_count
+            ')
+            ->first();
+
+        // ── TABLES CONFIG ──
+        $tables = [
+            'new' => [
+                'label'      => 'Total REQUEST',
+                'sector_total' => 'total_requests',
+                'sector_original' => 'original_allottee_pending',
+                'sector_transfer'  => 'transfer_allottee_pending',
+            ],
+            'completed' => [
+                'label'      => 'COMPLETED REQUEST',
+                'sector_total' => 'total_requests',
+                'sector_original' => 'original_allottee_completed',
+                'sector_transfer'  => 'transfer_allottee_completed',
+            ],
+            'inprocess' => [
+                'label'      => 'IN PROCESS REQUEST',
+                'sector_total' => 'total_requests',
+                'sector_original' => 'original_allottee_inprocess',
+                'sector_transfer'  => 'transfer_allottee_inprocess',
+            ],
+            'pending' => [
+                'label'      => 'PENDING REQUEST',
+                'sector_total' => 'total_requests',
+                'sector_original' => 'original_allottee_pending',
+                'sector_transfer'  => 'transfer_allottee_pending',
+            ],
+            'rejected' => [
+                'label'      => 'REJECTED REQUEST',
+                'sector_total' => 'total_requests',
+                'sector_original' => 'original_allottee_rejected',
+                'sector_transfer'  => 'transfer_allottee_rejected',
+            ],
+            'overdue' => [
+                'label'      => 'OVERDUE REQUEST',
+                'sector_total' => 'total_requests',
+                'sector_original' => 'original_allottee_pending',
+                'sector_transfer'  => 'transfer_allottee_pending',
+            ],
+        ];
+
+        // ============================================================
+        // NEW CHARTS DATA - Based on property table columns
+        // ============================================================
+
+        // 1. Approved Scheme Distribution
+        $schemeDistribution = Property::select('approved_scheme', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('approved_scheme')
+            ->where('approved_scheme', '!=', '')
+            ->groupBy('approved_scheme')
+            ->pluck('count', 'approved_scheme')
+            ->toArray();
+
+        // 2. Allotment Mode Distribution
+        $allotmentModeDistribution = Property::select('mode_allottment', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('mode_allottment')
+            ->where('mode_allottment', '!=', '')
+            ->groupBy('mode_allottment')
+            ->pluck('count', 'mode_allottment')
+            ->toArray();
+
+        // 3. Allotment Type Distribution
+        $allotmentTypeDistribution = Property::select('allotment_type', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('allotment_type')
+            ->where('allotment_type', '!=', '')
+            ->groupBy('allotment_type')
+            ->pluck('count', 'allotment_type')
+            ->toArray();
+
+        // 4. Ownership Type Distribution
+        $ownershipTypeDistribution = Property::select('ownership_type', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('ownership_type')
+            ->where('ownership_type', '!=', '')
+            ->groupBy('ownership_type')
+            ->pluck('count', 'ownership_type')
+            ->toArray();
+
+        // 5. Monthly Allotment Trends (Last 12 months)
+        $monthlyAllotments = Property::select(
+                DB::raw('DATE_FORMAT(allotment_date, "%Y-%m") as month'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->whereNotNull('allotment_date')
+            ->groupBy('month')
+            ->orderBy('month', 'DESC')
+            ->limit(12)
+            ->get();
+
+        // 6. Transfer Count Distribution
+        $transferDistribution = Property::select('transfer_count', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('transfer_count')
+            ->groupBy('transfer_count')
+            ->orderBy('transfer_count')
+            ->get();
+
+        // 7. Category by Allotment Type (for stacked bar)
+        $categoryAllotmentType = Property::select('category', 'allotment_type', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('category')
+            ->whereNotNull('allotment_type')
+            ->where('allotment_type', '!=', '')
+            ->groupBy('category', 'allotment_type')
+            ->get();
+
+        // 8. Sector-wise Approved Schemes
+        $sectorSchemes = Property::join('sectors', 'properties.sector_id', '=', 'sectors.id')
+            ->select('sectors.name as sector', 'properties.approved_scheme', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('properties.approved_scheme')
+            ->where('properties.approved_scheme', '!=', '')
+            ->groupBy('sectors.name', 'properties.approved_scheme')
+            ->get();
+
+        // 9. Category by Ownership Type
+        $categoryOwnership = Property::select('category', 'ownership_type', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('category')
+            ->whereNotNull('ownership_type')
+            ->where('ownership_type', '!=', '')
+            ->groupBy('category', 'ownership_type')
+            ->get();
+
+        // 10. Properties by Mode of Allotment and Category
+        $modeCategoryData = Property::select('mode_allottment', 'category', DB::raw('COUNT(*) as count'))
+            ->whereNotNull('mode_allottment')
+            ->whereNotNull('category')
+            ->where('mode_allottment', '!=', '')
+            ->groupBy('mode_allottment', 'category')
+            ->get();
+
+        return view('qa.dashboard', compact(
+            'totalProperties',
+            'categoryData',
+            'orderedSectorCategoryData',
+            'categoryChartData',
+            'sizeChartData',
+            'categories',
+            'sizeCounts',
+            'sizes',
+            'stats',
+            'sectorRequestStats',
+            'sectorWiseDetailsGrouped',
+            'sectorBlockWiseDetails',
+            'sectorSummary',
+            'sectorBlockData',
+            'tables',
+            'sectorsList',
+            // New chart data
+            'schemeDistribution',
+            'allotmentModeDistribution',
+            'allotmentTypeDistribution',
+            'ownershipTypeDistribution',
+            'monthlyAllotments',
+            'transferDistribution',
+            'categoryAllotmentType',
+            'sectorSchemes',
+            'categoryOwnership',
+            'modeCategoryData'
+        ));
     }
 
-    $query = Property::whereIn('sector_id', array_keys($townOrder))
-        ->whereIn('sector_id', $sectors);
-
-    if ($label === '1 Kanal') {
-        $query->where(function ($query) use ($range) {
-            $query->where('kanal', 1)->orWhere('marla', '>', $range[0]);
-        });
-    } else {
-        $query->whereBetween('marla', $range);
-    }
-
-    $rawData = $query
-        ->select('sector_id')
-        ->selectRaw('COUNT(*) as count')
-        ->groupBy('sector_id')
-        ->get();
-
-    foreach ($rawData as $row) {
-        $townName = $townOrder[$row->sector_id] ?? null;
-        if ($townName) {
-            $key = "$townName|{$row->sector_id}";
-            $data[$key] = $row->count;
-        }
-    }
-    $sizeChartData[$label] = $data;
-}
-   // ⚠️ Commented out: 'status', 'resolved', 'qa_id' columns do not exist in properties table
-   // $dataReviewSummary = DB::select("
-   //  SELECT
-   //      users.id AS user_id,
-   //      users.name AS clerk_name,
-   //      SUM(CASE WHEN properties.status IS NOT NULL AND properties.status != '' THEN 1 ELSE 0 END) AS review_entries,
-   //      SUM(CASE WHEN properties.status = 'Document Missing' THEN 1 ELSE 0 END) AS document_missing,
-   //      SUM(CASE WHEN properties.status = 'Blur Document' THEN 1 ELSE 0 END) AS blur_document,
-   //      SUM(CASE WHEN properties.status = 'Wrong Attachement' THEN 1 ELSE 0 END) AS wrong_attachment,
-   //      SUM(CASE WHEN properties.status = 'Wrong Center' THEN 1 ELSE 0 END) AS wrong_entry,
-   //      SUM(CASE WHEN properties.status = 'No Error' THEN 1 ELSE 0 END) AS no_error,
-   //      SUM(CASE WHEN properties.resolved = 1 THEN 1 ELSE 0 END) AS resolved
-   //  FROM
-   //      properties
-   //  JOIN
-   //      users ON users.id = properties.qa_id
-   //  GROUP BY
-   //      users.id, users.name
-   // ");
-   $dataReviewSummary = collect();
-
-// ⚠️ Commented out: 'transfer_count' column does not exist in properties table
-// $allotmentStages = DB::table('properties')
-//     ->selectRaw("
-//         COUNT(CASE WHEN transfer_count IS NULL THEN 1 END) as original_allottee,
-//         COUNT(CASE WHEN transfer_count = 1 THEN 1 END) as first_transfer,
-//         COUNT(CASE WHEN transfer_count = 2 THEN 1 END) as second_transfer,
-//         COUNT(CASE WHEN transfer_count = 3 THEN 1 END) as third_transfer,
-//         COUNT(CASE WHEN transfer_count = 4 THEN 1 END) as fourth_transfer,
-//         COUNT(CASE WHEN transfer_count >= 5 THEN 1 END) as fifth_transfer
-//     ")
-//     ->first();
-$allotmentStages = null;
-
-// ⚠️ Commented out: 'transfer_count' column does not exist in properties table
-// $townStageCounts = DB::table('properties')
-//     ->join('sectors', 'properties.sector_id', '=', 'sectors.id')
-//     ->select(
-//         'sectors.id as town_id',
-//         'sectors.name as town_name',
-//         DB::raw("COUNT(CASE WHEN properties.transfer_count IS NULL THEN 1 END) as original_allottee"),
-//         DB::raw("COUNT(CASE WHEN properties.transfer_count = 1 THEN 1 END) as first_transfer"),
-//         DB::raw("COUNT(CASE WHEN properties.transfer_count = 2 THEN 1 END) as second_transfer"),
-//         DB::raw("COUNT(CASE WHEN properties.transfer_count = 3 THEN 1 END) as third_transfer"),
-//         DB::raw("COUNT(CASE WHEN properties.transfer_count = 4 THEN 1 END) as fourth_transfer"),
-//         DB::raw("COUNT(CASE WHEN properties.transfer_count >= 5 THEN 1 END) as fifth_transfer")
-//     )
-//     ->groupBy('sectors.id', 'sectors.name')
-//     ->orderBy('sectors.name')
-//     ->get();
-$townStageCounts = collect();
-
-   $stats = DB::table('requests')
-    ->selectRaw('
-        COUNT(id) as total_requests,
-
-        SUM(CASE WHEN dd_action = 1 THEN 1 ELSE 0 END) as completed_count,
-        SUM(CASE WHEN deo_action = 0 THEN 1 ELSE 0 END) as rejected_count,
-
-        SUM(CASE
-            WHEN deo_action = 1
-             AND dd_action IS NULL
-            THEN 1 ELSE 0
-        END) as in_process_count,
-
-        SUM(CASE
-            WHEN dd_action IS NULL
-             AND deo_action IS NULL
-             AND created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY)
-            THEN 1 ELSE 0
-        END) as pending_new_count,
-
-        SUM(CASE
-            WHEN dd_action IS NULL
-             AND deo_action IS NULL
-             AND created_at < DATE_SUB(NOW(), INTERVAL 5 DAY)
-            THEN 1 ELSE 0
-        END) as pending_overdue_count
-    ')
-    ->first();
-
-
-   $townStats = DB::table('requests')
-        ->join('sectors', 'requests.town', '=', 'sectors.id')
-        ->selectRaw('
-            sectors.id   as town_id,
-            sectors.name as town_name,
-           COUNT(requests.id) as total_requests,
-        SUM(CASE WHEN request_type = 1 THEN 1 ELSE 0 END) as total_transfer,
-        SUM(CASE WHEN request_type = 2 THEN 1 ELSE 0 END) as total_warassat,
-        SUM(CASE WHEN request_type = 3 THEN 1 ELSE 0 END) as total_hibba,
-            SUM(CASE WHEN dd_action = 1 THEN 1 ELSE 0 END) as completed_total,
-            SUM(CASE WHEN dd_action = 1 AND request_type = 1 THEN 1 ELSE 0 END) as completed_transfer,
-            SUM(CASE WHEN dd_action = 1 AND request_type = 2 THEN 1 ELSE 0 END) as completed_warassat,
-            SUM(CASE WHEN dd_action = 1 AND request_type = 3 THEN 1 ELSE 0 END) as completed_hibba,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL THEN 1 ELSE 0 END) as inprocess_total,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL AND request_type = 1 THEN 1 ELSE 0 END) as inprocess_transfer,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL AND request_type = 2 THEN 1 ELSE 0 END) as inprocess_warassat,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL AND request_type = 3 THEN 1 ELSE 0 END) as inprocess_hibba,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) THEN 1 ELSE 0 END) as pending_total,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 1 THEN 1 ELSE 0 END) as pending_transfer,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 2 THEN 1 ELSE 0 END) as pending_warassat,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 3 THEN 1 ELSE 0 END) as pending_hibba,
-            SUM(CASE WHEN deo_action = 0 THEN 1 ELSE 0 END) as rejected_total,
-            SUM(CASE WHEN deo_action = 0 AND request_type = 1 THEN 1 ELSE 0 END) as rejected_transfer,
-            SUM(CASE WHEN deo_action = 0 AND request_type = 2 THEN 1 ELSE 0 END) as rejected_warassat,
-            SUM(CASE WHEN deo_action = 0 AND request_type = 3 THEN 1 ELSE 0 END) as rejected_hibba,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) THEN 1 ELSE 0 END) as overdue_total,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 1 THEN 1 ELSE 0 END) as overdue_transfer,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 2 THEN 1 ELSE 0 END) as overdue_warassat,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 3 THEN 1 ELSE 0 END) as overdue_hibba
-        ')
-        ->groupBy('sectors.id', 'sectors.name')
-        ->orderBy('sectors.name')
-        ->get();
-
-    $sectorStats = DB::table('requests')
-        ->join('sectors', 'requests.town', '=', 'sectors.id')
-        ->selectRaw('
-            sectors.id as town_id,
-            requests.sector as sector_name,
-                  COUNT(requests.id) as total_requests,
-        SUM(CASE WHEN request_type = 1 THEN 1 ELSE 0 END) as total_transfer,
-        SUM(CASE WHEN request_type = 2 THEN 1 ELSE 0 END) as total_warassat,
-        SUM(CASE WHEN request_type = 3 THEN 1 ELSE 0 END) as total_hibba,
-            SUM(CASE WHEN dd_action = 1 THEN 1 ELSE 0 END) as completed_total,
-            SUM(CASE WHEN dd_action = 1 AND request_type = 1 THEN 1 ELSE 0 END) as completed_transfer,
-            SUM(CASE WHEN dd_action = 1 AND request_type = 2 THEN 1 ELSE 0 END) as completed_warassat,
-            SUM(CASE WHEN dd_action = 1 AND request_type = 3 THEN 1 ELSE 0 END) as completed_hibba,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL THEN 1 ELSE 0 END) as inprocess_total,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL AND request_type = 1 THEN 1 ELSE 0 END) as inprocess_transfer,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL AND request_type = 2 THEN 1 ELSE 0 END) as inprocess_warassat,
-            SUM(CASE WHEN deo_action = 1 AND dd_action IS NULL AND request_type = 3 THEN 1 ELSE 0 END) as inprocess_hibba,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) THEN 1 ELSE 0 END) as pending_total,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 1 THEN 1 ELSE 0 END) as pending_transfer,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 2 THEN 1 ELSE 0 END) as pending_warassat,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at >= DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 3 THEN 1 ELSE 0 END) as pending_hibba,
-            SUM(CASE WHEN deo_action = 0 THEN 1 ELSE 0 END) as rejected_total,
-            SUM(CASE WHEN deo_action = 0 AND request_type = 1 THEN 1 ELSE 0 END) as rejected_transfer,
-            SUM(CASE WHEN deo_action = 0 AND request_type = 2 THEN 1 ELSE 0 END) as rejected_warassat,
-            SUM(CASE WHEN deo_action = 0 AND request_type = 3 THEN 1 ELSE 0 END) as rejected_hibba,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) THEN 1 ELSE 0 END) as overdue_total,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 1 THEN 1 ELSE 0 END) as overdue_transfer,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 2 THEN 1 ELSE 0 END) as overdue_warassat,
-            SUM(CASE WHEN dd_action IS NULL AND deo_action IS NULL AND requests.created_at < DATE_SUB(NOW(), INTERVAL 5 DAY) AND request_type = 3 THEN 1 ELSE 0 END) as overdue_hibba
-        ')
-        ->groupBy('sectors.id', 'requests.sector') // Don't forget to group by the sector here as well if you haven't!
-        ->orderBy('sectors.id')
-        ->orderBy('requests.sector')
-        ->get()->groupBy('town_id'); ;
-
-    // Return view with all data
-    return view('qa.dashboard', compact(
-        'totalProperties',
-        'categoryData',
-        'orderedTownCategoryData',
-        'categoryChartData', // Renamed for category chart
-        'sizeChartData',    // Renamed for size chart
-        'categories',
-        'towns',
-        'townsGrouped',
-        'sizeCounts',
-        'sizes',
-        'dataReviewSummary' ,
-        'townsGrouped' ,
-        'townWiseDetailsGrouped',
-        'allotmentStages' ,
-        'townStageCounts',
-        'stats',
-        'townStats',
-        'sectorStats'
-    ));
-}
-    public function qaFiles(){
-        // ⚠️ Commented out: 'code', 'deo', 'de_date' columns do not exist in properties table
-        // $data = DB::table('properties')
-        // ->select('id', 'code', 'plot_no', 'category', 'created_at')
-        // ->whereNull('deo')
-        // ->whereNull('de_date')
-        // ->get();
+    public function qaFiles()
+    {
         $data = collect();
-
-        return view('qa.filelist',compact("data"));
-
+        return view('qa.filelist', compact("data"));
     }
-    public function entryFiles(){
-        // ⚠️ Commented out: 'code', 'deo', 'de_date' columns do not exist in properties table
-        // $data = DB::table('properties')
-        // ->leftJoin('users', 'users.id', '=', 'properties.deo')
-        // ->leftJoin('attchements', 'attchements.property_id', '=', 'properties.id')
-        // ->select(
-        //     'properties.id',
-        //     'code',
-        //     'plot_no',
-        //     'category',
-        //     'de_date',
-        //     'name',
-        //     DB::raw("
-        //         CASE
-        //             WHEN attchements.order_attach is not null THEN 1
-        //             WHEN attchements.affected_house is not null THEN 1
-        //             WHEN attchements.builtup_property is not null THEN 1
-        //             WHEN attchements.entitlement is not null THEN 1
-        //             WHEN attchements.allot_com is not null THEN 1
-        //             WHEN attchements.allot_order is not null THEN 1
-        //             WHEN attchements.chit_mapping is not null THEN 1
-        //             ELSE 0
-        //         END AS attachement
-        //     ")
-        // )
-        // ->whereNotNull('properties.deo')
-        // ->whereNotNull('properties.de_date')
-        // ->orderBy('attachement', 'desc')
-        // ->get();
+
+    public function entryFiles()
+    {
         $data = collect();
-
-        return view('qa.filelist1',compact("data"));
-
+        return view('qa.filelist1', compact("data"));
     }
 
-    public function excel(Request $request){
-
+    public function excel(Request $request)
+    {
         $request->validate([
             'month' => 'required',
         ]);
+
         $startOfMonth = "{$request->month}-01";
-
-        // Convert to Y-m-d format
         $startOfMonth = date('Y-m-d', strtotime($startOfMonth));
-
-        // Get the last day of the month and format it to Y-m-d
         $endOfMonth = date('Y-m-d', strtotime("last day of {$request->month}"));
 
-        // Fetch users
         $users = User::role('deo')->get(['id', 'name']);
-
-
-        // Fetch entries using a custom query
-        // ⚠️ Commented out: 'de_date', 'deo' columns do not exist in properties table
-        // $entries = DB::table('properties')
-        //     ->selectRaw('de_date, deo, COUNT(id) as entry_count')
-        //     ->whereBetween(DB::raw("STR_TO_DATE(de_date, '%d-%m-%Y')"), [$startOfMonth, $endOfMonth])
-        //     ->groupBy('de_date', 'deo')
-        //     ->get();
         $entries = collect();
 
         $data = [];
         foreach ($entries as $entry) {
             $date = $entry->de_date;
-
             if (!isset($data[$date])) {
                 $data[$date] = [
                     'total' => 0,
                     'users' => [],
                 ];
             }
-
             $data[$date]['total'] += $entry->entry_count;
             $data[$date]['users'][$entry->deo] = $entry->entry_count;
         }
 
-
-        // Prepare header row with dynamic user columns
         $header = ['Date', 'Total Entries'];
         foreach ($users as $user) {
-            $header[] = $user->name; // Add user columns to header
+            $header[] = $user->name;
         }
 
-        // Prepare data rows
         $rows = [];
         foreach ($data as $date => $entries) {
-            $row = [$date, $entries['total']]; // Add Date and Total Entries
-
-            // Add user-specific entry counts
+            $row = [$date, $entries['total']];
             foreach ($users as $user) {
-                $row[] = $entries['users'][$user->id] ?? 0; // Default to 0 if no entries for the user
+                $row[] = $entries['users'][$user->id] ?? 0;
             }
-
             $rows[] = $row;
         }
 
-        // Generate the Excel file
         $xlsx = SimpleXLSXGen::fromArray(array_merge([$header], $rows));
-
-        // Download the file
         return $xlsx->download("entries_{$request->month}.xlsx");
-
     }
 
+    public function propertyArea($id)
+    {
+        $sector = DB::table('sectors')->orderBy('id')->skip($id)->first();
+        $heading = $sector->name ?? 'Unknown Sector';
 
-    public function propertyArea($id){
-        $areas = ['New Small Town Siakh','New Small Town Dudyal','New City Mirpur','New Small Town Islamgarh','New Small Town Chaksawari'];
-        $heading = $areas[$id];
-        $id = $id+1;
         $data = DB::table('properties')
-    ->select(
-        'properties.id',
-        // 'code', // ⚠️ column does not exist in properties table
-        'plot_no',
-        // 'center', // ⚠️ column does not exist in properties table
-        'sectors.name as town',
-        'sector_id'
-    )
-    ->leftJoin('sectors', 'sectors.id', '=', 'properties.sector_id')
-    ->where('sector_id', $id)
-    ->orderByRaw('CAST(plot_no AS UNSIGNED) ASC')
-    ->get();
+            ->select(
+                'properties.id',
+                'plot_no',
+                'sectors.name as sector',
+                'sector_id'
+            )
+            ->leftJoin('sectors', 'sectors.id', '=', 'properties.sector_id')
+            ->where('sector_id', $sector->id ?? 0)
+            ->orderByRaw('CAST(plot_no AS UNSIGNED) ASC')
+            ->get();
 
-    return view('qa.mdhaqalist',compact('data','heading'));
+        return view('qa.mdhaqalist', compact('data', 'heading'));
     }
-    public function propertyList(){
 
+    public function propertyList()
+    {
         $heading = "Mangla Dam Housing Authority";
-      $data = DB::table('properties')
-    ->select(
-        'properties.id',
-        // 'properties.code', // ⚠️ column does not exist in properties table
-        'properties.plot_no',
-        // 'properties.center', // ⚠️ column does not exist in properties table
-        'sectors.name as town', // 👈 get town name from joined table
-        'properties.sector_id'
-    )
-    ->leftJoin('sectors', 'sectors.id', '=', 'properties.sector_id')
-    ->get();
+        $data = DB::table('properties')
+            ->select(
+                'properties.id',
+                'properties.plot_no',
+                'sectors.name as sector',
+                'properties.sector_id'
+            )
+            ->leftJoin('sectors', 'sectors.id', '=', 'properties.sector_id')
+            ->get();
 
-    return view('qa.mdhaqalist',compact('data','heading'));
+        return view('qa.mdhaqalist', compact('data', 'heading'));
     }
 
-    public function scheduleAppointment(){
-       if(auth()->user()->hasRole('record-clerk')){
-        $user_id = auth()->user()->id;
-        $schedules = DB::select("
-                            SELECT
-                                schedules.id,
-                                schedules.title,
-                                schedules.description,
-                                schedules.town,
-                                schedules.limit,
-                                schedules.start_datetime,
-                                schedules.end_datetime,
-                                GROUP_CONCAT(users.name SEPARATOR ', ') as booked_users
-                            FROM schedules
-                            LEFT JOIN appointment ON schedules.id = appointment.schedule_id
-                            LEFT JOIN users ON users.id = appointment.user_id
-                            WHERE schedules.user_id = ?
-                            GROUP BY schedules.id,schedules.title,schedules.description,schedules.limit,schedules.start_datetime,schedules.end_datetime,schedules.town
-                        ", [$user_id]);
-
-
-
-        }else{
+    public function scheduleAppointment()
+    {
+        if (auth()->user()->hasRole('record-clerk')) {
+            $user_id = auth()->user()->id;
+            $schedules = DB::select("
+                SELECT
+                    schedules.id,
+                    schedules.title,
+                    schedules.description,
+                    schedules.town,
+                    schedules.limit,
+                    schedules.start_datetime,
+                    schedules.end_datetime,
+                    GROUP_CONCAT(users.name SEPARATOR ', ') as booked_users
+                FROM schedules
+                LEFT JOIN appointment ON schedules.id = appointment.schedule_id
+                LEFT JOIN users ON users.id = appointment.user_id
+                WHERE schedules.user_id = ?
+                GROUP BY schedules.id, schedules.title, schedules.description, schedules.limit, schedules.start_datetime, schedules.end_datetime, schedules.town
+            ", [$user_id]);
+        } else {
             $town = auth()->user()->town;
             $schedules = DB::select("
-                            SELECT
-                                schedules.id,
-                                schedules.title,
-                                schedules.description,
-                                schedules.town,
-                                schedules.limit,
-                                schedules.start_datetime,
-                                schedules.end_datetime,
-                                GROUP_CONCAT(users.name SEPARATOR ', ') as booked_users
-                            FROM schedules
-                            LEFT JOIN appointment ON schedules.id = appointment.schedule_id
-                            LEFT JOIN users ON users.id = appointment.user_id
-                            WHERE schedules.town = ?
-                            GROUP BY schedules.id,schedules.title,schedules.description,schedules.limit,schedules.start_datetime,schedules.end_datetime,schedules.town
-                        ", [$town]);
+                SELECT
+                    schedules.id,
+                    schedules.title,
+                    schedules.description,
+                    schedules.town,
+                    schedules.limit,
+                    schedules.start_datetime,
+                    schedules.end_datetime,
+                    GROUP_CONCAT(users.name SEPARATOR ', ') as booked_users
+                FROM schedules
+                LEFT JOIN appointment ON schedules.id = appointment.schedule_id
+                LEFT JOIN users ON users.id = appointment.user_id
+                WHERE schedules.town = ?
+                GROUP BY schedules.id, schedules.title, schedules.description, schedules.limit, schedules.start_datetime, schedules.end_datetime, schedules.town
+            ", [$town]);
         }
         $type = DB::table('sectors')->get();
-        return view('clerk.appointment',compact('schedules','type'));
-
+        return view('clerk.appointment', compact('schedules', 'type'));
     }
+
     public function schedulestore(Request $request)
     {
         $user_id = auth()->user()->id;
 
+        $date = date_create($request->start_datetime);
+        $da = date_format($date, "Y-m-d");
 
-
-       $date = date_create($request->start_datetime);
-       $da = date_format($date,"Y-m-d");
-
-        if($request->town){
-
-                  $check = DB::select("SELECT * FROM schedules where  town = '$request->town' and start_datetime like '$da%'");
-
-               if(!empty($check) && is_null($request['id'])){
-                return redirect()->back()->withErrors(['msg' => $ty.' Already selected for '.$da]);
-               }
-
-
+        if ($request->town) {
+            $check = DB::select("SELECT * FROM schedules WHERE town = '$request->town' AND start_datetime LIKE '$da%'");
+            if (!empty($check) && is_null($request['id'])) {
+                return redirect()->back()->withErrors(['msg' => 'Already selected for ' . $da]);
+            }
         }
 
-         if($request['start_datetime'] >= $request['end_datetime']){
-                return redirect()->back()->withErrors(['msg' => 'Ending date of board have to be after starting date']);
-               }
+        if ($request['start_datetime'] >= $request['end_datetime']) {
+            return redirect()->back()->withErrors(['msg' => 'Ending date of board have to be after starting date']);
+        }
 
+        $data = $request->validate([
+            'user_id' => '',
+            'board_id' => '',
+            'title' => '',
+            'description' => '',
+            'type' => '',
+            'limit' => '',
+            'start_datetime' => '',
+            'end_datetime' => '',
+        ]);
 
-            $data = $request->validate([
-                'user_id' => '',
-                'board_id'=> '',
-                'title' => '',
-               'description'=> '',
-                'type'=> '',
-                'limit'=> '',
-                'start_datetime'=> '',
-               'end_datetime'=> '',
-
-
-            ]);
-             if($request->town){
-
-
-            $newdata = Schedule::updateOrCreate(['id' => $request->id], [
-
-                'user_id'=>$user_id,
-
+        if ($request->town) {
+            Schedule::updateOrCreate(['id' => $request->id], [
+                'user_id' => $user_id,
                 'title' => $request['title'],
-                'description'=> $request['description'],
-                'town'=> $request['town'],
-                'limit'=> $request['limit'],
-                'start_datetime'=> $request['start_datetime'],
-                'end_datetime'=> $request['end_datetime'],
-
-
-
+                'description' => $request['description'],
+                'town' => $request['town'],
+                'limit' => $request['limit'],
+                'start_datetime' => $request['start_datetime'],
+                'end_datetime' => $request['end_datetime'],
             ]);
-
-    }
-
-            return redirect()->back()->with('success','Appointment Schdule added successfully.');
-
         }
 
-        public function destroy($id)
-    {
-
-        $del = Schedule::where('id',$id)->delete();
-
-        return redirect()->route('schedule.index');
-
+        return redirect()->back()->with('success', 'Appointment Schedule added successfully.');
     }
 
-    public function attachements(){
+    public function destroy($id)
+    {
+        $del = Schedule::where('id', $id)->delete();
+        return redirect()->route('schedule.index');
+    }
+
+    public function attachements()
+    {
         return view('attachement');
     }
-    public function testDashboard(){
 
+    public function testDashboard()
+    {
         return view('dashboard2');
     }
-    public function ddashboard(){
+
+    public function ddashboard()
+    {
         return view('qa.mdhaqadashboard');
     }
 
-    public function test(){
+    public function test()
+    {
         return view('property.test');
     }
-    public function test1(){
+
+    public function test1()
+    {
         return view('property.capture');
     }
 
-    public function connectDevice(){
-        // dd('ggg');
+    public function connectDevice()
+    {
         $command = "C:\Users\Muzamil\Desktop\mdha\app\Lib\ZKFingerSDK\Demo.exe";
-//     // "$exePath 2>&1"
-//     $output = exec("$command 2>&1",$output, $status);
-//  var_dump(file_put_contents('php://stderr', print_r($output, true)));
-// file_put_contents('php://stderr', "Status: $status\n");
-
-    $shell = shell_exec("$command 2>&1");
-    return redirect()->back();
-
+        $shell = shell_exec("$command 2>&1");
+        return redirect()->back();
     }
-     public function DDverify($id,$type){
-        if($type == 1  || $type == 2 || $type == 3 || $type == 4){
-            if($type == 4){
-                // For Type 4 (House Construction), get data from small_requests table
+
+    public function DDverify($id, $type)
+    {
+        if ($type == 1 || $type == 2 || $type == 3 || $type == 4) {
+            if ($type == 4) {
                 $smallRequest = SmallRequest::with(['property.owners', 'property.township'])->where('request_id', $id)->first();
                 $request = Requests::with(['participants.owner', 'participants.representative'])->where('id', $id)->first();
                 $property = $smallRequest->property;
-
                 return view('DD.houseConstructionVerification', compact('smallRequest', 'request', 'property', 'type'));
             } else {
-                $data = TransferFile::with(['callRepresentative','callAttorney'])->where('request_id',$id)->first();
-
-
+                $data = TransferFile::with(['callRepresentative', 'callAttorney'])->where('request_id', $id)->first();
                 $property = Property::with([
-    'township',
-    'owners' => function ($query) {
-        $query->where('is_current', 1);
-    },
-    ])->where('id', $data->property_id)->first();
+                    'township',
+                    'owners' => function ($query) {
+                        $query->where('is_current', 1);
+                    },
+                ])->where('id', $data->property_id)->first();
 
-                $request = Requests::with(['dummyreceiver','dummywitness','participants.owner','participants.representative','dummyreceiver.representative'])->where('id',$id)->first();
+                $request = Requests::with(['dummyreceiver', 'dummywitness', 'participants.owner', 'participants.representative', 'dummyreceiver.representative'])->where('id', $id)->first();
                 $previous = DB::table('requests')
-                ->where('property_id', $data->property_id)
-                ->where('id', '<', $id)
-                ->whereIn('request_type',[1,2,3])
-                ->orderBy('id', 'desc')
-                ->pluck('request_type')
-                ->first();
-
+                    ->where('property_id', $data->property_id)
+                    ->where('id', '<', $id)
+                    ->whereIn('request_type', [1, 2, 3])
+                    ->orderBy('id', 'desc')
+                    ->pluck('request_type')
+                    ->first();
             }
         }
 
         switch ($type) {
-    case 1:
-        return view('property.test',compact('data','property','request','type','previous'));
-        break;
-
-    case 2:
-        return view('DD.warassatVerification',compact('data','property','request','previous'));
-        break;
-    case 3:
-        return view('property.test',compact('data','property','request','type','previous'));
-        break;
+            case 1:
+                return view('property.test', compact('data', 'property', 'request', 'type', 'previous'));
+                break;
+            case 2:
+                return view('DD.warassatVerification', compact('data', 'property', 'request', 'previous'));
+                break;
+            case 3:
+                return view('property.test', compact('data', 'property', 'request', 'type', 'previous'));
+                break;
+        }
     }
 
-    }
     public function houseConstructionAction(Request $request)
     {
         try {
@@ -802,7 +703,6 @@ $townStageCounts = collect();
 
             $requestRecord = Requests::find($validated['request_id']);
 
-            // Update request with clerk action
             $requestRecord->update([
                 'clerk_action' => $validated['action'],
                 'clerk_remarks' => $validated['remarks'],
@@ -810,17 +710,10 @@ $townStageCounts = collect();
                 'clerk_id' => auth()->user()->id,
             ]);
 
-            // If forwarding to DD, we might need additional logic
-            if ($validated['action'] === 'forward') {
-                // Additional logic for forwarding to DD can be added here
-                // For now, just mark as forwarded
-            }
-
             return response()->json([
                 'success' => true,
                 'message' => 'Action completed successfully.'
             ]);
-
         } catch (\Exception $e) {
             \Log::error('House Construction Action Error: ' . $e->getMessage());
             return response()->json([
@@ -829,67 +722,57 @@ $townStageCounts = collect();
             ], 500);
         }
     }
+
     public function history($propertyId)
-{
-    try {
-        // Fetch property with owner relationships
-        $property = Property::with('owners')
-            ->findOrFail($propertyId);
+    {
+        try {
+            $property = Property::with('owners')->findOrFail($propertyId);
 
-        // Fetch all requests related to this property with necessary relationships
-        $requests = Requests::where('property_id', $propertyId)
-            ->with([
-                'participants' => function($query) {
-                    $query->with('owner');
-                },
-                'transfer',
-                'transferAttaches',
-                'requestGenerationOwner' => function($query) {
-                    $query->with(['owner', 'attachments']);
-                },
-                'witness',
-                'dummywitness'
-            ])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            $requests = Requests::where('property_id', $propertyId)
+                ->with([
+                    'participants' => function ($query) {
+                        $query->with('owner');
+                    },
+                    'transfer',
+                    'transferAttaches',
+                    'requestGenerationOwner' => function ($query) {
+                        $query->with(['owner', 'attachments']);
+                    },
+                    'witness',
+                    'dummywitness'
+                ])
+                ->orderBy('created_at', 'desc')
+                ->get();
 
+            $latestOrder = Requests::where('property_id', $propertyId)
+                ->where('request_type', 2)
+                ->latest()
+                ->first();
 
-        // Fetch latest transfer and order data
-        $latestOrder = Requests::where('property_id', $propertyId)
-            ->where('request_type', 2) // Assuming 2 = Order type
-            ->latest()
-            ->first();
+            $latestTransfer = Requests::where('property_id', $propertyId)
+                ->where('request_type', 1)
+                ->latest()
+                ->first();
 
-        $latestTransfer = Requests::where('property_id', $propertyId)
-            ->where('request_type', 1) // Assuming 1 = Transfer type
-            ->latest()
-            ->first();
+            $latestOrder = collect($latestOrder ? [$latestOrder] : []);
+            $latestTransfer = collect($latestTransfer ? [$latestTransfer] : []);
 
-        // Convert to collections if null
-        $latestOrder = collect($latestOrder ? [$latestOrder] : []);
-        $latestTransfer = collect($latestTransfer ? [$latestTransfer] : []);
-
-        return view('history', [
-            'property' => $property,
-            'requests' => $requests,
-            'latestOrder' => $latestOrder,
-            'latestTransfer' => $latestTransfer,
-            'id' => $propertyId
-        ]);
-
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        dd($e->getMessage());
-        return redirect()->route('properties.index')
-            ->with('error', 'Property not found');
-    } catch (\Exception $e) {
-        dd($e->getMessage());
-        \Log::error('History view error: ' . $e->getMessage());
-        return redirect()->back()
-            ->with('error', 'Error loading transaction history');
+            return view('history', [
+                'property' => $property,
+                'requests' => $requests,
+                'latestOrder' => $latestOrder,
+                'latestTransfer' => $latestTransfer,
+                'id' => $propertyId
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            dd($e->getMessage());
+            return redirect()->route('properties.index')
+                ->with('error', 'Property not found');
+        } catch (\Exception $e) {
+            dd($e->getMessage());
+            \Log::error('History view error: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error loading transaction history');
+        }
     }
-}
-
-
-
-
 }

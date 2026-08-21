@@ -11,11 +11,13 @@ class Attchement extends Model
 
     protected $fillable = [
         'property_id', 'alternate_allotment',
-        'complete_property_file', 'adjacent_area_allotment', 'division_of_plots',
+         'property_document',  'adjacent_area_allotment', 'allotment_order',
         'decision_courts', 'decision_allotment_committee',
         'decision_mda_board', 'decision_revising_authority',
 'status',
         'entry_date','complete_file_pages',
+         'noting_file',               // New field
+        'cnic_front',
     ];
 
         // Add this mutator to automatically cast entry_date to Carbon

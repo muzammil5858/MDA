@@ -1,76 +1,63 @@
 <x-app-layout>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
     <style>
         p { color: grey }
         .select2-container{
-    width:100% !important;
-    margin-bottom:15px;
-}
-
-
-.select2-container--default .select2-selection--single{
-    background:#ECEFF1 !important;
-    border:1px solid #ccc !important;
-    border-radius:0 !important;
-    height:42px !important;
-    padding:0 15px;
-    display:flex;
-    align-items:center;
-}
-.required-star {
-    color: red;
-    font-weight: bold;
-    margin-left: 2px;
-}
-
-.select2-container--default .select2-selection__rendered{
-    color:#2C3E50 !important;
-    line-height:40px !important;
-    padding-left:0 !important;
-    font-size:16px;
-    letter-spacing:1px;
-}
-
-.select2-container--default .select2-selection__arrow{
-    height:40px !important;
-    right:10px !important;
-}
-
-.select2-container--default.select2-container--focus .select2-selection--single{
-    border:1px solid #03346E !important;
-    box-shadow:none !important;
-}
-
-.select2-dropdown{
-    border:1px solid #03346E !important;
-}
-
-.select2-search__field{
-    border:none !important;
-    outline:none !important;
-    box-shadow:none !important;
-}
-
+            width:100% !important;
+            margin-bottom:15px;
+        }
+        .select2-container--default .select2-selection--single{
+            background:#ECEFF1 !important;
+            border:1px solid #ccc !important;
+            border-radius:0 !important;
+            height:42px !important;
+            padding:0 15px;
+            display:flex;
+            align-items:center;
+        }
+        .required-star {
+            color: red;
+            font-weight: bold;
+            margin-left: 2px;
+        }
+        .select2-container--default .select2-selection__rendered{
+            color:#2C3E50 !important;
+            line-height:40px !important;
+            padding-left:0 !important;
+            font-size:16px;
+            letter-spacing:1px;
+        }
+        .select2-container--default .select2-selection__arrow{
+            height:40px !important;
+            right:10px !important;
+        }
+        .select2-container--default.select2-container--focus .select2-selection--single{
+            border:1px solid #03346E !important;
+            box-shadow:none !important;
+        }
+        .select2-dropdown{
+            border:1px solid #03346E !important;
+        }
+        .select2-search__field{
+            border:none !important;
+            outline:none !important;
+            box-shadow:none !important;
+        }
         #heading {
             text-transform: uppercase;
             color: #03346E;
             font-weight: bolder;
             font-size: 1.5rem;
         }
-
         #msform { text-align: center; position: relative; margin-top: 20px }
-
         #msform fieldset {
             background: white;
             border: 0 none;
@@ -81,11 +68,8 @@
             padding-bottom: 20px;
             position: relative
         }
-
         .form-card { text-align: left }
-
         #msform fieldset:not(:first-of-type) { display: none }
-
         #msform input,
         #msform textarea,
         #msform select {
@@ -102,7 +86,6 @@
             font-size: 16px;
             letter-spacing: 1px
         }
-
         #msform input:focus,
         #msform textarea:focus {
             -moz-box-shadow: none !important;
@@ -111,7 +94,6 @@
             border: 1px solid #03346E;
             outline-width: 0
         }
-
         #msform .action-button {
             width: 100px;
             background: #03346E;
@@ -124,15 +106,12 @@
             margin: 10px 0px 10px 5px;
             float: right
         }
-
         #msform .action-button:hover,
         #msform .action-button:focus { background-color: #311B92 }
-
         #msform .action-button:disabled {
             background-color: #9aa5b1;
             cursor: not-allowed;
         }
-
         #msform .action-button-previous {
             width: 100px;
             background: #616161;
@@ -145,12 +124,9 @@
             margin: 10px 5px 10px 0px;
             float: right
         }
-
         #msform .action-button-previous:hover,
         #msform .action-button-previous:focus { background-color: #000000 }
-
         .card { z-index: 0; border: none; position: relative }
-
         .fs-title {
             font-size: 25px;
             color: #03346E;
@@ -158,7 +134,6 @@
             font-weight: normal;
             text-align: left
         }
-
         .steps {
             font-size: 25px;
             color: gray;
@@ -166,10 +141,8 @@
             font-weight: normal;
             text-align: right
         }
-
         #progressbar { margin-bottom: 30px; overflow: hidden; color: lightgrey }
         #progressbar .active { color: #03346E }
-
         #progressbar li {
             list-style-type: none;
             font-size: 14px;
@@ -179,7 +152,6 @@
             font-weight: 400;
             cursor: pointer;
         }
-
         #progressbar li:before {
             width: 50px;
             height: 50px;
@@ -192,12 +164,10 @@
             margin: 0 auto 10px auto;
             padding: 2px
         }
-
         #progressbar #detail:before { content: "1"; font-family: FontAwesome; }
         #progressbar #price:before { content: "2"; font-family: FontAwesome; }
         #progressbar #transferees:before { content: "3"; font-family: FontAwesome; }
         #progressbar #attachments:before { content: "4"; font-family: FontAwesome; }
-
         #progressbar li:after {
             content: '';
             width: 100%;
@@ -208,35 +178,41 @@
             top: 25px;
             z-index: -1
         }
-
         #progressbar li.active:before,
         #progressbar li.active:after { background: #03346E }
-
         .progress { height: 20px }
         .progress-bar { background-color: #03346E }
 
-        .transferee-block {
+        .transferee-block, .current-owner-block {
             border: 1px dashed #03346E;
             border-radius: 6px;
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
             position: relative;
+            background-color: #f8f9fa;
         }
 
-        .remove-transferee {
+        .remove-transferee, .remove-owner {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #c0392b;
-            color: #fff;
-            border: none;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            background: #c0392b !important;
+            color: #fff !important;
+            border: none !important;
             border-radius: 4px;
-            padding: 4px 10px;
-            cursor: pointer;
-            font-size: 12px;
+            padding: 8px 15px !important;
+            cursor: pointer !important;
+            font-size: 14px !important;
+            display: block !important;
+            width: auto !important;
         }
 
-        #add-transferee {
+        .remove-transferee:hover, .remove-owner:hover {
+            background: #e74c3c !important;
+        }
+
+        #add-transferee, #add-owner {
             background: #03346E;
             color: #fff;
             border: none;
@@ -244,10 +220,14 @@
             padding: 8px 18px;
             cursor: pointer;
             margin-bottom: 20px;
+            width: auto;
+        }
+
+        #add-transferee:hover, #add-owner:hover {
+            background: #021a3a;
         }
 
         .file-hint { font-size: 12px; color: #888; margin-top: -10px; margin-bottom: 15px; }
-
         #form-alert-box {
             display: none;
             text-align: left;
@@ -304,310 +284,258 @@
                                 </div>
 
                                 <div class="form-row">
-
                                     <div class="col-md-3">
-                                        <div class="form-row mx-1 ">
+                                        <div class="form-row mx-1">
                                             <div class="col-6 px-0">
-                                        <label>Application No. <span class="required-star">*</span></label>
-                                        <input type="text" class="form-control" name="application_no"
-                                        placeholder="Application No."
-                                            value="{{ $property->application_no ?? '' }}">
+                                                <label>Application No. <span class="required-star">*</span></label>
+                                                <input type="text" class="form-control" name="application_no"
+                                                    placeholder="Application No."
+                                                    value="{{ $property->application_no ?? '' }}">
                                             </div>
-                                              <div class="col-6 px-0">
-                                                  <label>Application Date</label>
-                                        <input type="date" class="form-control datepicker" name="application_date"
-                                        placeholder="Select Date"
-                                            value="{{ $property->application_date ?? '' }}">
+                                            <div class="col-6 px-0">
+                                                <label>Application Date</label>
+                                                <input type="date" class="form-control datepicker" name="application_date"
+                                                    placeholder="Select Date"
+                                                    value="{{ $property->application_date ?? '' }}">
                                             </div>
-
                                         </div>
-
                                     </div>
-
-                                                                        <div class="col-md-3">
+                                    <div class="col-md-3">
                                         <label>Plot No. <span class="required-star">*</span></label>
                                         <input type="text" class="form-control" name="plot_no"
-                                        placeholder="Plot No."
+                                            placeholder="Plot No."
                                             value="{{ $property->plot_no ?? '' }}">
                                     </div>
-                                  <div class="col-md-3">
-    <label>Sector</label>
-
-<select name="sector_id" id="sector" class="form-control">
-    <option value="">Select Sector</option>
-    @foreach($sectors as $sector)
-        <option value="{{ $sector->id }}"
-            {{ old('sector_id', $property->sector_id ?? '') == $sector->id ? 'selected' : '' }}>
-            {{ $sector->name }}
-        </option>
-    @endforeach
-</select>
-</div>
-
-      <div class="col-md-3">
-
-    <label >Block</label>
-
-    <select name="block_id" id="block" class="form-control">
-        <option value="">Select Block</option>
-
-
-    </select>
-</div>
-                                <div class="col-md-3">
-    <div class="row mx-0">
-
-        <div class="col-4 px-0">
-            <label>Kanal</label>
-            <input type="number"
-                   class="form-control"
-                   name="kanal"
-                   placeholder="Kanal"
-                   value="{{ $property->kanal ?? '' }}">
-        </div>
-
-        <div class="col-4 px-0">
-            <label>Marla</label>
-            <input type="number"
-                   class="form-control"
-                   name="marla"
-                   placeholder="Marla"
-                   value="{{ $property->marla ?? '' }}">
-        </div>
-
-        <div class="col-4 px-0">
-            <label>Sq Ft</label>
-            <input type="number"
-                   class="form-control"
-                   name="sqrft"
-                   placeholder="Sq Ft"
-                   value="{{ $property->sqrft ?? '' }}">
-        </div>
-
-    </div>
-</div>
-                                  <div class="col-md-3">
-                                  <label for="approved_scheme">Approved Scheme</label>
-
-                        <select name="approved_scheme" id="approved_scheme" class="form-control">
-        <option selected disabled>Select Scheme</option>
-
-        <option value="Scheme 1"
-            {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 1' ? 'selected' : '' }}>
-            Scheme 1
-        </option>
-
-        <option value="Scheme 2"
-            {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 2' ? 'selected' : '' }}>
-            Scheme 2
-        </option>
-
-        <option value="Scheme 3"
-            {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 3' ? 'selected' : '' }}>
-            Scheme 3
-        </option>
-    </select>
-</div>
-  <div class="col-md-3">
+                                    <div class="col-md-3">
+                                        <label>Sector <span class="required-star">*</span></label>
+                                        <select name="sector_id" id="sector" class="form-control">
+                                            <option value="">Select Sector</option>
+                                            @foreach($sectors as $sector)
+                                                <option value="{{ $sector->id }}"
+                                                    {{ old('sector_id', $property->sector_id ?? '') == $sector->id ? 'selected' : '' }}>
+                                                    {{ $sector->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Block <span class="required-star">*</span></label>
+                                        <select name="block_id" id="block" class="form-control">
+                                            <option value="">Select Block</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="row mx-0">
+                                            <div class="col-4 px-0">
+                                                <label>Kanal</label>
+                                                <input type="number" class="form-control" name="kanal"
+                                                min="0"
+                                                    placeholder="Kanal" value="{{ $property->kanal ?? '' }}">
+                                            </div>
+                                            <div class="col-4 px-0">
+                                                <label>Marla</label>
+                                                <input type="number" class="form-control" name="marla"  min="0"
+                                                    placeholder="Marla" value="{{ $property->marla ?? '' }}">
+                                            </div>
+                                            <div class="col-4 px-0">
+                                                <label>Sq Ft</label>
+                                                <input type="number" class="form-control" name="sqrft"  min="0"
+                                                    placeholder="Sq Ft" value="{{ $property->sqrft ?? '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="approved_scheme">Approved Scheme</label>
+                                        <select name="approved_scheme" id="approved_scheme" class="form-control">
+                                            <option selected disabled>Select Scheme</option>
+                                            <option value="Scheme 1" {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 1' ? 'selected' : '' }}>Scheme 1</option>
+                                            <option value="Scheme 2" {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 2' ? 'selected' : '' }}>Scheme 2</option>
+                                            <option value="Scheme 3" {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 3' ? 'selected' : '' }}>Scheme 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
                                         <label>Size</label>
                                         <input type="text" class="form-control" name="size"
-                                        placeholder="Enter Size"
-                                            value="{{ $property->size ?? '' }}">
+                                            placeholder="Enter Size" value="{{ $property->size ?? '' }}">
                                     </div>
-                                      <div class="col-md-3">
+                                    <div class="col-md-3">
                                         <label>Form_no.</label>
                                         <input type="text" class="form-control" name="form_no"
-                                        placeholder="Enter Form_no."
-                                            value="{{ $property->form_no ?? '' }}">
+                                            placeholder="Enter Form_no." value="{{ $property->form_no ?? '' }}">
                                     </div>
-
-  <div class="col-md-3">
+                                    <div class="col-md-3">
                                         <label>Initial Draft Amount</label>
-                                        <input type="number" class="form-control" name="initial_draft_amount"
-                                        placeholder="Initial Draft Amount"
-                                            value="{{ $property->initial_draft_amount ?? '' }}">
+                                        <input type="number" class="form-control" name="initial_draft_amount"  min="0"
+                                            placeholder="Initial Draft Amount" value="{{ $property->initial_draft_amount ?? '' }}">
                                     </div>
-<div class="col-md-3">
+                                    <div class="col-md-3">
                                         <label>Initial Draft Date</label>
                                         <input type="date" class="form-control datepicker" name="initial_draft_date"
-                                        placeholder="Select Date"
-                                            value="{{ $property->initial_draft_date ?? '' }}">
+                                            placeholder="Select Date" value="{{ $property->initial_draft_date ?? '' }}">
                                     </div>
-
-
-
                                 </div>
 
 
 
 
-                                <div class="form-row">
-
-
-
-
-
-
-                                    <div class="col-md-3">
-                                        <label>Name Applicant/Allottee</label>
-                                        <input type="text" class="form-control" name="applicant_name"
-                                        placeholder="Name Applicant"
-                                            value="{{ $property->applicant_name ?? '' }}">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label>Father/Husband Name</label>
-                                        <input type="text" class="form-control" name="father_husband_name"
-                                        placeholder="Father/Husband Name"
-                                            value="{{ $property->father_husband_name ?? '' }}">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label>Old NIC</label>
-                                        <input type="number" class="form-control" name="old_nic"
-                                        placeholder="Old NIC"
-                                            value="{{ $property->old_nic ?? '' }}">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label>CNIC</label>
-<input type="text"
-       class="form-control"
-       name="cnic"
-       id="cnic"
-       maxlength="15"
-       placeholder="12345-1234567-1"
-       value="{{ $property->cnic ?? '' }}">
-                                    </div>
-
-                                </div>
-
 
                                 <div class="form-row">
-
-
-                                    <div class="col-md-6">
-                                        <label>Address (Temporary)</label>
-                                        <textarea class="form-control"
-                                        placeholder="Address (Temporary)"
-                                        name="address_temporary" rows="1">{{ $property->address_temporary ?? '' }}</textarea>
+                                    <div class="col-md-3">
+                                        <label for="name">Category</label>
+                                        <select name="category" id="" class="form-control">
+                                            <option value="">Select Category</option>
+                                            <option {{ $property && $property->category == 'House' ? 'selected' : '' }} value="House">House</option>
+                                            <option {{ $property && $property->category == 'Commercial' ? 'selected' : '' }} value="Commercial">Commercial</option>
+                                            <option {{ $property && $property->category == 'Plot' ? 'selected' : '' }} value="Plot">Plot</option>
+                                        </select>
                                     </div>
-                                 <div class="col-md-6">
-                                        <label>Address (Permanent)</label>
-                                        <textarea class="form-control"
-                                        placeholder="Address (Permanent)"
-                                        name="address_permanent" rows="1">{{ $property->address_permanent ?? '' }}</textarea>
+                                    <div class="col-md-3">
+                                        <label for="approved_scheme">Mode of Allottment</label>
+                                        <select name="mode_allottment" id="mode_allottment" class="form-control">
+                                            <option value="">Select Allottment</option>
+                                            <option value="Balloting" {{ old('mode_allottment', $property->mode_allottment ?? '') == 'Balloting' ? 'selected' : '' }}>Balloting</option>
+                                            <option value="Auction" {{ old('mode_allottment', $property->mode_allottment ?? '') == 'Auction' ? 'selected' : '' }}>Auction</option>
+                                            <option value="By_Chairman" {{ old('mode_allottment', $property->mode_allottment ?? '') == 'By_Chairman' ? 'selected' : '' }}>By Chairman</option>
+                                        </select>
                                     </div>
-
-                                </div>
-
-
-                                <div class="form-row">
-
-
-                                         <div class="col-md-3">
-                                            <label for="name" >
-                                                Category</label>
-
-                                                  <select name="category" id="" class="form-control">
-                                                     <option value="">Select Category</option>
-                                                      <option {{$property && $property->category == 'House' ? 'selected' : ''}} value="House">House</option>
-                                                     <option {{$property && $property->category == 'Commercial' ? 'selected' : ''}} value="Commercial">Commercial</option>
-                                                     <option{{$property && $property->category == 'Plot' ? 'selected' : ''}} value="Plot">Plot</option>
-
-                                                           </select>
-                                                         </div>
-
-                                                                <div class="col-md-3">
-    <label for="approved_scheme">Mode of Allottment</label>
-
-    <select name="mode_allottment" id="mode_allottment" class="form-control">
-        <option value="">Select Allottment</option>
-
-        <option value="Balloting"
-            {{ old('mode_allottment', $property->mode_allottment ?? '') == 'Balloting' ? 'selected' : '' }}>
-            Balloting
-        </option>
-
-        <option value="Auction"
-            {{ old('mode_allottment', $property->mode_allottment ?? '') == 'Auction' ? 'selected' : '' }}>
-            Auction
-        </option>
-
-        <option value="By_Chairman"
-            {{ old('mode_allottment', $property->mode_allottment ?? '') == 'By_Chairman' ? 'selected' : '' }}>
-            By Chairman
-        </option>
-    </select>
-</div>
-
-
-
-
                                     <div class="col-md-3">
                                         <label>Allotment Date</label>
                                         <input type="date" class="form-control datepicker" name="allotment_date"
-                                        placeholder="Select Date"
-                                            value="{{ $property->allotment_date ?? '' }}">
+                                            placeholder="Select Date" value="{{ $property->allotment_date ?? '' }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label>Serial No of Balloting</label>
                                         <input type="text" class="form-control" name="balloting_serial_no"
-                                        placeholder="Serial No of Balloting"
-                                            value="{{ $property->balloting_serial_no ?? '' }}">
+                                            placeholder="Serial No of Balloting" value="{{ $property->balloting_serial_no ?? '' }}">
                                     </div>
+                                    <div class="col-md-3">
+                                        <label>Transfer Count</label>
+                                        <input type="number" class="form-control" name="transfer_count"
+                                            id="transfer_count" placeholder="Number of Transfers" min="0"
+                                            value="{{ old('transfer_count', $property->transfer_count ?? '') }}">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Ownership Type</label>
+                                        <select name="ownership_type" id="ownership_type" class="form-control">
+                                            <option value="">Select Ownership Type</option>
+                                            <option value="single" {{ old('ownership_type', $property->ownership_type ?? '') == 'single' ? 'selected' : '' }}>Single Owner</option>
+                                            <option value="multiple" {{ old('ownership_type', $property->ownership_type ?? '') == 'multiple' ? 'selected' : '' }}>Multiple Owner</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label>Allotment Type</label>
+                                        <select name="allotment_type" id="allotment_type" class="form-control">
+                                            <option value="">Select Allotment</option>
+                                            <option value="original" {{ old('allotment_type', $property->allotment_type ?? '') == 'original' ? 'selected' : '' }}>Original Allottee</option>
+                                            <option value="transferee" {{ old('allotment_type', $property->allotment_type ?? '') == 'transferee' ? 'selected' : '' }}>Transferee</option>
+                                        </select>
+                                    </div>
+                                </div>
 
+                                {{-- Current Owner Section --}}
+                                <div class="row mt-4">
+                                    <div class="col-7"><h2 class="fs-title">Current Owner:</h2></div>
+
+                                </div>
+
+                                <div id="current-owners-wrapper">
+                                    @if(isset($property) && $property->currentOwners && $property->currentOwners->count() > 0)
+                                        @foreach($property->currentOwners as $index => $owner)
+                                            <div class="current-owner-block" data-index="{{ $index }}">
+                                                @if($index > 0)
+                                                    <button type="button" class="btn btn-danger remove-owner" onclick="removeOwner(this)">Remove</button>
+                                                @endif
+                                                <div class="form-row">
+                                                    <div class="col-md-3">
+                                                        <label>Name Applicant/Allottee</label>
+                                                        <input type="text" class="form-control" name="current_owners[{{ $index }}][applicant_name]"
+                                                            placeholder="Name Applicant" value="{{ $owner->applicant_name }}">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label>Father/Husband Name</label>
+                                                        <input type="text" class="form-control" name="current_owners[{{ $index }}][father_husband_name]"
+                                                            placeholder="Father/Husband Name" value="{{ $owner->father_husband_name }}">
+                                                    </div>
+                                                    {{-- <div class="col-md-3">
+                                                        <label>Old NIC</label>
+                                                        <input type="number" class="form-control" name="current_owners[{{ $index }}][old_nic]"
+                                                            placeholder="Old NIC" value="{{ $owner->old_nic }}">
+                                                    </div> --}}
+                                                     <div class="col-md-3">
+                                                        <label>Old NIC</label>
+                                                        <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][old_nic]"
+                                                            maxlength="15" placeholder="12345-1234567-1" value="{{ $owner->old_nic }}">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label>CNIC</label>
+                                                        <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][cnic]"
+                                                            maxlength="15" placeholder="12345-1234567-1" value="{{ $owner->cnic }}">
+                                                    </div>
+                                                </div>
+                                                <div class="form-row">
+                                                    <div class="col-md-6">
+                                                        <label>Address (Temporary)</label>
+                                                        <textarea class="form-control" placeholder="Address (Temporary)"
+                                                            name="current_owners[{{ $index }}][address_temporary]" rows="1">{{ $owner->address_temporary }}</textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label>Address (Permanent)</label>
+                                                        <textarea class="form-control" placeholder="Address (Permanent)"
+                                                            name="current_owners[{{ $index }}][address_permanent]" rows="1">{{ $owner->address_permanent }}</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <div class="current-owner-block" data-index="0">
+                                            <div class="form-row">
                                                 <div class="col-md-3">
-                <label>Transfer Count</label>
-                <input type="number"
-                       class="form-control"
-                       name="transfer_count"
-                       id="transfer_count"
-                       placeholder="Number of Transfers"
-                       min="0"
-                       value="{{ old('transfer_count', $property->transfer_count ?? '') }}">
-            </div>
-
-            <div class="col-md-3">
-                <label>Ownership Type</label>
-                <select name="ownership_type" id="ownership_type" class="form-control">
-                    <option value="">Select Ownership Type</option>
-                    <option value="single"
-                        {{ old('ownership_type', $property->ownership_type ?? '') == 'single' ? 'selected' : '' }}>
-                        Single Owner
-                    </option>
-                    <option value="multiple"
-                        {{ old('ownership_type', $property->ownership_type ?? '') == 'multiple' ? 'selected' : '' }}>
-                        Multiple Owner
-                    </option>
-                </select>
-            </div>
-<div class="col-md-3">
-    <label>Allotment Type</label>
-    <select name="allotment_type" id="allotment_type" class="form-control">
-        <option value="">Select Allotment</option>
-        <option value="original"
-            {{ old('allotment_type', $property->allotment_type ?? '') == 'original' ? 'selected' : '' }}>
-            Original Allottee
-        </option>
-        <option value="transferee"
-            {{ old('allotment_type', $property->allotment_type ?? '') == 'transferee' ? 'selected' : '' }}>
-            Transferee
-        </option>
-    </select>
-</div>
-
-                               <div class="col-md-3">
-    <label>Remarks</label>
-    <textarea class="form-control"
-              name="remarks"
-              rows="3"
-              placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
-</div>
-
-
-                                </div>
+                                                    <label>Name Applicant/Allottee</label>
+                                                    <input type="text" class="form-control" name="current_owners[0][applicant_name]"
+                                                        placeholder="Name Applicant">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label>Father/Husband Name</label>
+                                                    <input type="text" class="form-control" name="current_owners[0][father_husband_name]"
+                                                        placeholder="Father/Husband Name">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label>Old NIC</label>
+                                                    <input type="text" class="form-control cnic-input"  name="current_owners[0][old_nic]"
+                                                       maxlength="15" placeholder="12345-1234567-1">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label>CNIC</label>
+                                                    <input type="text" class="form-control cnic-input" name="current_owners[0][cnic]"
+                                                        maxlength="15" placeholder="12345-1234567-1">
+                                                </div>
+                                            </div>
+                                            <div class="form-row">
+                                                <div class="col-md-6">
+                                                    <label>Address (Temporary)</label>
+                                                    <textarea class="form-control" placeholder="Address (Temporary)"
+                                                        name="current_owners[0][address_temporary]" rows="1"></textarea>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label>Address (Permanent)</label>
+                                                    <textarea class="form-control" placeholder="Address (Permanent)"
+                                                        name="current_owners[0][address_permanent]" rows="1"></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
 
+                                <button type="button" id="add-owner" onclick="addOwner()">+ Add Current Owner</button>
 
-                            <input type="button" class="next action-button" value="Next">
+                                <div class="form-row col-md-12">
+                                    <label>Remarks</label>
+                                    <textarea class="form-control" name="remarks" rows="3"
+                                        placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
+                                </div>
+
+                                <input type="button" class="next action-button" value="Next">
+                            </div>
                         </fieldset>
 
                         {{-- ===================== STEP 2 : PRICE ===================== --}}
@@ -618,127 +546,88 @@
                                     <div class="col-5"><h2 class="steps">Step 2 - 4</h2></div>
                                 </div>
 
-
                                 <div class="form-row">
-
-                                   <div class="col-md-3">
+                                    <div class="col-md-3">
                                         <label>Price</label>
-                                        <input type="number" class="form-control"
-                                        placeholder="Enter Price"
-                                        name="total_price"
-                                            value="{{ $property->payment->total_price ?? ''}}">
+                                        <input type="number" class="form-control" placeholder="Enter Price"  min="0"
+                                            name="total_price" value="{{ $property->payment->total_price ?? ''}}">
                                     </div>
-
-
-{{-- Amount Deposited------>Recieved Amount --}}
                                     <div class="col-md-3">
                                         <label>Recieved Amount</label>
-                                        <input type="number" class="form-control"
-                                        placeholder="Enter Amount"
-                                        name="amount_deposited"
-                                            value="{{ $property->payment->amount_deposited ?? '' }}">
+                                        <input type="number" class="form-control" placeholder="Enter Amount"  min="0"
+                                            name="amount_deposited" value="{{ $property->payment->amount_deposited ?? '' }}">
                                     </div>
-                                    {{-- Remaining Amount-------->Recievable Amount --}}
                                     <div class="col-md-3">
                                         <label>Recievable Amount</label>
-                                        <input type="number" class="form-control"
-                                        placeholder="Enter Amount"
-                                        name="remaining_amount"
-                                            value="{{ $property->payment->remaining_amount ?? '' }}">
+                                        <input type="number" class="form-control" placeholder="Enter Amount"  min="0"
+                                            name="remaining_amount" value="{{ $property->payment->remaining_amount ?? '' }}">
                                     </div>
-                                           <div class="col-md-3">
+                                    <div class="col-md-3">
                                         <label>Down payment</label>
-                                        <input type="number" class="form-control"
-                                        placeholder="Enter payment"
-                                        name="down_payment"
-                                            value="{{$property->payment->down_payment ?? '' }}">
+                                        <input type="number" class="form-control" placeholder="Enter payment"  min="0"
+                                            name="down_payment" value="{{$property->payment->down_payment ?? '' }}">
                                     </div>
-
                                     <div class="col-md-3">
                                         <label>Initial Notice No. (Allotment Letter)</label>
                                         <input type="text" class="form-control" name="initial_notice_no"
-                                        placeholder="Initial Notice No."
-                                            value="{{ $property->payment->initial_notice_no ?? '' }}">
+                                            placeholder="Initial Notice No." value="{{ $property->payment->initial_notice_no ?? '' }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label>Initial Notice Date</label>
-                                        <input type="text" class="form-control datepicker"
-                                        placeholder="Select Date"
-                                        name="initial_notice_date"
-                                            value="{{ $property->payment->initial_notice_date ?? '' }}">
+                                        <input type="text" class="form-control datepicker" placeholder="Select Date"
+                                            name="initial_notice_date" value="{{ $property->payment->initial_notice_date ?? '' }}">
                                     </div>
-
                                     <div class="col-md-3">
-                                        <label>Total Received Amount </label>
-                                        <input type="number" class="form-control"
-                                        placeholder="Total Received Amount"
-                                        name="total_received_amount"
-                                            value="{{ $property->payment->total_received_amount ?? '' }}">
+                                        <label>Total Received Amount</label>
+                                        <input type="number" class="form-control" placeholder="Total Received Amount"  min="0"
+                                            name="total_received_amount" value="{{ $property->payment->total_received_amount ?? '' }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label>Received Amount Date</label>
-                                        <input type="text" class="form-control datepicker"
-                                        placeholder="Select Date"
-                                        name="received_amount_date"
-                                            value="{{ $property->payment->received_amount_date ?? '' }}">
+                                        <input type="text" class="form-control datepicker" placeholder="Select Date"
+                                            name="received_amount_date" value="{{ $property->payment->received_amount_date ?? '' }}">
                                     </div>
- </div>
+                                </div>
+
                                 <div class="row">
                                     <div class="col-7"><h2 class="fs-title">Allotment / Possession:</h2></div>
                                 </div>
-                                <div class="form-row">
-                                    {{-- Allotment Order No. -------->Allotment Chit No. --}}
 
+                                <div class="form-row">
                                     <div class="col-md-3">
                                         <label>Allotment Chit No.</label>
-                                        <input type="text" class="form-control"
-                                        placeholder="Enter Chit No." name="allotment_order_no"
-                                            value="{{ $property->payment->allotment_order_no ?? '' }}">
+                                        <input type="text" class="form-control" placeholder="Enter Chit No."
+                                            name="allotment_order_no" value="{{ $property->payment->allotment_order_no ?? '' }}">
                                     </div>
-
-                                    {{-- Allotment Order Date --}}
                                     <div class="col-md-3">
                                         <label>Allotment Chit Date</label>
-                                        <input type="date" class="form-control datepicker"
-                                        placeholder="Select Date"
-                                        name="allotment_order_date"
-                                            value="{{ $property->payment->allotment_order_date ?? '' }}">
+                                        <input type="date" class="form-control datepicker" placeholder="Select Date"
+                                            name="allotment_order_date" value="{{ $property->payment->allotment_order_date ?? '' }}">
                                     </div>
-                                    {{-- Possession Slip No. -------->Qabza Chit No. --}}
-
-
                                     <div class="col-md-3">
                                         <label>Qabza Chit No.</label>
-                                        <input type="text" class="form-control"
-                                        placeholder="Enter Chit No."
-                                        name="possession_slip_no"
-                                            value="{{ $property->payment->possession_slip_no ?? '' }}">
+                                        <input type="text" class="form-control" placeholder="Enter Chit No."
+                                            name="possession_slip_no" value="{{ $property->payment->possession_slip_no ?? '' }}">
                                     </div>
-                                    {{-- Possession Slip Date-------->Qabza Chit Date --}}
                                     <div class="col-md-3">
                                         <label>Qabza Chit Date</label>
-                                        <input type="date" class="form-control datepicker"
-                                        placeholder="Select Date"
-                                        name="possession_slip_date"
-                                            value="{{ $property->payment->possession_slip_date ?? '' }}">
+                                        <input type="date" class="form-control datepicker" placeholder="Select Date"
+                                            name="possession_slip_date" value="{{ $property->payment->possession_slip_date ?? '' }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label>Approval of Boundary Wall</label>
                                         <input type="text" class="form-control" name="boundary_wall_approval"
-                                        placeholder="Approval of Boundary Wall"
-                                            value="{{ $property->payment->boundary_wall_approval ?? '' }}">
+                                            placeholder="Approval of Boundary Wall" value="{{ $property->payment->boundary_wall_approval ?? '' }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label>Approval Date of Maps</label>
                                         <input type="date" class="form-control datepicker" name="map_approval_date"
-                                        placeholder="Approval Date of Maps"
-                                        value="{{ $property->payment->map_approval_date ?? '' }}">
+                                            placeholder="Approval Date of Maps" value="{{ $property->payment->map_approval_date ?? '' }}">
                                     </div>
                                     <div class="col-md-3">
                                         <label>Transfer Order No.</label>
                                         <input type="text" class="form-control" placeholder="Transfer Order No."
-                                         name="transfer_order_no"
-                                            value="{{ $property->payment->transfer_order_no ?? '' }}">
+                                            name="transfer_order_no" value="{{ $property->payment->transfer_order_no ?? '' }}">
                                     </div>
                                 </div>
                             </div>
@@ -754,71 +643,88 @@
                                     <div class="col-5"><h2 class="steps">Step 3 - 4</h2></div>
                                 </div>
 
-
-
                                 <div id="transferees-wrapper">
                                     <div class="transferee-block" data-index="0">
                                         <div class="form-row">
                                             <div class="col-md-3">
                                                 <label>Transferee Name</label>
-                                                <input type="text" class="form-control"
-                                                placeholder="Transferee Name" name="transferees[0][name]">
+                                                <input type="text" class="form-control" placeholder="Transferee Name"
+                                                    name="transferees[0][name]">
                                             </div>
                                             <div class="col-md-3">
                                                 <label>Father Name</label>
-                                                <input type="text" class="form-control"
-                                                placeholder="Father Name" name="transferees[0][father_name]">
+                                                <input type="text" class="form-control" placeholder="Father Name"
+                                                    name="transferees[0][father_name]">
                                             </div>
+
                                             <div class="col-md-3">
-                                                <label>ID Card</label>
-                                                <input type="number" class="form-control"
-                                                placeholder="ID Card"
-                                                name="transferees[0][id_card]">
-                                            </div>
+                                                 <label>ID Card</label>
+                                                        <input type="text" class="form-control cnic-input"  name="transferees[0][id_card]"
+                                                            maxlength="15" placeholder="12345-1234567-1">
+                                                    </div>
+
+
                                             <div class="col-md-3">
                                                 <label>Challan No.</label>
-                                                <input type="text" class="form-control"
-                                                placeholder="Challan No."
-                                                name="transferees[0][challan_no]">
+                                                <input type="text" class="form-control" placeholder="Challan No."
+                                                    name="transferees[0][challan_no]">
                                             </div>
+                                        </div>
+
+
+
+
+
+                                                                                <div class="form-row">
+                                            <div class="col-md-6">
+                                                <label>Address</label>
+                                                <input type="text" class="form-control" placeholder="Address"
+                                                    name="transferees[0][address]">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label>Allottee Date</label>
+                                                <input type="date" class="form-control datepicker"  placeholder="Allottee Date"
+                                                    name="transferees[0][allottee_date]">
+                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
 
-                                <button type="button" id="add-transferee">+ Add Transferee</button>
+                                <button type="button" id="add-transferee" onclick="addTransferee()">+ Add Transferee</button>
                             </div>
                             <input type="button" class="next action-button" value="Next">
                             <input type="button" class="previous action-button-previous" value="Previous">
                         </fieldset>
 
                         {{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
-<fieldset id="step-4">
-                                {{-- NOTE (assumption): "Alternate Allotment" placed here — please confirm --}}
-                                <div class="form-row">
-                                    <div class="col-md-4 text-left">
-                                        <label>Alternate Allotment </label>
-                                        <input type="text" class="form-control" name="alternate_allotment"
-                                        placeholder="Alternate Allotment"
-                                            value="{{ $property->alternate_allotment ?? '' }}">
-                                    </div>
+                        <fieldset id="step-4">
+                            <div class="form-row">
+                                <div class="col-md-4 text-left">
+                                    <label>Alternate Allotment</label>
+                                    <input type="text" class="form-control" name="alternate_allotment"
+                                        placeholder="Alternate Allotment" value="{{ $property->alternate_allotment ?? '' }}">
                                 </div>
+                            </div>
 
                             <div class="row">
                                 <div class="col-7"><h2 class="fs-title">Attachments:</h2></div>
                                 <div class="col-5"><h2 class="steps">Step 4 - 4</h2></div>
                             </div>
+
                             <div class="form-row">
-                                   <div class="col-md-4 text-left">
-                                    <label>Complete Property File <span class="required-star">*</span></label>
-                                    <input type="file" name="complete_property_file">
+                                <div class="col-md-4 text-left">
+                                    <label>Property Document <span class="required-star">*</span></label>
+                                    <input type="file" name="property_document">
                                 </div>
                                 <div class="col-md-4 text-left">
-                                    <label>Adjacent Area Allotment</label>
-                                    <input type="file" name="adjacent_area_allotment">
+                                    <label>Noting File</label>
+                                    <input type="file" name="noting_file">
                                 </div>
+
                                 <div class="col-md-4 text-left">
-                                    <label>Division of Plots</label>
-                                    <input type="file" name="division_of_plots">
+                                    <label>Allotment Order</label>
+                                    <input type="file" name="allotment_order">
                                 </div>
                                 <div class="col-md-4 text-left">
                                     <label>Decision of Courts Against Plot</label>
@@ -836,9 +742,15 @@
                                     <label>Decision of Revising Authority (Cancel/Restore etc)</label>
                                     <input type="file" name="decision_revising_authority">
                                 </div>
+                                 <div class="col-md-4 text-left">
+                                    <label>Adjacent Area Allotment</label>
+                                    <input type="file" name="adjacent_area_allotment">
+                                </div>
+                                <div class="col-md-4 text-left">
+                                    <label>CNIC (front-side)</label>
+                                    <input type="file" name="cnic_front">
+                                </div>
                             </div>
-
-
 
                             <button type="submit" id="submit-btn" class="action-button">Submit</button>
                             <input type="button" class="previous action-button-previous" value="Previous">
@@ -849,301 +761,308 @@
         </div>
     </div>
 
-
-
     <script>
-
-
-    $(document).ready(function () {
-        $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
-
-     $('#sector_id').select2({
-        placeholder: "Select Sector",
-        allowClear: true,
-        width: "100%"
-    });
-        // Initialize Select2 for block (empty initially)
-    $('#block').select2({
-        placeholder: "Select Block",
-        allowClear: true,
-        width: "100%"
-    });
-
-
-
-    // When sector changes, load blocks
-            // Clear current options
-                // ✅ When sector changes, load blocks
-    $('#sector').on('change', function() {
-        var sectorId = $(this).val();
-        var blockSelect = $('#block');
-        blockSelect.empty().append('<option value="">Select Block</option>');
-        blockSelect.val('').trigger('change');
-
-        // If no sector selected, disable block dropdown
-        if (!sectorId) {
-            blockSelect.prop('disabled', true);
-            return;
-        }
-
-        // Enable block dropdown and fetch blocks
-        blockSelect.prop('disabled', false);
-
-        $.ajax({
-            url: '/get-blocks/' + sectorId,
-            type: 'GET',
-            dataType: 'json',
-            success: function(blocks) {
-                if (blocks.length > 0) {
-                    $.each(blocks, function(index, block) {
-                        blockSelect.append('<option value="' + block.id + '">' + block.name + '</option>');
-                    });
-                } else {
-                    blockSelect.append('<option value="">No blocks available</option>');
-                }
-                blockSelect.trigger('change');
-            },
-            error: function(xhr) {
-                console.error('Error fetching blocks:', xhr);
-                blockSelect.append('<option value="">Error loading blocks</option>');
-            }
-        });
-    });
-
-    // If there's already a selected sector (for edit mode), trigger load
-    var initialSector = $('#sector').val(); // ✅ Correct
-    if (initialSector) {
-        $('#sector').trigger('change'); // ✅ Correct
-
-        // After blocks load, set the previously selected block
-        var selectedBlock = '{{ old('block_id', $property->block_id ?? '') }}';
-        if (selectedBlock) {
-            setTimeout(function() {
-                $('#block').val(selectedBlock).trigger('change');
-            }, 500);
-        }
-    }
-
-
-    // If there's already a selected sector (for edit mode), trigger load
-    var initialSector = $('#sector').val();
-    if (initialSector) {
-        $('#sector').trigger('change');
-
-        // After blocks load, set the previously selected block
-        var selectedBlock = '{{ old('sector', $property->block ?? '') }}';
-        if (selectedBlock) {
-            setTimeout(function() {
-                $('#block').val(selectedBlock).trigger('change');
-            }, 500);
-        }
-    }
-
-
-
-
-        // Explicit step order
-        var stepIds = ['#step-1', '#step-2', '#step-3', '#step-4'];
-        var current = 0; // index into stepIds
-
-        function setProgressBar(stepIndex) {
-            var percent = (100 / stepIds.length) * (stepIndex + 1);
-            $('.progress-bar').css('width', percent.toFixed() + '%');
-        }
-
-        function goToStep(index) {
-            if (index < 0 || index >= stepIds.length) return;
-
-            var current_fs = $(stepIds[current]);
-            var target_fs = $(stepIds[index]);
-
-            $('#progressbar li').removeClass('active');
-            $('#progressbar li').each(function (i) {
-        if (i <= index) {
-            $(this).addClass('active');
-        }
-    });
-
-            current_fs.hide();
-            target_fs.show();
-
-            current = index;
-            setProgressBar(current);
-        }
-
-        // Next button
-        $(document).off('click', '.next').on('click', '.next', function (e) {
-
-            e.preventDefault();
-            goToStep(current + 1);
-        });
-
-        // Previous button
-        $(document).off('click', '.previous').on('click', '.previous', function (e) {
-            e.preventDefault();
-            goToStep(current - 1);
-        });
-
-        // Progressbar item click → seedha us step par jump
-        $('#progressbar li').on('click', function () {
-            var index = $('#progressbar li').index(this);
-            goToStep(index);
-        });
-
-        // Dynamic "Add Transferee"
+        // Global variables
+        var ownerIndex = {{ isset($property) && $property->currentOwners ? $property->currentOwners->count() : 1 }};
         var transfereeIndex = 1;
-        $('#add-transferee').click(function () {
+
+        // Add Current Owner
+        function addOwner() {
             var block = `
-                <div class="transferee-block" data-index="${transfereeIndex}">
-                    <button type="button" class="btn btn-danger remove-transferee">Remove</button>
+                <div class="current-owner-block" data-index="${ownerIndex}">
+                    <button type="button" class="btn btn-danger remove-owner" onclick="removeOwner(this)">Remove</button>
                     <div class="form-row">
                         <div class="col-md-3">
-                            <label>Transferees Name</label>
-                            <input type="text" class="form-control"
-                            placeholder="Transferees Name"
-                            name="transferees[${transfereeIndex}][name]">
+                            <label>Name Applicant/Allottee</label>
+                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][applicant_name]" placeholder="Name Applicant">
                         </div>
                         <div class="col-md-3">
-                            <label>Father Name</label>
-                            <input type="text" class="form-control"
-                            placeholder="Father Name"
-                            name="transferees[${transfereeIndex}][father_name]">
+                            <label>Father/Husband Name</label>
+                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][father_husband_name]" placeholder="Father/Husband Name">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label>Old NIC</label>
+                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][old_nic]" maxlength="15" placeholder="12345-1234567-1">
                         </div>
                         <div class="col-md-3">
-                            <label>ID Card</label>
-                            <input type="text"
-                            placeholder="ID Card"
-                            class="form-control" name="transferees[${transfereeIndex}][id_card]">
+                            <label>CNIC</label>
+                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]" maxlength="15" placeholder="12345-1234567-1">
                         </div>
-                        <div class="col-md-3">
-                            <label>Challan No.</label>
-                            <input type="text"
-                             placeholder="Challan No."
-                            class="form-control" name="transferees[${transfereeIndex}][challan_no]">
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <label>Address (Temporary)</label>
+                            <textarea class="form-control" placeholder="Address (Temporary)" name="current_owners[${ownerIndex}][address_temporary]" rows="1"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Address (Permanent)</label>
+                            <textarea class="form-control" placeholder="Address (Permanent)" name="current_owners[${ownerIndex}][address_permanent]" rows="1"></textarea>
                         </div>
                     </div>
                 </div>`;
-            $('#transferees-wrapper').append(block);
-            transfereeIndex++;
-        });
 
-     $(document).on('click', '.remove-transferee', function (e) {
-
-   e.preventDefault();
-           console.log("Remove clicked");
-
-    $(this).closest('.transferee-block').remove();
-
-});
-
-        // ===================== SUBMIT (AJAX) =====================
-        function showAlert(type, message) {
-            var box = $('#form-alert-box');
-            box.removeClass('alert-success alert-danger').addClass('alert-' + type);
-            box.html(message);
-            box.show();
-            $('html, body').animate({ scrollTop: box.offset().top - 100 }, 300);
+            document.getElementById('current-owners-wrapper').insertAdjacentHTML('beforeend', block);
+            ownerIndex++;
         }
 
-        $('#msform').on('submit', function (e) {
-            e.preventDefault();
-              $('#cnic').val($('#cnic').val().replace(/-/g, ''));
+        // Remove Current Owner
+        function removeOwner(btn) {
+            var block = btn.closest('.current-owner-block');
+            if (block) {
+                block.remove();
+            }
+        }
 
-            var form = this;
-            var formData = new FormData(form);
-            var $submitBtn = $('#submit-btn');
+        // Add Transferee
+        function addTransferee() {
+            var block = `
+                <div class="transferee-block" data-index="${transfereeIndex}">
+                    <button type="button" class="btn btn-danger remove-transferee" onclick="removeTransferee(this)">Remove</button>
+                    <div class="form-row">
+                        <div class="col-md-3">
+                            <label>Transferees Name</label>
+                            <input type="text" class="form-control" placeholder="Transferees Name" name="transferees[${transfereeIndex}][name]">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Father Name</label>
+                            <input type="text" class="form-control" placeholder="Father Name" name="transferees[${transfereeIndex}][father_name]">
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label>ID Card</label>
+                            <input type="text" placeholder="ID Card" class="form-control" name="transferees[${transfereeIndex}][id_card]"
+                            maxlength="15" placeholder="12345-1234567-1">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Challan No.</label>
+                            <input type="text" placeholder="Challan No." class="form-control" name="transferees[${transfereeIndex}][challan_no]">
+                        </div>
+                    </div>
+                      <div class="form-row">
+                        <div class="col-md-6">
+                            <label>Address</label>
+                            <input type="text" class="form-control" placeholder="Transferees Name" name="transferees[${transfereeIndex}][name]">
+                        </div>
+                        <div class="col-md-3">
+                            <label>Allottee</label>
+                            <input type="text" class="form-control" placeholder="Father Name" name="transferees[${transfereeIndex}][father_name]">
+                        </div>
 
-            $submitBtn.prop('disabled', true).text('Saving...');
-            $('#form-alert-box').hide();
+                    </div>
+                </div>`;
 
-            $.ajax({
-                url: $(form).attr('action'),
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                },
-                success: function (response) {
-                    showAlert('success', response.message || 'Data saved successfully.');
+            document.getElementById('transferees-wrapper').insertAdjacentHTML('beforeend', block);
+            transfereeIndex++;
+        }
 
-                    // Redirect to list page after a short pause, agar backend redirect url bheje
-                    if (response.redirect) {
-                        setTimeout(function () {
-                            window.location.href = response.redirect;
-                        }, 1200);
-                    } else {
-                        form.reset();
-                        goToStep(0);
-                    }
-                },
-                error: function (xhr) {
-                    var message = 'Something went wrong. Please try again.';
-    console.log(xhr);
-    console.log(xhr.status);
-    console.log(xhr.responseText);
-    console.log(xhr.responseJSON);
+        // Remove Transferee
+        function removeTransferee(btn) {
+            var block = btn.closest('.transferee-block');
+            if (block) {
+                block.remove();
+            }
+        }
 
-    alert(xhr.responseText);
+        $(document).ready(function () {
+            $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
 
-                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                        var errors = xhr.responseJSON.errors;
-                        var list = '<ul class="mb-0">';
-                        $.each(errors, function (field, messages) {
-                            list += '<li>' + messages[0] + '</li>';
-                        });
-                        list += '</ul>';
-                        message = list;
-                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                        message = xhr.responseJSON.message;
-                    }
+            $('#sector').select2({
+                placeholder: "Select Sector",
+                allowClear: true,
+                width: "100%"
+            });
 
-                    showAlert('danger', message);
-                },
-                complete: function () {
-                    $submitBtn.prop('disabled', false).text('Submit');
+            $('#block').select2({
+                placeholder: "Select Block",
+                allowClear: true,
+                width: "100%"
+            });
+
+            // When sector changes, load blocks
+            $('#sector').on('change', function() {
+                var sectorId = $(this).val();
+                var blockSelect = $('#block');
+                blockSelect.empty().append('<option value="">Select Block</option>');
+                blockSelect.val('').trigger('change');
+
+                if (!sectorId) {
+                    blockSelect.prop('disabled', true);
+                    return;
                 }
+
+                blockSelect.prop('disabled', false);
+
+                $.ajax({
+                    url: '/get-blocks/' + sectorId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(blocks) {
+                        if (blocks.length > 0) {
+                            $.each(blocks, function(index, block) {
+                                blockSelect.append('<option value="' + block.id + '">' + block.name + '</option>');
+                            });
+                        } else {
+                            blockSelect.append('<option value="">No blocks available</option>');
+                        }
+                        blockSelect.trigger('change');
+                    },
+                    error: function(xhr) {
+                        console.error('Error fetching blocks:', xhr);
+                        blockSelect.append('<option value="">Error loading blocks</option>');
+                    }
+                });
+            });
+
+            // If there's already a selected sector (for edit mode), trigger load
+            var initialSector = $('#sector').val();
+            if (initialSector) {
+                $('#sector').trigger('change');
+                var selectedBlock = '{{ old('block_id', $property->block_id ?? '') }}';
+                if (selectedBlock) {
+                    setTimeout(function() {
+                        $('#block').val(selectedBlock).trigger('change');
+                    }, 500);
+                }
+            }
+
+            // Explicit step order
+            var stepIds = ['#step-1', '#step-2', '#step-3', '#step-4'];
+            var current = 0;
+
+            function setProgressBar(stepIndex) {
+                var percent = (100 / stepIds.length) * (stepIndex + 1);
+                $('.progress-bar').css('width', percent.toFixed() + '%');
+            }
+
+            function goToStep(index) {
+                if (index < 0 || index >= stepIds.length) return;
+
+                var current_fs = $(stepIds[current]);
+                var target_fs = $(stepIds[index]);
+
+                $('#progressbar li').removeClass('active');
+                $('#progressbar li').each(function (i) {
+                    if (i <= index) {
+                        $(this).addClass('active');
+                    }
+                });
+
+                current_fs.hide();
+                target_fs.show();
+
+                current = index;
+                setProgressBar(current);
+            }
+
+            // Next button
+            $(document).off('click', '.next').on('click', '.next', function (e) {
+                e.preventDefault();
+                goToStep(current + 1);
+            });
+
+            // Previous button
+            $(document).off('click', '.previous').on('click', '.previous', function (e) {
+                e.preventDefault();
+                goToStep(current - 1);
+            });
+
+            // Progressbar item click
+            $('#progressbar li').on('click', function () {
+                var index = $('#progressbar li').index(this);
+                goToStep(index);
+            });
+
+            // CNIC formatting
+            $(document).on('input', '.cnic-input', function () {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length > 13) {
+                    value = value.substring(0, 13);
+                }
+                let formatted = value;
+                if (value.length > 5) {
+                    formatted = value.substring(0, 5) + '-' + value.substring(5);
+                }
+                if (value.length > 12) {
+                    formatted = value.substring(0, 5) + '-' +
+                                value.substring(5, 12) + '-' +
+                                value.substring(12);
+                }
+                $(this).val(formatted);
+            });
+
+            // Textarea auto-resize
+            $(document).on('input', 'textarea', function() {
+                this.style.height = 'auto';
+                this.style.height = this.scrollHeight + 'px';
+            });
+
+            // ===================== SUBMIT (AJAX) =====================
+            function showAlert(type, message) {
+                var box = $('#form-alert-box');
+                box.removeClass('alert-success alert-danger').addClass('alert-' + type);
+                box.html(message);
+                box.show();
+                $('html, body').animate({ scrollTop: box.offset().top - 100 }, 300);
+            }
+
+            $('#msform').on('submit', function (e) {
+                e.preventDefault();
+
+                // Remove dashes from CNIC fields before submit
+                $('.cnic-input').each(function() {
+                    $(this).val($(this).val().replace(/-/g, ''));
+                });
+
+                var form = this;
+                var formData = new FormData(form);
+                var $submitBtn = $('#submit-btn');
+
+                $submitBtn.prop('disabled', true).text('Saving...');
+                $('#form-alert-box').hide();
+
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    },
+                    success: function (response) {
+                        showAlert('success', response.message || 'Data saved successfully.');
+                        if (response.redirect) {
+                            setTimeout(function () {
+                                window.location.href = response.redirect;
+                            }, 1200);
+                        } else {
+                            form.reset();
+                            goToStep(0);
+                        }
+                    },
+                    error: function (xhr) {
+                        var message = 'Something went wrong. Please try again.';
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            var errors = xhr.responseJSON.errors;
+                            var list = '<ul class="mb-0">';
+                            $.each(errors, function (field, messages) {
+                                list += '<li>' + messages[0] + '</li>';
+                            });
+                            list += '</ul>';
+                            message = list;
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        }
+                        showAlert('danger', message);
+                    },
+                    complete: function () {
+                        $submitBtn.prop('disabled', false).text('Submit');
+                    }
+                });
             });
         });
-    });
-
-
-
-
-        document.querySelectorAll('textarea').forEach(function(textarea) {
-    textarea.style.overflow = 'hidden';
-    textarea.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-    });
-
-$('#cnic').on('input', function () {
-    let value = $(this).val().replace(/\D/g, ''); // sirf numbers
-
-    if (value.length > 13) {
-        value = value.substring(0, 13);
-    }
-
-    let formatted = value;
-
-    if (value.length > 5) {
-        formatted = value.substring(0, 5) + '-' + value.substring(5);
-    }
-
-    if (value.length > 12) {
-        formatted = value.substring(0, 5) + '-' +
-                    value.substring(5, 12) + '-' +
-                    value.substring(12);
-    }
-
-    $(this).val(formatted);
-});
-
-
-
-});
     </script>
 </x-app-layout>

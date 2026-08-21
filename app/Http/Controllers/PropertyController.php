@@ -7,24 +7,24 @@ use App\Models\Payment;
 use App\Models\Block;
 use App\Models\Sector;
 use App\Models\PlotHistory;
+use App\Models\CurrentOwner;
 use App\Models\Attchement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PropertyController extends Controller
 {
-        public function getBlocks($sectorId)
-{
-    // If sector is 'all' or empty, return empty collection
-    if (empty($sectorId) || $sectorId === '') {
-        return response()->json([]);
+    public function getBlocks($sectorId)
+    {
+        if (empty($sectorId) || $sectorId === '') {
+            return response()->json([]);
+        }
+
+        $blocks = Block::where('sector_id', $sectorId)->orderBy('name')->get();
+        return response()->json($blocks);
     }
 
-    // Find blocks that belong to this sector
-    $blocks = Block::where('sector_id', $sectorId)->orderBy('name')->get();
-
-    return response()->json($blocks);
-}
     /**
      * Show the multi-step form (create).
      */
@@ -32,8 +32,6 @@ class PropertyController extends Controller
     {
         $property = null;
         $sectors = Sector::orderBy('name')->get();
-
-
         return view('property.form', compact('property', 'sectors'));
     }
 
@@ -44,8 +42,8 @@ class PropertyController extends Controller
             'application_no'        => 'required|string',
             'application_date'      => 'nullable|date',
             'plot_no'               => 'required|string',
-            'sector_id' => 'nullable|exists:sectors,id',
-            'block_id'              => 'nullable|exists:blocks,id',
+            'sector_id'             => 'required|exists:sectors,id',
+            'block_id'              => 'required|exists:blocks,id',
             'kanal'                 => 'nullable|numeric',
             'marla'                 => 'nullable|numeric',
             'sqrft'                 => 'nullable|numeric',
@@ -65,9 +63,9 @@ class PropertyController extends Controller
             'mode_allottment'       => 'nullable|string',
             'allotment_date'        => 'nullable|date',
             'balloting_serial_no'   => 'nullable|string',
-        'transfer_count'        => 'nullable|integer|min:0',
-        'ownership_type'        => 'nullable|in:single,multiple',
-        'allotment_type'        => 'nullable|in:original,transferee',
+            'transfer_count'        => 'nullable|integer|min:0',
+            'ownership_type'        => 'nullable|in:single,multiple',
+            'allotment_type'        => 'nullable|in:original,transferee',
 
             // Step 2
             'total_price'             => 'nullable|numeric',
@@ -92,22 +90,34 @@ class PropertyController extends Controller
             'transferees.*.father_name'=> 'nullable|string',
             'transferees.*.id_card'    => 'nullable|string',
             'transferees.*.challan_no' => 'nullable|string',
+                        'transferees.*.address'    => 'nullable|string',        // New
+            'transferees.*.allottee_date' => 'nullable|date',
+
+            // Current Owners
+            'current_owners' => 'nullable|array',
+            'current_owners.*.applicant_name' => 'nullable|string|max:255',
+            'current_owners.*.father_husband_name' => 'nullable|string|max:255',
+            'current_owners.*.old_nic' => 'nullable|string|max:50',
+            'current_owners.*.cnic' => 'nullable|string|max:15',
+            'current_owners.*.address_temporary' => 'nullable|string',
+            'current_owners.*.address_permanent' => 'nullable|string',
 
             // Step 4
             'alternate_allotment'          => 'nullable|string',
-            'complete_property_file'       => 'required|file',
+            'property_document'            => 'required|file',
             'adjacent_area_allotment'      => 'nullable|file',
-            'division_of_plots'            => 'nullable|file',
+            'allotment_order'              => 'nullable|file',
             'decision_courts'              => 'nullable|file',
             'decision_allotment_committee' => 'nullable|file',
             'decision_mda_board'           => 'nullable|file',
             'decision_revising_authority'  => 'nullable|file',
-        ], [
-            'application_no.unique' => 'This Application No. already exists. Please use a different number.',
-            'application_no.required' => 'The Application No. is required.',
+                        'noting_file'                  => 'nullable|file',      // New
+            'cnic_front'                   => 'nullable|file',
         ]);
 
         DB::beginTransaction();
+          $sector = Sector::findOrFail($request->sector_id);
+            $block = Block::findOrFail($request->block_id);
 
         try {
             // 1) Property
@@ -115,8 +125,8 @@ class PropertyController extends Controller
                 'application_no'       => $request->application_no,
                 'application_date'     => $request->application_date,
                 'plot_no'              => $request->plot_no,
-                'sector_id'             => $request->sector_id,
-                'block_id'                  => $request->block_id,
+                'sector_id'            => $request->sector_id,
+                'block_id'             => $request->block_id,
                 'kanal'                => $request->kanal,
                 'marla'                => $request->marla,
                 'sqrft'                => $request->sqrft,
@@ -142,7 +152,23 @@ class PropertyController extends Controller
                 'allotment_type'       => $request->allotment_type,
             ]);
 
-            // 2) Payment
+            // 2) Save Current Owners
+            if ($request->has('current_owners')) {
+                foreach ($request->current_owners as $ownerData) {
+                    // Skip empty owner data
+                    if (empty($ownerData['applicant_name']) &&
+                        empty($ownerData['father_husband_name']) &&
+                        empty($ownerData['cnic']) &&
+                        empty($ownerData['old_nic'])) {
+                        continue;
+                    }
+
+                    $ownerData['property_id'] = $property->id;
+                    CurrentOwner::create($ownerData);
+                }
+            }
+
+            // 3) Payment
             Payment::create([
                 'property_id'             => $property->id,
                 'total_price'             => $request->total_price,
@@ -162,10 +188,11 @@ class PropertyController extends Controller
                 'transfer_order_no'       => $request->transfer_order_no,
             ]);
 
-            // 3) Plot History (transferees)
+            // 4) Plot History (transferees)
             if ($request->has('transferees')) {
                 foreach ($request->transferees as $row) {
-                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no'])) {
+                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no']) &&
+                        empty($row['address']) && empty($row['allottee_date'])) {
                         continue;
                     }
                     PlotHistory::create([
@@ -174,23 +201,27 @@ class PropertyController extends Controller
                         'father_name' => $row['father_name'] ?? null,
                         'id_card'     => $row['id_card'] ?? null,
                         'challan_no'  => $row['challan_no'] ?? null,
+                        'address'       => $row['address'] ?? null,        // New
+                        'allottee_date' => $row['allottee_date'] ?? null,
                     ]);
                 }
             }
 
-            // 4) Attachment (files)
+            // 5) Attachment (files)
             $attachmentData = [
                 'property_id'         => $property->id,
                 'alternate_allotment' => $request->alternate_allotment,
-                'complete_file_pages' =>$request->complete_file_pages,
-                'status'              => false, // Default status
+                'property_document' => $request->property_document ?? null,
+                'status'              => false,
                 'entry_date'          => null,
             ];
 
-            $this->storeAttachmentFiles($request, $property, $attachmentData);
+            $this->storeAttachmentFiles($request, $property, $attachmentData,
+            $sector->name, $block->name );
             Attchement::create($attachmentData);
 
             DB::commit();
+
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -205,75 +236,47 @@ class PropertyController extends Controller
 
         if ($request->wantsJson()) {
             return response()->json([
-                'message'  => 'Property, payment, plot history and attachments saved successfully.',
+                'message'  => 'Property, current owners, payment, plot history and attachments saved successfully.',
                 'redirect' => route('formList'),
             ]);
         }
 
-        return redirect()->route('formList')->with('success', 'Property, payment, plot history and attachments saved successfully.');
+        return redirect()->route('formList')->with('success', 'Property, current owners, payment, plot history and attachments saved successfully.');
     }
 
     /**
- * List of all submitted properties (with related data).
- */
-/**
- * List of all submitted properties (with related data).
- */
-/**
- * List of properties with missing complete_property_file.
- */
-// public function formList()
-// {
-//     $data = Property::with(['properties','payment', 'plotHistories', 'attachment', 'sector', 'block'])
-//         ->whereDoesntHave('properties', function($query) {
-//             $query->whereNotNull('user_id');
-//         })
-//         ->orWhereHas('properties', function($query) {
-//             $query->whereNull('user_id');
-//         })
-//         ->latest()
-//         ->get();
+     * List of all submitted properties (with related data).
+     */
+    public function formList()
+    {
+        $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+            ->whereNull('user_id')
+            ->latest()
+            ->get();
 
-//     return view('property.formlist', compact('data'));
-// }
-public function formList()
-{
-    $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
-        ->whereNull('user_id')  // Only properties without a user
-        ->latest()
-        ->get();
+        return view('property.formlist', compact('data'));
+    }
 
-    return view('property.formlist', compact('data'));
-}
+    /**
+     * List of properties created by the logged-in user.
+     */
+    public function entriesList()
+    {
+        $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
 
-/**
- * List of properties created by the logged-in user.
- */
-public function entriesList()
-{
-    $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
-        ->where('user_id', auth()->id())
-        ->latest()
-        ->get();
-
-    return view('property.Entries_List', compact('data'));
-}
-
-    // /**
-    //  * List of all submitted properties (with related data).
-    //  */
-    // public function formList()
-    // {
-    //     $data = Property::with(['payment', 'plotHistories', 'attachment','sector','block'])->latest()->get();
-    //     return view('property.formlist', compact('data'));
-    // }
+        return view('property.Entries_List', compact('data'));
+    }
 
     /**
      * Show a single property's full detail.
      */
     public function formDetail($id)
     {
-        $property = Property::with(['payment', 'plotHistories', 'attachment' , 'sector','block'])->findOrFail($id);
+        $property = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+            ->findOrFail($id);
         return view('property.formDetail', compact('property'));
     }
 
@@ -282,34 +285,31 @@ public function entriesList()
      */
     public function formEdit($id)
     {
-        $property = Property::with(['payment', 'plotHistories', 'attachment','sector' , 'block'])->findOrFail($id);
+        $property = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+            ->findOrFail($id);
         $sectors = Sector::orderBy('name')->get();
-           // Get blocks for the selected sector
-    $blocks = collect(); // Empty collection by default
-    if ($property->sector_id) {
+        $blocks = collect();
 
-            $blocks = Block::where('sector_id', $property->sector->id)->orderBy('name')->get();
+        if ($property->sector_id) {
+            $blocks = Block::where('sector_id', $property->sector_id)->orderBy('name')->get();
+        }
 
-    }
-
-
-        return view('property.form-edit', compact('property', 'id', 'sectors','blocks'));
+        return view('property.form-edit', compact('property', 'id', 'sectors', 'blocks'));
     }
 
     /**
-     * Update an existing property record (all 4 tables).
+     * Update an existing property record (all tables).
      */
     public function update(Request $request, $id)
     {
         $property = Property::findOrFail($id);
 
-        // Validation
         $request->validate([
             'application_no'        => 'required|string',
             'application_date'      => 'nullable|date',
             'plot_no'               => 'required|string',
-            'sector_id'             => 'nullable|exists:sectors,id',
-            'block_id'              => 'nullable|exists:blocks,id',
+            'sector_id'             => 'required|exists:sectors,id',
+            'block_id'              => 'required|exists:blocks,id',
             'kanal'                 => 'nullable|numeric',
             'marla'                 => 'nullable|numeric',
             'sqrft'                 => 'nullable|numeric',
@@ -329,9 +329,9 @@ public function entriesList()
             'mode_allottment'       => 'nullable|string',
             'allotment_date'        => 'nullable|date',
             'balloting_serial_no'   => 'nullable|string',
-                    'transfer_count'        => 'nullable|integer|min:0',
-        'ownership_type'        => 'nullable|in:single,multiple',
-        'allotment_type'        => 'nullable|in:original,transferee',
+            'transfer_count'        => 'nullable|integer|min:0',
+            'ownership_type'        => 'nullable|in:single,multiple',
+            'allotment_type'        => 'nullable|in:original,transferee',
             'total_price'           => 'nullable|numeric',
             'amount_deposited'      => 'nullable|numeric',
             'remaining_amount'      => 'nullable|numeric',
@@ -352,18 +352,27 @@ public function entriesList()
             'transferees.*.father_name' => 'nullable|string',
             'transferees.*.id_card' => 'nullable|string',
             'transferees.*.challan_no' => 'nullable|string',
+            'current_owners' => 'nullable|array',
+            'current_owners.*.applicant_name' => 'nullable|string|max:255',
+            'current_owners.*.father_husband_name' => 'nullable|string|max:255',
+            'current_owners.*.old_nic' => 'nullable|string|max:50',
+            'current_owners.*.cnic' => 'nullable|string|max:15',
+            'current_owners.*.address_temporary' => 'nullable|string',
+            'current_owners.*.address_permanent' => 'nullable|string',
             'alternate_allotment'   => 'nullable|string',
-            'complete_file_pages'   =>'required|integer',
-            'complete_property_file' => 'nullable|file',
+            'complete_file_pages'   => 'nullable|integer',
+            'property_document' => 'nullable|file',
             'adjacent_area_allotment' => 'nullable|file',
-            'division_of_plots'     => 'nullable|file',
+            'allotment_order'     => 'nullable|file',
             'decision_courts'       => 'nullable|file',
             'decision_allotment_committee' => 'nullable|file',
             'decision_mda_board'    => 'nullable|file',
             'decision_revising_authority' => 'nullable|file',
-        ], [
-            'application_no.unique' => 'This Application No already exists. Please use a different number.',
-            'application_no.required' => 'The Application No is required.',
+            'transferees.*.address'    => 'nullable|string',        // New
+            'transferees.*.allottee_date' => 'nullable|date',       // New   // New
+            'noting_file'                  => 'nullable|file',      // New
+            'cnic_front'                   => 'nullable|file',
+
         ]);
 
         DB::beginTransaction();
@@ -372,18 +381,16 @@ public function entriesList()
             $oldApplicationNo = $property->application_no;
             $newApplicationNo = $request->application_no;
 
-    $confirmChecked = $request->has('check_complete_file') && $request->check_complete_file == '1';
-
-    $userId = $confirmChecked ? auth()->id() : $property->user_id;
-
+            $confirmChecked = $request->has('check_complete_file') && $request->check_complete_file == '1';
+            $userId = $confirmChecked ? auth()->id() : $property->user_id;
 
             // 1) Update Property
             $property->update([
                 'application_no'       => $newApplicationNo,
                 'application_date'     => $request->application_date,
                 'plot_no'              => $request->plot_no,
-                'sector_id' => $request->sector_id,
-                'block_id'                => $request->block_id,
+                'sector_id'            => $request->sector_id,
+                'block_id'             => $request->block_id,
                 'kanal'                => $request->kanal,
                 'marla'                => $request->marla,
                 'sqrft'                => $request->sqrft,
@@ -403,13 +410,32 @@ public function entriesList()
                 'mode_allottment'      => $request->mode_allottment,
                 'allotment_date'       => $request->allotment_date,
                 'balloting_serial_no'  => $request->balloting_serial_no,
-                    'transfer_count'       => $request->transfer_count,
-    'ownership_type'       => $request->ownership_type,
-    'allotment_type'       => $request->allotment_type,
-                 'user_id'              => $userId,
+                'transfer_count'       => $request->transfer_count,
+                'ownership_type'       => $request->ownership_type,
+                'allotment_type'       => $request->allotment_type,
+                'user_id'              => $userId,
             ]);
 
-            // 2) Update Payment
+            // 2) Save Current Owners
+            if ($request->has('current_owners')) {
+                // Delete existing current owners
+                CurrentOwner::where('property_id', $property->id)->delete();
+
+                foreach ($request->current_owners as $ownerData) {
+                    // Skip empty owner data
+                    if (empty($ownerData['applicant_name']) &&
+                        empty($ownerData['father_husband_name']) &&
+                        empty($ownerData['cnic']) &&
+                        empty($ownerData['old_nic'])) {
+                        continue;
+                    }
+
+                    $ownerData['property_id'] = $property->id;
+                    CurrentOwner::create($ownerData);
+                }
+            }
+
+            // 3) Update Payment
             Payment::updateOrCreate(
                 ['property_id' => $property->id],
                 [
@@ -431,12 +457,13 @@ public function entriesList()
                 ]
             );
 
-            // 3) Update Plot History
+            // 4) Update Plot History
             if ($request->has('transferees')) {
                 PlotHistory::where('property_id', $property->id)->delete();
 
                 foreach ($request->transferees as $row) {
-                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no'])) {
+                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no'])&&
+                        empty($row['address']) && empty($row['allottee_date'])) {
                         continue;
                     }
                     PlotHistory::create([
@@ -445,47 +472,44 @@ public function entriesList()
                         'father_name' => $row['father_name'] ?? null,
                         'id_card'     => $row['id_card'] ?? null,
                         'challan_no'  => $row['challan_no'] ?? null,
+                        'address'     => $row['address'] ?? null,
+                        'allottee_date' => $row['allottee_date'] ?? null,
                     ]);
                 }
             }
 
-            // 4) Rename folder if application_no changed
-           if ($oldApplicationNo && $oldApplicationNo !== $newApplicationNo) {
-    $this->renameAttachmentFolder(
-        $oldApplicationNo,
-        $newApplicationNo,
-        $property->id
-    );
-}
-            // 5) Update Attachments
-    $attachmentData = [
-        'alternate_allotment' => $request->alternate_allotment,
-         'complete_file_pages' => $request->complete_file_pages,
+            // 5) Rename folder if application_no changed
+            if ($oldApplicationNo && $oldApplicationNo !== $newApplicationNo) {
+                $this->renameAttachmentFolder($oldApplicationNo, $newApplicationNo, $property->id);
+            }
 
-        ];
-    $this->storeAttachmentFiles($request, $property, $attachmentData);
+            // 6) Update Attachments
+            $attachmentData = [
+                'alternate_allotment' => $request->alternate_allotment,
+                'complete_file_pages' => $request->complete_file_pages,
+                'property_document' => $request->property_document ?? null,
+            ];
 
-    $attachment = Attchement::where('property_id', $property->id)->first();
-    $hasFile = $request->hasFile('complete_property_file') ||
-               ($attachment && !empty($attachment->complete_property_file));
+            $this->storeAttachmentFiles($request, $property, $attachmentData);
 
-    // Sirf checkbox check hone par hi status/entry_date confirm hoga
-    if ($confirmChecked && $attachment && !$attachment->status && $hasFile) {
-        $attachmentData['status']     = true;
-        $attachmentData['entry_date'] = now();
-    }
-    // Checkbox uncheck ho to status/entry_date ko touch nahi karenge (as-is rahenge)
+            $attachment = Attchement::where('property_id', $property->id)->first();
+            $hasFile = $request->hasFile('property_document') ||
+                       ($attachment && !empty($attachment->property_document));
 
-    if ($attachment) {
-        $attachment->update($attachmentData);
-    } else {
-        $attachmentData['property_id'] = $property->id;
-        Attchement::create($attachmentData);
-    }
+            if ($confirmChecked && $attachment && !$attachment->status && $hasFile) {
+                $attachmentData['status']     = true;
+                $attachmentData['entry_date'] = now();
+            }
 
-    DB::commit();
+            if ($attachment) {
+                $attachment->update($attachmentData);
+            } else {
+                $attachmentData['property_id'] = $property->id;
+                Attchement::create($attachmentData);
+            }
 
-            // ✅ JSON Response for AJAX
+            DB::commit();
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success'  => true,
@@ -510,48 +534,63 @@ public function entriesList()
         }
     }
 
-
-
-
-
-
-
-
     public function formDelete($id)
     {
         Property::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'Entry deleted successfully.');
     }
 
-    private function sanitizeFolderName(?string $name, int $fallbackId): string
+    private function sanitizeFolderName(?string $name, int $fallbackId = 0): string
     {
         $folderName = preg_replace('/[^A-Za-z0-9_\-]/', '_', trim((string) $name));
         $folderName = trim($folderName, '_');
 
-        return $folderName !== '' ? $folderName : ('property_' . $fallbackId);
+        return $folderName !== '' ? $folderName : ('item_' . $fallbackId);
     }
 
-    private function storeAttachmentFiles(Request $request, Property $property, array &$attachmentData)
-    {
+       private function storeAttachmentFiles(
+        Request $request,
+        Property $property,
+        array &$attachmentData,
+        ?string $sectorName = null,
+        ?string $blockName = null
+    ) {
         $fileFieldLabels = [
-            'complete_property_file'       => 'Complete Property File',
+            'property_document'            => 'Property Document',
             'adjacent_area_allotment'      => 'Adjacent Area Allotment',
-            'division_of_plots'            => 'Division of Plots',
+            'allotment_order'              => 'Allotment Order',
             'decision_courts'              => 'Decision of Courts Against Plot',
             'decision_allotment_committee' => 'Decision of Allotment Committee',
             'decision_mda_board'           => 'Decision of MDA Board',
             'decision_revising_authority'  => 'Decision of Revising Authority',
+            'noting_file'                  => 'Noting File',
+            'cnic_front'                   => 'CNIC Front',
         ];
 
+        // Get sector and block names if not provided
+        if (!$sectorName && $property->sector) {
+            $sectorName = $property->sector->name;
+        }
+        if (!$blockName && $property->block) {
+            $blockName = $property->block->name;
+        }
+
+        // Sanitize folder names
+        $sectorFolder = $this->sanitizeFolderName($sectorName ?? 'No_Sector');
+        $blockFolder = $this->sanitizeFolderName($blockName ?? 'No_Block');
         $applicationFolder = $this->sanitizeFolderName($property->application_no, $property->id);
-        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+
+        // Create folder structure: Sector/Block/ApplicationNo
+        $baseFolder = $sectorFolder . '/' . $blockFolder . '/' . $applicationFolder;
+
+        $disk = Storage::disk('public');
 
         foreach ($fileFieldLabels as $field => $label) {
             if ($request->hasFile($field)) {
                 $file = $request->file($field);
 
-                $labelFolder = $this->sanitizeFolderName($label, 0);
-                $folderPath  = $applicationFolder . '/' . $labelFolder;
+                $labelFolder = $this->sanitizeFolderName($label);
+                $folderPath  = $baseFolder . '/' . $labelFolder;
 
                 $originalName     = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                 $safeOriginalName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName);
@@ -559,119 +598,126 @@ public function entriesList()
 
                 $fileName = $safeOriginalName . '.' . $extension;
 
+                // Check if file exists and create unique name
                 if ($disk->exists($folderPath . '/' . $fileName)) {
                     $fileName = $safeOriginalName . '_' . uniqid() . '_' . time() . '.' . $extension;
                 }
 
+                // Store file with full path
                 $path = $file->storeAs($folderPath, $fileName, 'public');
                 $attachmentData[$field] = $path;
             }
         }
     }
 
- private function renameAttachmentFolder(
-    string $oldApplicationNo,
-    string $newApplicationNo,
-    int $propertyId
-) {
-    $disk = \Illuminate\Support\Facades\Storage::disk('public');
 
-    $oldFolder = $this->sanitizeFolderName($oldApplicationNo, $propertyId);
-    $newFolder = $this->sanitizeFolderName($newApplicationNo, $propertyId);
+    private function renameAttachmentFolder(
+        string $oldApplicationNo,
+        string $newApplicationNo,
+        int $propertyId
+    ) {
+        $disk = Storage::disk('public');
 
-    if ($oldFolder === $newFolder || !$disk->exists($oldFolder)) {
-        return;
-    }
+        $property = Property::with(['sector', 'block'])->find($propertyId);
 
-    $files = $disk->allFiles($oldFolder);
-
-    foreach ($files as $filePath) {
-        $newPath = str_replace(
-            $oldFolder . '/',
-            $newFolder . '/',
-            $filePath
-        );
-
-        $disk->makeDirectory(dirname($newPath));
-        $disk->move($filePath, $newPath);
-    }
-
-    // Attachment directly by property_id
-    $attachment = Attchement::where('property_id', $propertyId)->first();
-
-    if ($attachment) {
-        $fields = [
-            'complete_property_file',
-            'adjacent_area_allotment',
-            'division_of_plots',
-            'decision_courts',
-            'decision_allotment_committee',
-            'decision_mda_board',
-            'decision_revising_authority',
-        ];
-
-        foreach ($fields as $field) {
-            if (!empty($attachment->$field)) {
-                $attachment->$field = str_replace(
-                    $oldFolder . '/',
-                    $newFolder . '/',
-                    $attachment->$field
-                );
-            }
+        if (!$property) {
+            return;
         }
 
-        $attachment->save();
+        $sectorFolder = $this->sanitizeFolderName($property->sector->name ?? 'No_Sector');
+        $blockFolder = $this->sanitizeFolderName($property->block->name ?? 'No_Block');
+
+        $oldApplicationFolder = $this->sanitizeFolderName($oldApplicationNo, $propertyId);
+        $newApplicationFolder = $this->sanitizeFolderName($newApplicationNo, $propertyId);
+
+        $oldBaseFolder = $sectorFolder . '/' . $blockFolder . '/' . $oldApplicationFolder;
+        $newBaseFolder = $sectorFolder . '/' . $blockFolder . '/' . $newApplicationFolder;
+
+        if ($oldApplicationFolder === $newApplicationFolder || !$disk->exists($oldBaseFolder)) {
+            return;
+        }
+
+        // Create new base folder
+        $disk->makeDirectory($newBaseFolder);
+
+        // Move all files from old folder to new folder
+        $files = $disk->allFiles($oldBaseFolder);
+
+        foreach ($files as $filePath) {
+            $newPath = str_replace($oldBaseFolder . '/', $newBaseFolder . '/', $filePath);
+            $disk->makeDirectory(dirname($newPath));
+            $disk->move($filePath, $newPath);
+        }
+
+        // Delete old empty folder
+        $disk->deleteDirectory($oldBaseFolder);
+
+        // Update attachment paths in database
+        $attachment = Attchement::where('property_id', $propertyId)->first();
+
+        if ($attachment) {
+            $fields = [
+                'property_document',
+                'adjacent_area_allotment',
+                'allotment_order',
+                'decision_courts',
+                'decision_allotment_committee',
+                'decision_mda_board',
+                'decision_revising_authority',
+                'noting_file',
+                'cnic_front',
+            ];
+
+            foreach ($fields as $field) {
+                if (!empty($attachment->$field)) {
+                    $attachment->$field = str_replace(
+                        $oldBaseFolder . '/',
+                        $newBaseFolder . '/',
+                        $attachment->$field
+                    );
+                }
+            }
+
+            $attachment->save();
+        }
     }
-}
 
+    public function dashboard()
+    {
+        $totalProperties  = Property::count();
+        $totalPayments    = Payment::count();
+        $totalPlotHistory = PlotHistory::count();
+        $totalAttachments = Attchement::count();
 
+        $propertiesBySector = Property::with('sector')
+            ->orderBy('sector_id')
+            ->get()
+            ->groupBy(function ($property) {
+                return $property->sector->name ?? 'No Sector Assigned';
+            });
 
-/**
- * Dashboard view - shows summary cards (total properties etc.)
- */
-public function dashboard()
-{
-    $totalProperties  = Property::count();
-    $totalPayments    = Payment::count();
-    $totalPlotHistory = PlotHistory::count();
-    $totalAttachments = Attchement::count();
+        $propertiesByBlock = Property::with('block')
+            ->orderBy('block_id')
+            ->get()
+            ->groupBy(function ($property) {
+                return $property->block->name ?? 'No block Assigned';
+            });
 
-    // Sector-wise grouped properties (for the expandable list)
-    $propertiesBySector = Property::with('sector')
-        ->orderBy('sector_id')
-        ->get()
-        ->groupBy(function ($property) {
-            return $property->sector->name ?? 'No Sector Assigned';
-        });
+        $propertiesByUser = Property::with('user')
+            ->orderBy('user_id')
+            ->get()
+            ->groupBy(function ($property) {
+                return $property->user->name ?? 'Unknown User';
+            });
 
-            $propertiesByBlock = Property::with('block')
-        ->orderBy('block_id')
-        ->get()
-        ->groupBy(function ($property) {
-            return $property->block->name ?? 'No block Assigned';
-        });
-
-            // NEW: User-wise grouped properties
-    $propertiesByUser = Property::with('user')
-        ->orderBy('user_id')
-        ->get()
-        ->groupBy(function ($property) {
-            return $property->user->name ?? 'Unknown User';
-        });
-
-    return view('property.dashboard', compact(
-        'totalProperties',
-        'totalPayments',
-        'totalPlotHistory',
-        'totalAttachments',
-        'propertiesBySector',
-        'propertiesByBlock',
-         'propertiesByUser'
-    ));
-}
-
-
-
-
-
+        return view('property.dashboard', compact(
+            'totalProperties',
+            'totalPayments',
+            'totalPlotHistory',
+            'totalAttachments',
+            'propertiesBySector',
+            'propertiesByBlock',
+            'propertiesByUser'
+        ));
+    }
 }

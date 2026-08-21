@@ -250,17 +250,19 @@
         #progressbar li.active:before, #progressbar li.active:after { background: #03346E }
         .progress { height: 20px }
         .progress-bar { background-color: #03346E }
-        .transferee-block {
-            border: 1px dashed #03346E; border-radius: 6px; padding: 15px;
-            margin-bottom: 15px; position: relative;
+
+        .transferee-block, .current-owner-block {
+            border: 1px dashed #03346E; border-radius: 6px; padding: 20px;
+            margin-bottom: 15px; position: relative; background-color: #f8f9fa;
         }
-        .remove-transferee {
+        .remove-transferee, .remove-owner {
             position: absolute; top: 8px; right: 8px; background: #c0392b; color: #fff;
-            border: none; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-size: 12px;
+            border: none; border-radius: 4px; padding: 8px 15px; cursor: pointer;
+            font-size: 14px; z-index: 9999; width: auto;
         }
-        #add-transferee {
+        #add-transferee, #add-owner {
             background: #03346E; color: #fff; border: none; border-radius: 4px;
-            padding: 8px 18px; cursor: pointer; margin-bottom: 20px;
+            padding: 8px 18px; cursor: pointer; margin-bottom: 20px; width: auto;
         }
         .existing-file-link { font-size: 13px; margin-top: -10px; margin-bottom: 15px; display:block; color:#03346E; }
         #form-alert-box { display: none; text-align: left; }
@@ -412,12 +414,12 @@
     </div>
 
     <div class="preview-box" id="previewBox">
-        @if(!empty($property->attachment->complete_property_file))
+        @if(!empty($property->attachment->property_document))
             <div class="pdf-scroll-outer" id="pdfScrollOuter">
                 <div id="pdfViewerContainer" class="pdf-viewer-container"></div>
             </div>
         @else
-            <div class="no-preview">No complete property file has been uploaded yet.<br>Please upload the file from the Attachments step.</div>
+            <div class="no-preview">No property document has been uploaded yet.<br>Please upload the file from the Attachments step.</div>
         @endif
     </div>
 </div>
@@ -493,7 +495,7 @@
                                             </div>
 
                                             <div class="col-md-6">
-                                                <label>Sector</label>
+                                                <label>Sector <span class="required-star">*</span></label>
                                                 <select name="sector_id" id="sector" class="form-control">
                                                     <option value="">Select Sector</option>
                                                     @foreach($sectors as $sector)
@@ -507,7 +509,7 @@
 
 <!-- Block Dropdown -->
 <div class="col-md-6">
-    <label>Block</label>
+    <label>Block <span class="required-star">*</span></label>
     <select name="block_id" id="block" class="form-control">
         <option value="">Select Block</option>
         @if($blocks->count() > 0)
@@ -525,17 +527,17 @@
                                                 <div class="row mx-0">
                                                     <div class="col-4 px-0">
                                                         <label>Kanal</label>
-                                                        <input type="number" class="form-control" name="kanal"
+                                                        <input type="number" class="form-control" name="kanal"  min="0"
                                                             placeholder="Kanal" value="{{ old('kanal', $property->kanal ?? '') }}">
                                                     </div>
                                                     <div class="col-4 px-0">
                                                         <label>Marla</label>
-                                                        <input type="number" class="form-control" name="marla"
+                                                        <input type="number" class="form-control" name="marla"  min="0"
                                                             placeholder="Marla" value="{{ old('marla', $property->marla ?? '') }}">
                                                     </div>
                                                     <div class="col-4 px-0">
                                                         <label>Sq Ft</label>
-                                                        <input type="number" class="form-control" name="sqrft"
+                                                        <input type="number" class="form-control" name="sqrft"  min="0"
                                                             placeholder="Sq Ft" value="{{ old('sqrft', $property->sqrft ?? '') }}">
                                                     </div>
                                                 </div>
@@ -566,7 +568,7 @@
 
                                             <div class="col-md-6">
                                                 <label>Initial Draft Amount</label>
-                                                <input type="number" class="form-control" name="initial_draft_amount"
+                                                <input type="number" class="form-control" name="initial_draft_amount"  min="0"
                                                     placeholder="Initial Draft Amount"
                                                     value="{{ old('initial_draft_amount', number_format($property->initial_draft_amount ?? 0, 0, '.', '')) }}">
                                             </div>
@@ -591,14 +593,14 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <label>Old NIC</label>
-                                                <input type="number" class="form-control" name="old_nic"
-                                                    placeholder="Old NIC"
+                                                <input type="text" class="form-control cnic-input" name="old_nic"
+                                                    maxlength="15" placeholder="12345-1234567-1"
                                                     value="{{ old('old_nic', $property->old_nic ?? '') }}">
                                             </div>
                                             <div class="col-md-6">
                                                 <label>CNIC</label>
-                                                <input type="number" class="form-control" name="cnic"
-                                                    placeholder="CNIC"
+                                                <input type="text" class="form-control cnic-input" name="cnic"
+                                                    maxlength="15" placeholder="12345-1234567-1"
                                                     value="{{ old('cnic', $property->cnic ?? '') }}">
                                             </div>
 
@@ -684,16 +686,103 @@
         </option>
     </select>
 </div>
-                                                                           <div class="col-md-6">
-    <label>Remarks</label>
-    <textarea class="form-control"
-              name="remarks"
-              rows="3"
-              placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
-</div>
 
+                                        </div>
 
+                                        {{-- Current Owner Section --}}
+                                        <div class="row mt-4">
+                                            <div class="col-7"><h2 class="fs-title">Current Owner:</h2></div>
+                                        </div>
 
+                                        <div id="current-owners-wrapper">
+                                            @if($property->currentOwners && $property->currentOwners->count() > 0)
+                                                @foreach($property->currentOwners as $index => $owner)
+                                                    <div class="current-owner-block" data-index="{{ $index }}">
+                                                        @if($index > 0)
+                                                            <button type="button" class="btn btn-danger remove-owner" onclick="removeOwner(this)">Remove</button>
+                                                        @endif
+                                                        <div class="form-row">
+                                                            <div class="col-md-6">
+                                                                <label>Name Applicant/Allottee</label>
+                                                                <input type="text" class="form-control" name="current_owners[{{ $index }}][applicant_name]"
+                                                                    placeholder="Name Applicant" value="{{ $owner->applicant_name }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label>Father/Husband Name</label>
+                                                                <input type="text" class="form-control" name="current_owners[{{ $index }}][father_husband_name]"
+                                                                    placeholder="Father/Husband Name" value="{{ $owner->father_husband_name }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label>Old NIC</label>
+                                                                <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][old_nic]"
+                                                                    maxlength="15" placeholder="12345-1234567-1" value="{{ $owner->old_nic }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label>CNIC</label>
+                                                                <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][cnic]"
+                                                                    maxlength="15" placeholder="12345-1234567-1" value="{{ $owner->cnic }}">
+                                                            </div>
+                                                        </div>
+                                                        <div class="form-row">
+                                                            <div class="col-md-6">
+                                                                <label>Address (Temporary)</label>
+                                                                <textarea class="form-control" placeholder="Address (Temporary)"
+                                                                    name="current_owners[{{ $index }}][address_temporary]" rows="1">{{ $owner->address_temporary }}</textarea>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label>Address (Permanent)</label>
+                                                                <textarea class="form-control" placeholder="Address (Permanent)"
+                                                                    name="current_owners[{{ $index }}][address_permanent]" rows="1">{{ $owner->address_permanent }}</textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <div class="current-owner-block" data-index="0">
+                                                    <div class="form-row">
+                                                        <div class="col-md-6">
+                                                            <label>Name Applicant/Allottee</label>
+                                                            <input type="text" class="form-control" name="current_owners[0][applicant_name]"
+                                                                placeholder="Name Applicant">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label>Father/Husband Name</label>
+                                                            <input type="text" class="form-control" name="current_owners[0][father_husband_name]"
+                                                                placeholder="Father/Husband Name">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label>Old NIC</label>
+                                                            <input type="text" class="form-control cnic-input" name="current_owners[0][old_nic]"
+                                                                 maxlength="15" placeholder="12345-1234567-1">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label>CNIC</label>
+                                                            <input type="text" class="form-control cnic-input" name="current_owners[0][cnic]"
+                                                                maxlength="15" placeholder="12345-1234567-1">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-row">
+                                                        <div class="col-md-6">
+                                                            <label>Address (Temporary)</label>
+                                                            <textarea class="form-control" placeholder="Address (Temporary)"
+                                                                name="current_owners[0][address_temporary]" rows="1"></textarea>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label>Address (Permanent)</label>
+                                                            <textarea class="form-control" placeholder="Address (Permanent)"
+                                                                name="current_owners[0][address_permanent]" rows="1"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <button type="button" id="add-owner" onclick="addOwner()">+ Add Current Owner</button>
+
+                                        <div class="col-md-12">
+                                            <label>Remarks</label>
+                                            <textarea class="form-control" name="remarks" rows="3"
+                                                placeholder="Enter Remarks">{{ old('remarks', $property->remarks ?? '') }}</textarea>
                                         </div>
                                     </div>
 
@@ -711,22 +800,22 @@
         <div class="form-row">
             <div class="col-md-6">
                 <label>Price</label>
-                <input type="number" step="any" class="form-control" placeholder="Enter Price"
+                <input type="number" step="any" class="form-control" placeholder="Enter Price"  min="0"
                     name="total_price" value="{{ old('total_price', number_format($property->payment->total_price ?? 0, 0, '.', '')) }}">
             </div>
             <div class="col-md-6">
                 <label>Recieved Amount</label>
-                <input type="number" step="any" class="form-control" placeholder="Enter Amount"
+                <input type="number" step="any" class="form-control" placeholder="Enter Amount"  min="0"
                     name="amount_deposited" value="{{ old('amount_deposited', number_format($property->payment->amount_deposited ?? 0, 0, '.', '')) }}">
             </div>
             <div class="col-md-6">
                 <label>Recievable Amount</label>
-                <input type="number" step="any" class="form-control" placeholder="Enter Amount"
+                <input type="number" step="any" class="form-control" placeholder="Enter Amount"  min="0"
                     name="remaining_amount" value="{{ old('remaining_amount', number_format($property->payment->remaining_amount ?? 0, 0, '.', '')) }}">
             </div>
             <div class="col-md-6">
                 <label>Down payment</label>
-                <input type="number" step="any" class="form-control" placeholder="Down payment"
+                <input type="number" step="any" class="form-control" placeholder="Down payment"  min="0"
                     name="down_payment" value="{{ old('down_payment', number_format($property->payment->down_payment ?? 0, 0, '.', '')) }}">
             </div>
 
@@ -744,7 +833,7 @@
             </div>
             <div class="col-md-6">
                 <label>Total Received Amount</label>
-                <input type="number" step="any" class="form-control" placeholder="Total Received Amount"
+                <input type="number" step="any" class="form-control" placeholder="Total Received Amount"  min="0"
                     name="total_received_amount"
                     value="{{ old('total_received_amount', number_format($property->payment->total_received_amount ?? 0, 0, '.', '')) }}">
             </div>
@@ -820,7 +909,7 @@
                                             @forelse($property->plotHistories as $index => $transferee)
                                                 <div class="transferee-block" data-index="{{ $index }}">
                                                     @if($index > 0)
-                                                        <button type="button" class="remove-transferee">Remove</button>
+                                                        <button type="button" class="remove-transferee" onclick="removeTransferee(this)">Remove</button>
                                                     @endif
                                                     <div class="form-row">
                                                         <div class="col-md-12">
@@ -829,20 +918,30 @@
                                                                 name="transferees[{{ $index }}][name]" value="{{ $transferee->name }}">
                                                         </div>
                                                         <div class="col-md-12">
-                                                <label>Father Name</label>
-                                                <input type="text" class="form-control"
-                                                placeholder="Father Name"
-                                                 name="transferees[{{ $index }}][father_name]" value="{{ $transferee->father_name }}">
-                                            </div>
+                                                            <label>Father Name</label>
+                                                            <input type="text" class="form-control" placeholder="Father Name"
+                                                                name="transferees[{{ $index }}][father_name]" value="{{ $transferee->father_name }}">
+                                                        </div>
+
                                                         <div class="col-md-12">
                                                             <label>ID Card</label>
-                                                            <input type="number" class="form-control" placeholder="ID Card"
+                                                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" maxlength="15"
                                                                 name="transferees[{{ $index }}][id_card]" value="{{ $transferee->id_card }}">
                                                         </div>
                                                         <div class="col-md-12">
                                                             <label>Challan No.</label>
                                                             <input type="text" class="form-control" placeholder="Challan No."
                                                                 name="transferees[{{ $index }}][challan_no]" value="{{ $transferee->challan_no }}">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label>Address</label>
+                                                            <input type="text" class="form-control" placeholder="Address"
+                                                                name="transferees[{{ $index }}][address]" value="{{ $transferee->address ?? '' }}">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label>Allottee Date</label>
+                                                            <input type="date" class="form-control datepicker" placeholder="Allottee Date"
+                                                                name="transferees[{{ $index }}][allottee_date]" value="{{ $transferee->allottee_date ?? '' }}">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -853,24 +952,33 @@
                                                             <label>Transferee Name</label>
                                                             <input type="text" class="form-control" placeholder="Transferee Name" name="transferees[0][name]">
                                                         </div>
-                                                         <div class="col-md-12">
+                                                        <div class="col-md-12">
                                                             <label>Father Name</label>
                                                             <input type="text" class="form-control" placeholder="Father Name" name="transferees[0][father_name]">
                                                         </div>
+
                                                         <div class="col-md-12">
                                                             <label>ID Card</label>
-                                                            <input type="number" class="form-control" placeholder="ID Card" name="transferees[0][id_card]">
+                                                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" maxlength="15" name="transferees[0][id_card]">
                                                         </div>
                                                         <div class="col-md-12">
                                                             <label>Challan No.</label>
                                                             <input type="text" class="form-control" placeholder="Challan No." name="transferees[0][challan_no]">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label>Address</label>
+                                                            <input type="text" class="form-control" placeholder="Address" name="transferees[0][address]">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label>Allottee Date</label>
+                                                            <input type="date" class="form-control datepicker" placeholder="Allottee Date" name="transferees[0][allottee_date]">
                                                         </div>
                                                     </div>
                                                 </div>
                                             @endforelse
                                         </div>
 
-                                        <button type="button" id="add-transferee">+ Add Transferee</button>
+                                        <button type="button" id="add-transferee" onclick="addTransferee()">+ Add Transferee</button>
                                     </div>
                                     <input type="button" class="next action-button" value="Next">
                                     <input type="button" class="previous action-button-previous" value="Previous">
@@ -878,7 +986,6 @@
 
                                 {{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
 <fieldset id="step-4">
-      {{-- Alternate Allotment + Complete File Pages in one row --}}
     <div class="form-row">
         <div class="col-md-6 text-left">
             <label>Alternate Allotment</label>
@@ -895,27 +1002,8 @@
                    id="complete_file_pages"
                    placeholder="Total Pages"
                    value="{{ old('complete_file_pages', $property->attachment->complete_file_pages ?? '') }}">
-
         </div>
     </div>
-
-
-            <!-- Current File -->
-            <div class="col-md-12 text-left">
-                @if(!empty($property->attachment->complete_property_file))
-                    <label>Current File</label>
-
-                    <div class="current-file-box">
-                        <a href="{{ route('file.viewer', ['path' => $property->attachment->complete_property_file]) }}"
-                           target="_blank">
-                            {{ basename($property->attachment->complete_property_file) }}
-                        </a>
-
-
-                    </div>
-                @endif
-            </div>
-
 
     <div class="row">
         <div class="col-7"><h2 class="fs-title">Attachments:</h2></div>
@@ -924,40 +1012,40 @@
 
     <div class="form-row">
         <div class="col-md-12 text-left">
-            <label>Complete Property File <span class="required-star">*</span></label>
-            <input type="file" name="complete_property_file" id="complete_property_file_input" accept=".pdf,.jpg,.jpeg,.png">
-            @if(!empty($property->attachment->complete_property_file))
+            <label>Property Document <span class="required-star">*</span></label>
+            <input type="file" name="property_document" id="complete_property_file_input" accept=".pdf,.jpg,.jpeg,.png">
+            @if(!empty($property->attachment->property_document))
                 <div class="current-file-box">
                     <span class="current-file-label">Current File:</span>
-                    <a href="{{ route('file.viewer', ['path' => $property->attachment->complete_property_file]) }}" target="_blank">
-                        {{ basename($property->attachment->complete_property_file) }}
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->property_document]) }}" target="_blank">
+                        {{ basename($property->attachment->property_document) }}
                     </a>
-
                 </div>
             @endif
         </div>
-
-        <div class="col-md-12 text-left">
-            <label>Adjacent Area Allotment</label>
-            <input type="file" name="adjacent_area_allotment">
-            @if(!empty($property->attachment->adjacent_area_allotment))
+                <div class="col-md-12 text-left">
+            <label>Noting File</label>
+            <input type="file" name="noting_file">
+            @if(!empty($property->attachment->noting_file))
                 <div class="current-file-box">
                     <span class="current-file-label">Current File:</span>
-                    <a href="{{ route('file.viewer', ['path' => $property->attachment->adjacent_area_allotment]) }}" target="_blank">
-                        {{ basename($property->attachment->adjacent_area_allotment) }}
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->noting_file]) }}" target="_blank">
+                        {{ basename($property->attachment->noting_file) }}
                     </a>
                 </div>
             @endif
         </div>
 
+
+
         <div class="col-md-12 text-left">
-            <label>Division of Plots</label>
-            <input type="file" name="division_of_plots">
-            @if(!empty($property->attachment->division_of_plots))
+            <label>Allotment Order</label>
+            <input type="file" name="allotment_order">
+            @if(!empty($property->attachment->allotment_order))
                 <div class="current-file-box">
                     <span class="current-file-label">Current File:</span>
-                    <a href="{{ route('file.viewer', ['path' => $property->attachment->division_of_plots]) }}" target="_blank">
-                        {{ basename($property->attachment->division_of_plots) }}
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->allotment_order]) }}" target="_blank">
+                        {{ basename($property->attachment->allotment_order) }}
                     </a>
                 </div>
             @endif
@@ -1014,6 +1102,31 @@
                 </div>
             @endif
         </div>
+    <div class="col-md-12 text-left">
+            <label>Adjacent Area Allotment</label>
+            <input type="file" name="adjacent_area_allotment">
+            @if(!empty($property->attachment->adjacent_area_allotment))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->adjacent_area_allotment]) }}" target="_blank">
+                        {{ basename($property->attachment->adjacent_area_allotment) }}
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="col-md-12 text-left">
+            <label>CNIC (front-side)</label>
+            <input type="file" name="cnic_front">
+            @if(!empty($property->attachment->cnic_front))
+                <div class="current-file-box">
+                    <span class="current-file-label">Current File:</span>
+                    <a href="{{ route('file.viewer', ['path' => $property->attachment->cnic_front]) }}" target="_blank">
+                        {{ basename($property->attachment->cnic_front) }}
+                    </a>
+                </div>
+            @endif
+        </div>
     </div>
 
 <div class="row mt-3">
@@ -1051,13 +1164,110 @@
     </div>
 
     <script>
+        // Global variables for Current Owners
+        var ownerIndex = {{ $property->currentOwners ? $property->currentOwners->count() : 1 }};
+        var transfereeIndex = {{ $property->plotHistories->count() > 0 ? $property->plotHistories->count() : 1 }};
+
+        // Add Current Owner
+        function addOwner() {
+            var block = `
+                <div class="current-owner-block" data-index="${ownerIndex}">
+                    <button type="button" class="btn btn-danger remove-owner" onclick="removeOwner(this)">Remove</button>
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <label>Name Applicant/Allottee</label>
+                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][applicant_name]" placeholder="Name Applicant">
+                        </div>
+                        <div class="col-md-6">
+                            <label>Father/Husband Name</label>
+                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][father_husband_name]" placeholder="Father/Husband Name">
+                        </div>
+                        <div class="col-md-6">
+                            <label>Old NIC</label>
+                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][old_nic]" maxlength="15" placeholder="12345-1234567-1">
+                        </div>
+                        <div class="col-md-6">
+                            <label>CNIC</label>
+                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]" maxlength="15" placeholder="12345-1234567-1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <label>Address (Temporary)</label>
+                            <textarea class="form-control" placeholder="Address (Temporary)" name="current_owners[${ownerIndex}][address_temporary]" rows="1"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Address (Permanent)</label>
+                            <textarea class="form-control" placeholder="Address (Permanent)" name="current_owners[${ownerIndex}][address_permanent]" rows="1"></textarea>
+                        </div>
+                    </div>
+                </div>`;
+
+            document.getElementById('current-owners-wrapper').insertAdjacentHTML('beforeend', block);
+            ownerIndex++;
+        }
+
+        // Remove Current Owner
+        function removeOwner(btn) {
+            var block = btn.closest('.current-owner-block');
+            if (block) {
+                block.remove();
+            }
+        }
+
+        // Add Transferee
+        function addTransferee() {
+            var block = `
+                <div class="transferee-block" data-index="${transfereeIndex}">
+                    <button type="button" class="btn btn-danger remove-transferee" onclick="removeTransferee(this)">Remove</button>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <label>Transferee Name</label>
+                            <input type="text" class="form-control" placeholder="Transferee Name" name="transferees[${transfereeIndex}][name]">
+                        </div>
+                        <div class="col-md-12">
+                            <label>Father Name</label>
+                            <input type="text" class="form-control" placeholder="Father Name" name="transferees[${transfereeIndex}][father_name]">
+                        </div>
+                        <div class="col-md-12">
+                            <label>ID Card</label>
+                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" name="transferees[${transfereeIndex}][id_card]" maxlength="15">
+                        </div>
+                        <div class="col-md-12">
+                            <label>Challan No.</label>
+                            <input type="text" class="form-control" placeholder="Challan No." name="transferees[${transfereeIndex}][challan_no]">
+                        </div>
+                        <div class="col-md-12">
+                            <label>Address</label>
+                            <input type="text" class="form-control" placeholder="Address" name="transferees[${transfereeIndex}][address]">
+                        </div>
+                        <div class="col-md-12">
+                            <label>Allottee Date</label>
+                            <input type="date" class="form-control datepicker" placeholder="Allottee Date" name="transferees[${transfereeIndex}][allottee_date]">
+                        </div>
+                    </div>
+                </div>`;
+
+            document.getElementById('transferees-wrapper').insertAdjacentHTML('beforeend', block);
+            transfereeIndex++;
+            $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
+        }
+
+        // Remove Transferee
+        function removeTransferee(btn) {
+            var block = btn.closest('.transferee-block');
+            if (block) {
+                block.remove();
+            }
+        }
+
 $(document).ready(function () {
     $('.datepicker').flatpickr({ dateFormat: "Y-m-d" });
 
     var $submitBtn = $('#submit-btn');
     var $completeFileCheck = $('#check_complete_file');
-    var $completeFileInput = $('input[name="complete_property_file"]');
-    var hasExistingFile = {{ !empty($property->attachment->complete_property_file) ? 'true' : 'false' }};
+    var $completeFileInput = $('#complete_property_file_input');
+    var hasExistingFile = {{ !empty($property->attachment->property_document) ? 'true' : 'false' }};
     var isStatusConfirmed = {{ isset($property->attachment->status) && $property->attachment->status ? 'true' : 'false' }};
 
     // ================= ZOOM SETUP =================
@@ -1094,7 +1304,6 @@ $(document).ready(function () {
         resetZoom();
     });
 
-    // Ctrl + scroll se bhi zoom ho (sirf preview box ke andar)
     $('#previewBox').on('wheel', function (e) {
         if (e.ctrlKey) {
             e.preventDefault();
@@ -1104,92 +1313,6 @@ $(document).ready(function () {
                 currentZoom = Math.max(ZOOM_MIN, currentZoom - 0.1);
             }
             applyZoom();
-        }
-    });
-
-    // ================= COUNT PAGES FOR COMPLETE PROPERTY FILE =================
-    $('#countPagesBtn').on('click', function() {
-        var $fileInput = $('#complete_property_file_input');
-        var $pagesInput = $('#complete_file_pages');
-        var file = $fileInput[0].files[0];
-
-        if (!file) {
-            showAlert('info', 'Please select a file first to count pages, or enter manually.');
-            return;
-        }
-
-        if (file.type === 'application/pdf') {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    var typedarray = new Uint8Array(e.target.result);
-                    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
-                        var totalPages = pdf.numPages;
-                        $pagesInput.val(totalPages);
-                        showAlert('success', 'Total pages detected: ' + totalPages);
-                    }).catch(function(err) {
-                        showAlert('danger', 'Error reading PDF: ' + err.message);
-                    });
-                } catch(err) {
-                    showAlert('danger', 'Error processing file: ' + err.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        } else if (file.type.startsWith('image/')) {
-            $pagesInput.val(1);
-            showAlert('success', 'Image file detected. Pages: 1');
-        } else {
-            showAlert('warning', 'Unsupported file type. Please enter pages manually.');
-        }
-    });
-
-    // Jab naya file upload ho toh auto-detect pages (optional)
-    $('#complete_property_file_input').on('change', function(e) {
-        var file = e.target.files[0];
-        if (!file) return;
-
-        var $pagesInput = $('#complete_file_pages');
-
-        if (file.type === 'application/pdf') {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    var typedarray = new Uint8Array(e.target.result);
-                    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
-                        var totalPages = pdf.numPages;
-                        $pagesInput.val(totalPages);
-                    }).catch(function() {
-                        // Silent fail
-                    });
-                } catch(err) {
-                    // Silent fail
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        } else if (file.type.startsWith('image/')) {
-            $pagesInput.val(1);
-        }
-    });
-
-    // ================= RIGHT-CLICK / SHORTCUT BLOCK =================
-    $('#previewBox').on('contextmenu', function (e) {
-        e.preventDefault();
-        return false;
-    });
-
-    $(document).on('keydown', function (e) {
-        if (
-            (e.ctrlKey && (e.key === 's' || e.key === 'S')) ||
-            (e.ctrlKey && (e.key === 'p' || e.key === 'P')) ||
-            (e.ctrlKey && (e.key === 'u' || e.key === 'U')) ||
-            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
-            (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) ||
-            e.key === 'F12'
-        ) {
-            if ($('#previewBox').length) {
-                e.preventDefault();
-                return false;
-            }
         }
     });
 
@@ -1258,54 +1381,59 @@ $(document).ready(function () {
         });
     }
 
-    // ================= FILE INPUT CHANGE (naya upload preview) =================
-    $('#complete_property_file_input').on('change', function (e) {
+    // ================= AUTO COUNT PDF PAGES + PREVIEW =================
+    $('#complete_property_file_input').on('change', function(e) {
         var file = e.target.files[0];
         if (!file) return;
 
-        var fileURL = URL.createObjectURL(file);
-        var $previewBox = $('#previewBox');
+        var $pagesInput = $('#complete_file_pages');
 
+        // Agar PDF file hai
         if (file.type === 'application/pdf') {
-            $previewBox.html('<div class="pdf-scroll-outer" id="pdfScrollOuter"><div id="pdfViewerContainer" class="pdf-viewer-container"></div></div>');
-            renderPdfProgressive(fileURL, '#pdfViewerContainer');
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var typedarray = new Uint8Array(e.target.result);
+                    pdfjsLib.getDocument(typedarray).promise.then(function(pdf) {
+                        var totalPages = pdf.numPages;
+                        $pagesInput.val(totalPages);
 
-        } else if (file.type.startsWith('image/')) {
+
+                        // Preview render
+                        var fileURL = URL.createObjectURL(file);
+                        var $previewBox = $('#previewBox');
+                        $previewBox.html('<div class="pdf-scroll-outer" id="pdfScrollOuter"><div id="pdfViewerContainer" class="pdf-viewer-container"></div></div>');
+                        renderPdfProgressive(fileURL, '#pdfViewerContainer');
+                    }).catch(function(err) {
+                        console.error('Error reading PDF:', err);
+                        showAlert('warning', 'Could not auto-detect pages. Please enter manually.');
+                    });
+                } catch(err) {
+                    console.error('Error processing file:', err);
+                    showAlert('warning', 'Could not process PDF. Please enter pages manually.');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        // Agar image file hai
+        else if (file.type.startsWith('image/')) {
+            $pagesInput.val(1);
+            showAlert('success', 'Image file detected. Pages: 1');
+
+            // Image preview
+            var fileURL = URL.createObjectURL(file);
+            var $previewBox = $('#previewBox');
             $previewBox.html('<div class="pdf-scroll-outer"><div id="pdfViewerContainer" class="pdf-viewer-container"><img src="' + fileURL + '" style="max-width:100%;display:block;margin:auto;"></div></div>');
             showZoomToolbar();
             resetZoom();
-
-        } else {
+        }
+        // Unsupported file type
+        else {
+            showAlert('warning', 'Unsupported file type. Please enter pages manually.');
             $('#previewToolbar').hide();
+            var $previewBox = $('#previewBox');
             $previewBox.html('<div class="no-preview">Preview not available for this file type.<br>(' + file.name + ')</div>');
         }
-    });
-
-    // ================= STATUS CHECKBOX LOGIC =================
-    function checkFileAndStatus() {
-        $submitBtn.prop('disabled', false);
-
-        if (isStatusConfirmed) {
-            $completeFileCheck.prop('disabled', true);
-            $completeFileCheck.parent().find('.helper-text').remove();
-            var confirmedDate = '{{ isset($property->attachment->entry_date) ? \Carbon\Carbon::parse($property->attachment->entry_date)->format('Y-m-d H:i') : '' }}';
-            $completeFileCheck.parent().append(
-                '<span class="helper-text text-success" style="font-size:12px;margin-left:5px;">✅ File confirmed on ' + confirmedDate + '</span>'
-            );
-            return;
-        }
-        $completeFileCheck.parent().find('.helper-text').remove();
-    }
-
-    checkFileAndStatus();
-
-    $completeFileInput.on('change', function() {
-        hasExistingFile = true;
-        checkFileAndStatus();
-    });
-
-    $completeFileCheck.on('change', function() {
-        checkFileAndStatus();
     });
 
     // ================= SELECT2 =================
@@ -1420,37 +1548,22 @@ $(document).ready(function () {
         goToStep(index);
     });
 
-    // ================= TRANSFEREES =================
-    var transfereeIndex = {{ $property->plotHistories->count() > 0 ? $property->plotHistories->count() : 1 }};
-    $('#add-transferee').click(function () {
-        var block = `
-            <div class="transferee-block" data-index="${transfereeIndex}">
-                <button type="button" class="remove-transferee">Remove</button>
-                <div class="form-row">
-                    <div class="col-md-12">
-                        <label>Transferees Name</label>
-                        <input type="text" class="form-control" placeholder="Transferees Name"
-                            name="transferees[${transfereeIndex}][name]">
-                    </div>
-                    <div class="col-md-12">
-                        <label>ID Card</label>
-                        <input type="text" placeholder="ID Card" class="form-control"
-                            name="transferees[${transfereeIndex}][id_card]">
-                    </div>
-                    <div class="col-md-12">
-                        <label>Challan No.</label>
-                        <input type="text" placeholder="Challan No." class="form-control"
-                            name="transferees[${transfereeIndex}][challan_no]">
-                    </div>
-                </div>
-            </div>`;
-        $('#transferees-wrapper').append(block);
-        transfereeIndex++;
-    });
-
-    $(document).on('click', '.remove-transferee', function (e) {
-        e.preventDefault();
-        $(this).closest('.transferee-block').remove();
+    // ================= CNIC FORMATTING =================
+    $(document).on('input', '.cnic-input', function () {
+        let value = $(this).val().replace(/\D/g, '');
+        if (value.length > 13) {
+            value = value.substring(0, 13);
+        }
+        let formatted = value;
+        if (value.length > 5) {
+            formatted = value.substring(0, 5) + '-' + value.substring(5);
+        }
+        if (value.length > 12) {
+            formatted = value.substring(0, 5) + '-' +
+                        value.substring(5, 12) + '-' +
+                        value.substring(12);
+        }
+        $(this).val(formatted);
     });
 
     // ================= FORM SUBMIT (AJAX) =================
@@ -1464,6 +1577,11 @@ $(document).ready(function () {
 
     $('#msform').on('submit', function (e) {
         e.preventDefault();
+
+        // Remove dashes from CNIC fields
+        $('.cnic-input').each(function() {
+            $(this).val($(this).val().replace(/-/g, ''));
+        });
 
         var form = this;
         var formData = new FormData(form);
@@ -1508,15 +1626,6 @@ $(document).ready(function () {
                     message = list;
                 } else if (xhr.responseJSON && xhr.responseJSON.message) {
                     message = xhr.responseJSON.message;
-                } else if (xhr.responseText) {
-                    try {
-                        var jsonResponse = JSON.parse(xhr.responseText);
-                        if (jsonResponse.message) {
-                            message = jsonResponse.message;
-                        }
-                    } catch (e) {
-                        message = xhr.responseText;
-                    }
                 }
 
                 showAlert('danger', message);
@@ -1531,8 +1640,8 @@ $(document).ready(function () {
     });
 
     // ================= PAGE LOAD: EXISTING FILE RENDER =================
-    @if(!empty($property->attachment->complete_property_file))
-        renderPdfProgressive("{{ asset('storage/' . $property->attachment->complete_property_file) }}", '#pdfViewerContainer');
+    @if(!empty($property->attachment->property_document))
+        renderPdfProgressive("{{ asset('storage/' . $property->attachment->property_document) }}", '#pdfViewerContainer');
     @endif
 
 });
