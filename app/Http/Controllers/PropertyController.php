@@ -111,7 +111,7 @@ class PropertyController extends Controller
             'decision_allotment_committee' => 'nullable|file',
             'decision_mda_board'           => 'nullable|file',
             'decision_revising_authority'  => 'nullable|file',
-                        'noting_file'                  => 'nullable|file',      // New
+            'noting_file'                  => 'nullable|file',      // New
             'cnic_front'                   => 'nullable|file',
         ]);
 
@@ -360,8 +360,8 @@ class PropertyController extends Controller
             'current_owners.*.address_temporary' => 'nullable|string',
             'current_owners.*.address_permanent' => 'nullable|string',
             'alternate_allotment'   => 'nullable|string',
-            'complete_file_pages'   => 'nullable|integer',
-            'property_document' => 'nullable|file',
+            'complete_file_pages'   => 'required|integer',
+            'property_document' => 'required|file',
             'adjacent_area_allotment' => 'nullable|file',
             'allotment_order'     => 'nullable|file',
             'decision_courts'       => 'nullable|file',
@@ -487,7 +487,7 @@ class PropertyController extends Controller
             $attachmentData = [
                 'alternate_allotment' => $request->alternate_allotment,
                 'complete_file_pages' => $request->complete_file_pages,
-                'property_document' => $request->property_document ?? null,
+                //'property_document' => $request->property_document ?? null,
             ];
 
             $this->storeAttachmentFiles($request, $property, $attachmentData);

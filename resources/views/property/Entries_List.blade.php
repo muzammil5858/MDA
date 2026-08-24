@@ -83,7 +83,7 @@
                                     <div class="small-box bg-success">
                                         <div class="inner">
                                             <h3>{{ $data->filter(function($item) {
-                                                return $item->attachment && $item->attachment->complete_property_file;
+                                                return $item->attachment && $item->attachment->property_document;
                                             })->count() }}</h3>
                                             <p>Files Uploaded</p>
                                         </div>
@@ -96,7 +96,7 @@
                                     <div class="small-box bg-danger">
                                         <div class="inner">
                                             <h3>{{ $data->filter(function($item) {
-                                                return !$item->attachment || !$item->attachment->complete_property_file;
+                                                return !$item->attachment || !$item->attachment->property_document;
                                             })->count() }}</h3>
                                             <p>Files Missing</p>
                                         </div>
@@ -133,7 +133,7 @@
 
                                             <td>{{ $dat->created_at ? date('d-m-Y', strtotime($dat->created_at)) : 'N/A' }}</td>
                                             <td>
-                                                @if($dat->attachment && $dat->attachment->complete_property_file)
+                                                @if($dat->attachment && $dat->attachment->property_document)
                                                     <span class="badge badge-success">
                                                         <i class="fa fa-check-circle"></i> Uploaded
                                                     </span>
@@ -153,7 +153,7 @@
                                                 <a href="{{ route('formDelete', $dat->id) }}" onclick="return confirm('Are you sure you want to delete this property?')">
                                                     <i class="fa fa-trash ml-3 delete" aria-hidden="true"></i>
                                                 </a>
-                                                @if(!$dat->attachment || !$dat->attachment->complete_property_file)
+                                                @if(!$dat->attachment || !$dat->attachment->property_document)
                                                     <a href="{{ route('formEdit', $dat->id) }}#step-4" class="ml-3">
                                                         <i class="fa fa-upload text-success" data-toggle="tooltip" data-placement="top" title="Upload File"></i>
                                                     </a>
