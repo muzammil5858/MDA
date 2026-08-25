@@ -90,7 +90,7 @@ class PropertyController extends Controller
             'transferees.*.father_name'=> 'nullable|string',
             'transferees.*.id_card'    => 'nullable|string',
             'transferees.*.challan_no' => 'nullable|string',
-                        'transferees.*.address'    => 'nullable|string',        // New
+            'transferees.*.address'    => 'nullable|string',
             'transferees.*.allottee_date' => 'nullable|date',
 
             // Current Owners
@@ -111,13 +111,13 @@ class PropertyController extends Controller
             'decision_allotment_committee' => 'nullable|file',
             'decision_mda_board'           => 'nullable|file',
             'decision_revising_authority'  => 'nullable|file',
-            'noting_file'                  => 'nullable|file',      // New
+            'noting_file'                  => 'nullable|file',
             'cnic_front'                   => 'nullable|file',
         ]);
 
         DB::beginTransaction();
-          $sector = Sector::findOrFail($request->sector_id);
-            $block = Block::findOrFail($request->block_id);
+        $sector = Sector::findOrFail($request->sector_id);
+        $block = Block::findOrFail($request->block_id);
 
         try {
             // 1) Property
@@ -155,7 +155,6 @@ class PropertyController extends Controller
             // 2) Save Current Owners
             if ($request->has('current_owners')) {
                 foreach ($request->current_owners as $ownerData) {
-                    // Skip empty owner data
                     if (empty($ownerData['applicant_name']) &&
                         empty($ownerData['father_husband_name']) &&
                         empty($ownerData['cnic']) &&
@@ -201,7 +200,7 @@ class PropertyController extends Controller
                         'father_name' => $row['father_name'] ?? null,
                         'id_card'     => $row['id_card'] ?? null,
                         'challan_no'  => $row['challan_no'] ?? null,
-                        'address'       => $row['address'] ?? null,        // New
+                        'address'       => $row['address'] ?? null,
                         'allottee_date' => $row['allottee_date'] ?? null,
                     ]);
                 }
@@ -304,6 +303,24 @@ class PropertyController extends Controller
     {
         $property = Property::findOrFail($id);
 
+        // 🔥 Check if property_document already exists in database
+        $existingAttachment = Attchement::where('property_id', $property->id)->first();
+        $hasExistingDocument = $existingAttachment && !empty($existingAttachment->property_document);
+
+        // 🔥 Remove empty file fields from request
+        $fileFields = ['property_document', 'adjacent_area_allotment', 'allotment_order',
+                       'decision_courts', 'decision_allotment_committee', 'decision_mda_board',
+                       'decision_revising_authority', 'noting_file', 'cnic_front'];
+
+        foreach ($fileFields as $field) {
+            if ($request->has($field) && empty($request->$field)) {
+                $request->request->remove($field);
+            }
+        }
+
+        // 🔥 Dynamic validation rule for property_document
+        $propertyDocumentRule = $hasExistingDocument ? 'nullable|file' : 'required|file';
+
         $request->validate([
             'application_no'        => 'required|string',
             'application_date'      => 'nullable|date',
@@ -360,19 +377,18 @@ class PropertyController extends Controller
             'current_owners.*.address_temporary' => 'nullable|string',
             'current_owners.*.address_permanent' => 'nullable|string',
             'alternate_allotment'   => 'nullable|string',
-            'complete_file_pages'   => 'required|integer',
-            'property_document' => 'required|file',
+            'complete_file_pages'   => 'nullable|integer',
+            'property_document'     => $propertyDocumentRule,
             'adjacent_area_allotment' => 'nullable|file',
             'allotment_order'     => 'nullable|file',
             'decision_courts'       => 'nullable|file',
             'decision_allotment_committee' => 'nullable|file',
             'decision_mda_board'    => 'nullable|file',
             'decision_revising_authority' => 'nullable|file',
-            'transferees.*.address'    => 'nullable|string',        // New
-            'transferees.*.allottee_date' => 'nullable|date',       // New   // New
-            'noting_file'                  => 'nullable|file',      // New
+            'transferees.*.address'    => 'nullable|string',
+            'transferees.*.allottee_date' => 'nullable|date',
+            'noting_file'                  => 'nullable|file',
             'cnic_front'                   => 'nullable|file',
-
         ]);
 
         DB::beginTransaction();
@@ -380,6 +396,11 @@ class PropertyController extends Controller
         try {
             $oldApplicationNo = $property->application_no;
             $newApplicationNo = $request->application_no;
+
+            // 🔥 Store old sector/block for path change detection
+            $oldSectorId = $property->sector_id;
+            $oldBlockId = $property->block_id;
+            $oldPlotNo = $property->plot_no;
 
             $confirmChecked = $request->has('check_complete_file') && $request->check_complete_file == '1';
             $userId = $confirmChecked ? auth()->id() : $property->user_id;
@@ -418,11 +439,9 @@ class PropertyController extends Controller
 
             // 2) Save Current Owners
             if ($request->has('current_owners')) {
-                // Delete existing current owners
                 CurrentOwner::where('property_id', $property->id)->delete();
 
                 foreach ($request->current_owners as $ownerData) {
-                    // Skip empty owner data
                     if (empty($ownerData['applicant_name']) &&
                         empty($ownerData['father_husband_name']) &&
                         empty($ownerData['cnic']) &&
@@ -478,16 +497,29 @@ class PropertyController extends Controller
                 }
             }
 
-            // 5) Rename folder if application_no changed
-            if ($oldApplicationNo && $oldApplicationNo !== $newApplicationNo) {
-                $this->renameAttachmentFolder($oldApplicationNo, $newApplicationNo, $property->id);
+            // 🔥 Check what changed
+            $sectorChanged = $oldSectorId != $request->sector_id;
+            $blockChanged = $oldBlockId != $request->block_id;
+            $plotNoChanged = $oldPlotNo != $request->plot_no;
+            $appNoChanged = $oldApplicationNo !== $newApplicationNo;
+
+            // 🔥 UPDATE ATTACHMENT PATHS IF ANYTHING CHANGED
+            if ($sectorChanged || $blockChanged || $plotNoChanged || $appNoChanged) {
+                $property->refresh();
+                $property->load(['sector', 'block']);
+
+                $this->renameAttachmentFolder(
+                    $property,
+                    $oldApplicationNo,
+                    $newApplicationNo,
+                    true // Force update
+                );
             }
 
             // 6) Update Attachments
             $attachmentData = [
                 'alternate_allotment' => $request->alternate_allotment,
                 'complete_file_pages' => $request->complete_file_pages,
-                //'property_document' => $request->property_document ?? null,
             ];
 
             $this->storeAttachmentFiles($request, $property, $attachmentData);
@@ -548,7 +580,7 @@ class PropertyController extends Controller
         return $folderName !== '' ? $folderName : ('item_' . $fallbackId);
     }
 
-       private function storeAttachmentFiles(
+    private function storeAttachmentFiles(
         Request $request,
         Property $property,
         array &$attachmentData,
@@ -585,6 +617,9 @@ class PropertyController extends Controller
 
         $disk = Storage::disk('public');
 
+        // Get existing attachment record
+        $existingAttachment = Attchement::where('property_id', $property->id)->first();
+
         foreach ($fileFieldLabels as $field => $label) {
             if ($request->hasFile($field)) {
                 $file = $request->file($field);
@@ -592,93 +627,160 @@ class PropertyController extends Controller
                 $labelFolder = $this->sanitizeFolderName($label);
                 $folderPath  = $baseFolder . '/' . $labelFolder;
 
-                $originalName     = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeOriginalName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName);
-                $extension        = $file->getClientOriginalExtension();
+                // 🔥 Use application_no instead of plot_no
+                $applicationNo = $property->application_no ?? 'APP';
+                $sectorNameForFile = $this->sanitizeFolderName($sectorName ?? 'SECTOR');
 
-                $fileName = $safeOriginalName . '.' . $extension;
+                // 🔥 File name: APP-123_AZIZPUR
+                $fileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile;
+                $extension = $file->getClientOriginalExtension();
+                $fileName = $fileName . '.' . $extension;
 
-                // Check if file exists and create unique name
                 if ($disk->exists($folderPath . '/' . $fileName)) {
-                    $fileName = $safeOriginalName . '_' . uniqid() . '_' . time() . '.' . $extension;
+                    $fileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile . '_' . uniqid() . '.' . $extension;
                 }
 
-                // Store file with full path
+                if ($existingAttachment && !empty($existingAttachment->$field)) {
+                    $oldFilePath = $existingAttachment->$field;
+                    if ($disk->exists($oldFilePath)) {
+                        $disk->delete($oldFilePath);
+                    }
+                }
+
                 $path = $file->storeAs($folderPath, $fileName, 'public');
                 $attachmentData[$field] = $path;
+            } else {
+                if ($existingAttachment && !empty($existingAttachment->$field)) {
+                    $attachmentData[$field] = $existingAttachment->$field;
+                }
             }
         }
     }
 
-
+    /**
+     * 🔥 RENAME/UPDATE ATTACHMENT PATHS
+     * This method checks if old files exist and updates their paths
+     * based on current sector/block/application_no
+     */
     private function renameAttachmentFolder(
+        Property $property,
         string $oldApplicationNo,
         string $newApplicationNo,
-        int $propertyId
+        bool $forceUpdate = false
     ) {
         $disk = Storage::disk('public');
 
-        $property = Property::with(['sector', 'block'])->find($propertyId);
+        $attachment = Attchement::where('property_id', $property->id)->first();
 
-        if (!$property) {
+        if (!$attachment) {
             return;
         }
 
-        $sectorFolder = $this->sanitizeFolderName($property->sector->name ?? 'No_Sector');
-        $blockFolder = $this->sanitizeFolderName($property->block->name ?? 'No_Block');
+        // Get new folder structure
+        $sectorName = $property->sector->name ?? 'No_Sector';
+        $blockName = $property->block->name ?? 'No_Block';
 
-        $oldApplicationFolder = $this->sanitizeFolderName($oldApplicationNo, $propertyId);
-        $newApplicationFolder = $this->sanitizeFolderName($newApplicationNo, $propertyId);
+        $sectorFolder = $this->sanitizeFolderName($sectorName);
+        $blockFolder = $this->sanitizeFolderName($blockName);
+        $applicationFolder = $this->sanitizeFolderName($newApplicationNo, $property->id);
 
-        $oldBaseFolder = $sectorFolder . '/' . $blockFolder . '/' . $oldApplicationFolder;
-        $newBaseFolder = $sectorFolder . '/' . $blockFolder . '/' . $newApplicationFolder;
+        $newBaseFolder = $sectorFolder . '/' . $blockFolder . '/' . $applicationFolder;
 
-        if ($oldApplicationFolder === $newApplicationFolder || !$disk->exists($oldBaseFolder)) {
+        // Get old folder structure using original values
+        $oldSectorFolder = $this->sanitizeFolderName($property->getOriginal('sector_id') ?
+            Sector::find($property->getOriginal('sector_id'))->name ?? 'No_Sector' : 'No_Sector');
+        $oldBlockFolder = $this->sanitizeFolderName($property->getOriginal('block_id') ?
+            Block::find($property->getOriginal('block_id'))->name ?? 'No_Block' : 'No_Block');
+        $oldApplicationFolder = $this->sanitizeFolderName($oldApplicationNo, $property->id);
+
+        $oldBaseFolder = $oldSectorFolder . '/' . $oldBlockFolder . '/' . $oldApplicationFolder;
+
+        // If folder structure is same and not force update, return
+        if ($oldBaseFolder === $newBaseFolder && !$forceUpdate) {
             return;
         }
 
-        // Create new base folder
-        $disk->makeDirectory($newBaseFolder);
+        // Fields to update
+        $fields = [
+            'property_document',
+            'adjacent_area_allotment',
+            'allotment_order',
+            'decision_courts',
+            'decision_allotment_committee',
+            'decision_mda_board',
+            'decision_revising_authority',
+            'noting_file',
+            'cnic_front',
+        ];
 
-        // Move all files from old folder to new folder
-        $files = $disk->allFiles($oldBaseFolder);
+        $updated = false;
 
-        foreach ($files as $filePath) {
-            $newPath = str_replace($oldBaseFolder . '/', $newBaseFolder . '/', $filePath);
-            $disk->makeDirectory(dirname($newPath));
-            $disk->move($filePath, $newPath);
-        }
-
-        // Delete old empty folder
-        $disk->deleteDirectory($oldBaseFolder);
-
-        // Update attachment paths in database
-        $attachment = Attchement::where('property_id', $propertyId)->first();
-
-        if ($attachment) {
-            $fields = [
-                'property_document',
-                'adjacent_area_allotment',
-                'allotment_order',
-                'decision_courts',
-                'decision_allotment_committee',
-                'decision_mda_board',
-                'decision_revising_authority',
-                'noting_file',
-                'cnic_front',
-            ];
-
-            foreach ($fields as $field) {
-                if (!empty($attachment->$field)) {
-                    $attachment->$field = str_replace(
-                        $oldBaseFolder . '/',
-                        $newBaseFolder . '/',
-                        $attachment->$field
-                    );
-                }
+        foreach ($fields as $field) {
+            if (empty($attachment->$field)) {
+                continue;
             }
 
+            $oldPath = $attachment->$field;
+            $fileName = basename($oldPath);
+
+            // 🔥 CHECK: If file name starts with "APP-"
+            if (strpos($fileName, 'APP-') === 0) {
+                // Generate new file name using current application_no and sector
+                $applicationNo = $property->application_no ?? 'APP';
+                $sectorNameForFile = $this->sanitizeFolderName($sectorName);
+
+                // New file name: APP-123_AZIZPUR
+                $extension = pathinfo($fileName, PATHINFO_EXTENSION);
+                $newFileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile . '.' . $extension;
+
+                // Get field label folder
+                $labelFolder = $this->sanitizeFolderName(
+                    str_replace('_', ' ', ucwords(str_replace('_', ' ', $field)))
+                );
+
+                $newPath = $newBaseFolder . '/' . $labelFolder . '/' . $newFileName;
+
+                // If file exists, add unique identifier
+                if ($disk->exists($newPath)) {
+                    $newFileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile . '_' . uniqid() . '.' . $extension;
+                    $newPath = $newBaseFolder . '/' . $labelFolder . '/' . $newFileName;
+                }
+
+                // 🔥 MOVE FILE TO NEW LOCATION
+                if ($disk->exists($oldPath)) {
+                    // Ensure directory exists
+                    $disk->makeDirectory(dirname($newPath));
+
+                    // Move file
+                    $disk->move($oldPath, $newPath);
+
+                    // Update database path
+                    $attachment->$field = $newPath;
+                    $updated = true;
+                }
+            } else if ($forceUpdate) {
+                // 🔥 If file name doesn't start with "APP-" but force update is true
+                // Move file to new folder structure
+                $label = str_replace('_', ' ', ucwords(str_replace('_', ' ', $field)));
+                $labelFolder = $this->sanitizeFolderName($label);
+                $newPath = $newBaseFolder . '/' . $labelFolder . '/' . $fileName;
+
+                if ($disk->exists($oldPath) && !$disk->exists($newPath)) {
+                    $disk->makeDirectory(dirname($newPath));
+                    $disk->move($oldPath, $newPath);
+                    $attachment->$field = $newPath;
+                    $updated = true;
+                }
+            }
+        }
+
+        if ($updated) {
             $attachment->save();
+        }
+
+        // 🔥 Clean up old folder if empty
+        if ($disk->exists($oldBaseFolder) && count($disk->allFiles($oldBaseFolder)) == 0) {
+            $disk->deleteDirectory($oldBaseFolder);
         }
     }
 
