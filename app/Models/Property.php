@@ -24,7 +24,7 @@ class Property extends Model
         return $this->hasMany(CurrentOwner::class, 'property_id');
     }
 
-    // Property Model mein
+    // Property Model mein\
     public function sector()
     {
         return $this->belongsTo(Sector::class, 'sector_id');
