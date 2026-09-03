@@ -822,4 +822,67 @@ class PropertyController extends Controller
             'propertiesByUser'
         ));
     }
+
+/**
+ * Show the add block form
+ */
+/**
+ * Show the add block form
+ */
+/**
+ * Show the add block form
+ */
+public function addblock()
+{
+    $sectors = Sector::orderBy('name')->get();
+
+    $blocks = Block::with('sector')
+        ->orderBy('sector_id')
+        ->orderBy('name')
+        ->get();
+
+    return view('property.add-block', compact('sectors', 'blocks'));
+}
+
+/**
+ * Store a new block
+ */
+public function storeBlock(Request $request)
+{
+    $request->validate([
+        'sector_id' => 'required|exists:sectors,id',
+        'name' => 'required|string|max:255|unique:blocks,name,NULL,id,sector_id,' . $request->sector_id,
+    ]);
+
+    try {
+        Block::create([
+            'sector_id' => $request->sector_id,
+            'name' => $request->name,
+        ]);
+
+        return redirect()
+            ->route('addBlock')
+            ->with('success', 'Block added successfully.');
+
+    } catch (\Exception $e) {
+
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'An error occurred: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Get blocks by sector
+ */
+public function getBlocksBySector($sectorId)
+{
+    $blocks = Block::where('sector_id', $sectorId)
+        ->orderBy('name')
+        ->get();
+
+    return response()->json($blocks);
+}
+
 }

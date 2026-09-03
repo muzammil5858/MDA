@@ -1602,17 +1602,17 @@ $(document).ready(function () {
                 'Accept': 'application/json'
             },
             success: function (response) {
-                showAlert('success', response.message || 'Data updated successfully.');
-                if (response.redirect) {
-                    setTimeout(function () {
-                        window.location.href = response.redirect;
-                    }, 1500);
-                } else {
-                    setTimeout(function () {
-                        location.reload();
-                    }, 1500);
-                }
-            },
+    showAlert('success', response.message || 'Data updated successfully.');
+    if (response.redirect) {
+        setTimeout(function () {
+            window.location.href = response.redirect;  // ✅ UNCOMMENT THIS
+        }, 1500);
+    } else {
+        setTimeout(function () {
+            location.reload();
+        }, 1500);
+    }
+},
             error: function (xhr) {
                 var message = 'Something went wrong. Please try again.';
 

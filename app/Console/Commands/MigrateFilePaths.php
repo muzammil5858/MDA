@@ -27,20 +27,20 @@ class MigrateFilePaths extends Command
 
         $records = Property::with(['attachment' => function ($q) {
             $q->whereNotNull('property_document');
-        },'sector','block'])->where('id', 370)->get();
+        },'sector','block'])->get();
 
 
         $this->info("Found {$records->count()} properties to process.");
         $logger->info("--- Starting Migration. Found {$records->count()} properties to process. ---");
 
         foreach ($records as $property) {
-           
+
                 $attachement = $property->attachment;
-                
+
                 if (!$attachement) {
                     continue;
                 }
-                
+
                 $oldPath = $attachement->property_document;
                 $prefix = $property->sector->name . '/' . $property->block->name. '/';
 

@@ -12,9 +12,9 @@
         :root {
             /* Primary Colors */
             --color-primary: #4EC9DF;
-            --color-primary-dark: #1D4ED8;
+            --color-primary-dark: #3b8db0;
             --color-primary-light: #60A5FA;
-            --color-primary-gradient: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+            --color-primary-gradient: linear-gradient(135deg, #3b8db0 0%, #3b8db0 100%);
 
             /* Secondary Colors */
             --color-secondary: #AEB877;
@@ -23,19 +23,19 @@
             /* Accent Colors */
             --color-success: #10B981;
             --color-success-dark: #059669;
-            --color-warning: #F59E0B;
+            --color-warning: #647FBC;
             --color-warning-dark: #D97706;
             --color-danger: #EF4444;
             --color-danger-dark: #DC2626;
             --color-info: #06B6D4;
             --color-rose: #EC4899;
-            --color-indigo: #4F46E5;
+            --color-indigo: #3b8db0;
 
             /* Neutral Colors */
             --color-bg: #F1F5F9;
             --color-bg-dark: #E2E8F0;
             --color-white: #FFFFFF;
-            --color-black: #1E293B;
+            --color-black: #E2E8F0;
             --color-gray: #64748B;
             --color-gray-light: #94A3B8;
             --color-gray-lighter: #F8FAFC;
@@ -44,10 +44,10 @@
             --color-shadow-hover: rgba(0,0,0,0.10);
 
             /* Chart Colors */
-            --chart-blue: #2563EB;
+            --chart-blue: #3b8db0;
             --chart-purple: #AEB877;
             --chart-emerald: #10B981;
-            --chart-gold: #F59E0B;
+            --chart-gold: #647FBC;
             --chart-red: #EF4444;
             --chart-cyan: #06B6D4;
             --chart-pink: #EC4899;
@@ -57,33 +57,33 @@
             --chart-orange: #F97316;
 
             /* Size Chart Colors */
-            --size-5marla: #2563EB;
+            --size-5marla: #3b8db0;
             --size-7marla: #7C3AED;
             --size-10marla: #10B981;
-            --size-12marla: #F59E0B;
+            --size-12marla: #647FBC;
             --size-15marla: #EF4444;
             --size-1kanal: #06B6D4;
 
             /* Bar Chart Colors */
             --bar-commercial: #AEB877;
-            --bar-house: #2563EB;
+            --bar-house: #3b8db0;
             --bar-plot: #10B981;
 
             /* Pie Chart Colors */
             --pie-house: #10B981;
             --pie-commercial: #AEB877;
-            --pie-plot: #2563EB;
+            --pie-plot: #3b8db0;
 
             /* Card Gradients */
-            --gradient-info: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
-            --gradient-success: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            --gradient-info: linear-gradient(135deg, #3b8db0 0%, #3b8db0 100%);
+            --gradient-success: linear-gradient(135deg, #5f9e6e 0%, #5f9e6e 100%);
+            --gradient-warning: linear-gradient(135deg, #647FBC 0%, #647FBC 100%);
             --gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
             --gradient-secondary: linear-gradient(135deg, #64748B 0%, #475569 100%);
-            --gradient-title: linear-gradient(135deg, #1E293B 0%, #2563EB 50%, #7C3AED 100%);
+            --gradient-title: linear-gradient(135deg, #3b8db0 0%, #3b8db0 50%, #3b8db0 100%);
 
             /* Table Gradients */
-            --gradient-table-header: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);
+            --gradient-table-header: linear-gradient(135deg, #3b8db0 0%, #3b8db0 100%);
 
             /* Shadows */
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
@@ -303,26 +303,60 @@
         /* ====================================================
            SECTOR WISE DETAIL TABLE
         ==================================================== */
-        .sector-col {
-            width: 200px !important;
-        }
+       /* ====================================================
+   SECTOR WISE DETAIL - ENHANCED
+   ==================================================== */
+#sector-wise-detail-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 10px;
+}
 
-        .district-header {
-            background: none !important;
-            color: var(--color-black) !important;
-            font-size: 28px !important;
-            font-weight: 700 !important;
-            text-align: center;
-            padding: 16px !important;
-            letter-spacing: -0.5px;
-            border-bottom: 3px solid var(--color-primary) !important;
-        }
-        .district-header strong {
-            background: var(--color-primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+#sector-wise-detail-row .table-responsive {
+    width: 100%;
+}
+
+#sector-wise-detail-row .table {
+    width: 100%;
+    max-width: 100%;
+    margin: 0
+    table-layout: fixed;
+}
+
+#sector-wise-detail-row .table td {
+    word-wrap: break-word;
+}
+
+#sector-wise-detail-row .form-control,
+#sector-wise-detail-row .form-select {
+    border: 1px solid #dee2e6;
+}
+
+#sector-wise-detail-row .form-control:focus,
+#sector-wise-detail-row .form-select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.2rem rgba(59, 141, 176, 0.25);
+}
+
+#sector-wise-detail-row .pagination .page-item.active .page-link {
+    background: var(--color-primary-gradient);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+#sector-wise-detail-row .pagination .page-link {
+    color: var(--color-primary);
+}
+
+.sector-main-row[data-has-data="true"] td {
+    color: #000000 !important;
+    font-weight: 600 !important;
+}
+
+.sector-main-row[data-has-data="false"] td {
+    color: #999999 !important;
+    font-weight: 400 !important;
+}
 
         /* ====================================================
            BUTTONS
@@ -736,12 +770,15 @@
     <div class="col-lg-4 col-6 text-center p-2 tabs3"
         style="box-shadow:0px 0px 10px rgb(209,209,209) inset; cursor:pointer; background-color:#f5f5f5;"
         data-tab="properties">Properties</div>
-    <div class="col-lg-4 col-6 text-center p-2 tabs3 disabled-tab"
-        style="box-shadow:0px 0px 10px rgb(209,209,209) inset; background-color:#f5f5f5;"
-        data-tab="transfer">Transfer & Other Request's</div>
-    <div class="col-lg-4 col-6 text-center p-2 tabs3 disabled-tab"
-        style="box-shadow:0px 0px 10px rgb(209,209,209) inset; background-color:#f5f5f5;"
-        data-tab="complaints">Complaints/Suggestions</div>
+
+<div class="col-lg-4 col-6 text-center p-2 tabs3 disabled-tab"
+     style="background-color:#5f9e6e !important; box-shadow:0px 0px 10px rgb(209,209,209) inset;"
+     data-tab="transfer">Transfer & Other Request's</div>
+
+
+<div class="col-lg-4 col-6 text-center p-2 tabs3 disabled-tab"
+     style="background-color:#647FBC !important; box-shadow:0px 0px 10px rgb(209,209,209) inset;"
+     data-tab="transfer">Complaints/Suggestions</div>
 </div>
 
             <div class="row px-2 py-3" id="card-row">
@@ -902,17 +939,47 @@
             </div>{{-- end .main-table-container --}}
 
             <!-- SECTOR WISE DETAIL TABLE -->
+
 <!-- SECTOR WISE DETAIL TABLE -->
-<div class="table-section d-none" id="sector-wise-detail-row" style="margin-bottom:50px; margin-top:1px;">
+<div class="table-section d-none" id="sector-wise-detail-row" style="margin-bottom:50px; margin-top:1px; width:100%;">
     <div class="table-name"></div>
-    <div class="table-responsive" style="overflow-x: auto;">
+
+    <!-- Search and Show Controls - Single Row -->
+    <div class="row mb-3" style=" width:100%;">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2" style="background: #f8f9fa; padding: 12px 15px; border-radius: 8px; width:100%">
+                <!-- Search Section -->
+                <div class="d-flex align-items-center gap-2" style="flex: 1; min-width: 200px;">
+                    <i class="bi bi-search" style="color: #6c757d;"></i>
+                    <input type="text" id="sectorSearch" class="form-control" placeholder="Search sectors..." style="border-radius: 8px; max-width: 300px; height: 36px; font-size: 14px;">
+                    <button class="btn btn-primary" id="searchSectorBtn" style="border-radius: 8px; background: var(--color-primary-gradient); border: none; padding: 6px 16px; height: 36px; font-size: 14px;">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+                </div>
+
+                <!-- Show Section -->
+                <div class="d-flex align-items-center gap-3">
+                    <label class="me-1" style="font-weight: 600; color: #495057; font-size: 14px; margin: 0;">Show:</label>
+                    <select id="sectorPerPage" class="form-select" style="width: auto; border-radius: 8px; height: 36px; font-size: 14px; padding: 2px 30px 2px 10px;">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                    <span style="font-size: 14px; color: #6c757d;" id="sectorPaginationInfo"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive" style="overflow-x: auto; width:100%;">
         <table class="table table-bordered" style="width:100%; border-collapse:collapse; table-layout:fixed;">
             <colgroup>
-                <col style="width:20%; min-width:150px; max-width:250px;">
-                <col style="width:20%;">
-                <col style="width:20%;">
-                <col style="width:20%;">
-                <col style="width:20%;">
+                <col style="width:25%; min-width:150px; max-width:300px;">
+                <col style="width:18.75%;">
+                <col style="width:18.75%;">
+                <col style="width:18.75%;">
+                <col style="width:18.75%;">
             </colgroup>
             <thead>
                 <tr>
@@ -928,33 +995,71 @@
                     <th style="text-align:center; padding:10px 8px;">Commercial</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach ($sectorWiseDetailsGrouped as $sector)
-                <tr class="sector-main-row"
-                    data-sector-id="{{ $sector['id'] }}"
-                    data-block-order="{{ implode(',', $sector['block_order'] ?? []) }}"
-                    data-block-data="{{ json_encode($sector['block_data'] ?? []) }}">
-                    <td style="white-space: normal; word-wrap: break-word; word-break: break-word; padding:10px 8px; vertical-align:middle;">
-                        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
-                            <span style="flex:1; min-width:60px;">{{ $sector['name'] }}</span>
-                            <button class="btn btn-sm p-0 ms-1 bg-transparent border-0 block-toggle flex-shrink-0"
-                                type="button" data-sector="{{ $sector['id'] }}" title="Toggle Blocks">
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                        </div>
-                    </td>
-                    <td style="text-align:center; padding:10px 8px; white-space:nowrap;">{{ $sector['total_properties'] }}</td>
-                    <td style="text-align:center; padding:10px 8px; white-space:nowrap;">{{ $sector['plot_count'] }}</td>
-                    <td style="text-align:center; padding:10px 8px; white-space:nowrap;">{{ $sector['house_count'] }}</td>
-                    <td style="text-align:center; padding:10px 8px; white-space:nowrap;">{{ $sector['commercial_count'] }}</td>
-                </tr>
-                @endforeach
+            <tbody id="sectorWiseTableBody">
+                <!-- Dynamic content will be loaded here -->
             </tbody>
         </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="row mt-3" style="padding: 0 15px; width:100%;">
+        <div class="col-md-12">
+            <nav>
+                <ul class="pagination justify-content-end" id="sectorPagination" style="margin: 0;">
+                <!-- Dynamic pagination will be loaded here -->
+            </ul>
+            </nav>
+        </div>
     </div>
 </div>
 
         </div>{{-- end overflow-hidden --}}
+
+
+
+        <div class="col-lg-12" style="margin-top:30px;">
+            <div class="row px-2 py-3" style="margin-top:-25px;">
+                <div class="col-lg-6">
+                    <div class="card card-info equal-height-card">
+                        <div class="card-header">
+                            <h3 class="card-title">MDA-Total Representation</h3>
+
+                        </div>
+                        <div class="card-body d-flex justify-content-center align-items-center">
+                            <canvas id="pieChart" width="250" height="250" class="pie-chart-canvas"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="card card-danger equal-height-card new-chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Allotment Type</h3>
+
+                        </div>
+                        <div class="card-body d-flex justify-content-center align-items-center">
+                            <div class="small-chart-container">
+                                <canvas id="allotmentTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3">
+                    <div class="card card-warning equal-height-card new-chart-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Ownership Type</h3>
+
+                        </div>
+                        <div class="card-body d-flex justify-content-center align-items-center">
+                            <div class="small-chart-container">
+                                <canvas id="ownershipTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- ═══════════════════════════════════════════════
              CHARTS SECTION
@@ -966,10 +1071,7 @@
                     <button type="button" id="backToSectorsBtn" class="btn btn-sm btn-outline-primary d-none">
                         &larr; Back to Sectors
                     </button>
-                    <div class="card-tools d-flex gap-1">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus" style="color: #1E293B;"></i></button>
-                        <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times" style="color: #1E293B;"></i></button>
-                    </div>
+
                 </div>
                 <div class="card-body">
                     <canvas id="bar" style="max-height:500px; max-width:100%; pointer-events:auto;"></canvas>
@@ -977,56 +1079,6 @@
             </div>
         </div>
 
-        <div class="col-lg-12" style="margin-top:30px;">
-            <div class="row px-2 py-3" style="margin-top:-25px;">
-                <div class="col-lg-6">
-                    <div class="card card-info equal-height-card">
-                        <div class="card-header">
-                            <h3 class="card-title">MDA-Total Representation</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-                                <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body d-flex justify-content-center align-items-center">
-                            <canvas id="pieChart" width="250" height="250" class="pie-chart-canvas"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="card card-danger equal-height-card new-chart-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Allotment Type</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-                                <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body d-flex justify-content-center align-items-center">
-                            <div class="small-chart-container">
-                                <canvas id="allotmentTypeChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3">
-                    <div class="card card-warning equal-height-card new-chart-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Ownership Type</h3>
-                            <div class="card-tools">
-                                <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i></button>
-                                <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body d-flex justify-content-center align-items-center">
-                            <div class="small-chart-container">
-                                <canvas id="ownershipTypeChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
     </body>
 
@@ -1039,10 +1091,10 @@
         // COLOR VARIABLES FOR JAVASCRIPT
         // ====================================================
         const COLORS = {
-            primary: '#2563EB',
+            primary: '#3b8db0',
             secondary: '#7C3AED',
             success: '#10B981',
-            warning: '#F59E0B',
+            warning: '#647FBC',
             danger: '#EF4444',
             info: '#06B6D4',
             rose: '#EC4899',
@@ -1057,15 +1109,15 @@
 
             bar: {
                 commercial: { background: '#00E0FF', border: '#00E0FF' },
-                house: { background: '#2563EB', border: '#1D4ED8' },
+                house: { background: '#3b8db0', border: '#1D4ED8' },
                 plot: { background: '#E5D1FA', border: '#E5D1FA' }
             },
 
             size: {
-                '5 Marla': '#2563EB',
+                '5 Marla': '#3b8db0',
                 '7 Marla': '#7C3AED',
                 '10 Marla': '#10B981',
-                '12 Marla': '#F59E0B',
+                '12 Marla': '#647FBC',
                 '15 Marla': '#EF4444',
                 '1 Kanal': '#06B6D4'
             },
@@ -1083,10 +1135,10 @@
             },
 
             allotmentMode: {
-                'Ballot': '#2563EB',
+                'Ballot': '#3b8db0',
                 'Direct': '#10B981',
                 'Transfer': '#7C3AED',
-                'Exchange': '#F59E0B',
+                'Exchange': '#647FBC',
                 'Auction': '#EF4444',
                 'Gifted': '#06B6D4',
                 'Inherited': '#EC4899'
@@ -1105,6 +1157,291 @@
                     arrow.style.transform === 'rotate(90deg)' ? '' : 'rotate(90deg)';
             }
         }
+
+        // ============================================================
+// SECTOR WISE DETAIL WITH PAGINATION
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    let currentSectorPage = 1;
+    let sectorPerPage = 10;
+    let sectorSearchQuery = '';
+    let totalSectorPages = 1;
+
+    const sectorWiseTableBody = document.getElementById('sectorWiseTableBody');
+    const sectorPagination = document.getElementById('sectorPagination');
+    const sectorPaginationInfo = document.getElementById('sectorPaginationInfo');
+    const sectorSearch = document.getElementById('sectorSearch');
+    const searchBtn = document.getElementById('searchSectorBtn');
+    const perPageSelect = document.getElementById('sectorPerPage');
+
+    // Function to load sector-wise data
+    function loadSectorWiseData() {
+        if (!sectorWiseTableBody) return;
+
+        const url = `/sector-wise-details?page=${currentSectorPage}&per_page=${sectorPerPage}&search=${encodeURIComponent(sectorSearchQuery)}`;
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            renderSectorTable(data.data);
+            renderSectorPagination(data);
+        })
+        .catch(error => {
+            console.error('Error loading sector data:', error);
+            sectorWiseTableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center text-danger">Error loading data</td>
+                </tr>
+            `;
+        });
+    }
+
+    // Function to render sector table
+// Function to render sector table
+function renderSectorTable(sectors) {
+    if (!sectors || sectors.length === 0) {
+        sectorWiseTableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center">No sectors found</td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    sectors.forEach(sector => {
+        const blockData = sector.block_data || [];
+        const blockOrder = sector.block_order || [];
+
+        // Check if sector has any data
+        const hasData = sector.total_properties > 0 || sector.plot_count > 0 || sector.house_count > 0 || sector.commercial_count > 0;
+        const textColor = hasData ? '#000000' : '#999999'; // Black if has data, grey if empty
+
+        // Sort blocks by block order if available, otherwise alphabetically
+        let sortedBlocks = [...blockData];
+        if (blockOrder.length > 0) {
+            sortedBlocks = blockOrder.map(blockName => {
+                const found = blockData.find(b => b.block === blockName);
+                return found || { block: blockName, total_properties: 0, plot_count: 0, house_count: 0, commercial_count: 0 };
+            });
+        }
+
+        html += `
+            <tr class="sector-main-row" data-sector-id="${sector.id}" data-block-order='${JSON.stringify(blockOrder)}' data-block-data='${JSON.stringify(sortedBlocks)}'>
+                <td style="white-space: normal; word-wrap: break-word; word-break: break-word; padding:10px 8px; vertical-align:middle; color: ${textColor};">
+                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
+                        <span style="flex:1; min-width:60px; font-weight: ${hasData ? '600' : '400'}; color: ${textColor};">${sector.name}</span>
+                        ${blockData.length > 0 ? `
+                            <button class="btn btn-sm p-0 ms-1 bg-transparent border-0 block-toggle flex-shrink-0"
+                                type="button" data-sector="${sector.id}" title="Toggle Blocks">
+                                <i class="bi bi-chevron-down" style="color: ${hasData ? '#2980b9' : '#cccccc'};"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </td>
+                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.total_properties}</td>
+                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.plot_count}</td>
+                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.house_count}</td>
+                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.commercial_count}</td>
+            </tr>
+        `;
+    });
+
+    sectorWiseTableBody.innerHTML = html;
+
+    // Re-bind block toggle events
+    document.querySelectorAll('.block-toggle').forEach(btn => {
+        btn.removeEventListener('click', toggleBlockHandler);
+        btn.addEventListener('click', toggleBlockHandler);
+    });
+}
+
+    // Block toggle handler
+    function toggleBlockHandler(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const button = e.currentTarget;
+        const sectorId = button.dataset.sector;
+        const row = button.closest('tr');
+
+        if (!row) return;
+
+        const existingRows = document.querySelectorAll(`.block-row[data-sector="${sectorId}"]`);
+
+        if (existingRows.length > 0) {
+            // Toggle visibility of existing rows
+            const isHidden = existingRows[0].classList.contains('d-none');
+            existingRows.forEach(r => {
+                if (isHidden) {
+                    r.classList.remove('d-none');
+                } else {
+                    r.classList.add('d-none');
+                }
+            });
+            const icon = button.querySelector('i');
+            if (icon) {
+                icon.className = isHidden ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+            }
+            return;
+        }
+
+        // Get block data from the row
+        let blockData = [];
+        try {
+            const dataAttr = row.dataset.blockData;
+            if (dataAttr && dataAttr !== '[]' && dataAttr !== '') {
+                blockData = JSON.parse(dataAttr);
+            }
+        } catch(e) {
+            console.error('Error parsing block data:', e);
+        }
+
+        if (!blockData || blockData.length === 0) return;
+
+        // Insert block rows
+        let lastInsertedRow = row;
+        blockData.forEach(block => {
+            const newRow = document.createElement('tr');
+            newRow.classList.add('block-row');
+            newRow.setAttribute('data-sector', sectorId);
+                const hasBlockData = (block.total_properties > 0) || (block.plot_count > 0) || (block.house_count > 0) || (block.commercial_count > 0);
+    const blockTextColor = hasBlockData ? '#000000' : '#999999';
+
+            newRow.innerHTML = `
+ <td style="padding-left: 40px; white-space: nowrap; color: ${blockTextColor}; font-weight: ${hasBlockData ? '600' : '400'};">
+            <i class="bi bi-dot" style="color:#2980b9;"></i>
+            ${block.block || 'Unknown'}
+        </td>
+                <td style="text-align:center; color: ${blockTextColor};">${block.total_properties || 0}</td>
+                <td style="text-align:center; color: ${blockTextColor};">${block.plot_count || 0}</td>
+                <td style="text-align:center; color: ${blockTextColor};">${block.house_count || 0}</td>
+                <td style="text-align:center; color: ${blockTextColor};">${block.commercial_count || 0}</td>
+            `;
+
+            lastInsertedRow.parentNode.insertBefore(newRow, lastInsertedRow.nextSibling);
+            lastInsertedRow = newRow;
+        });
+
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.className = 'bi bi-chevron-up';
+        }
+    }
+
+    // Function to render pagination
+    function renderSectorPagination(data) {
+        const total = data.total || 0;
+        const perPage = data.per_page || sectorPerPage;
+        const currentPage = data.current_page || 1;
+        const lastPage = data.last_page || 1;
+
+        totalSectorPages = lastPage;
+
+        // Update info text
+        const start = (currentPage - 1) * perPage + 1;
+        const end = Math.min(currentPage * perPage, total);
+        sectorPaginationInfo.textContent = `Showing ${start} to ${end} of ${total} sectors`;
+
+        // Build pagination
+        let html = '';
+        html += `<li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
+        </li>`;
+
+        // Show pages with ellipsis
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(lastPage, currentPage + 2);
+
+        if (startPage > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+            if (startPage > 2) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>`;
+        }
+
+        if (endPage < lastPage) {
+            if (endPage < lastPage - 1) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+            html += `<li class="page-item"><a class="page-link" href="#" data-page="${lastPage}">${lastPage}</a></li>`;
+        }
+
+        html += `<li class="page-item ${currentPage >= lastPage ? 'disabled' : ''}">
+            <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
+        </li>`;
+
+        sectorPagination.innerHTML = html;
+
+        // Add click events to pagination links
+        sectorPagination.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const page = parseInt(this.dataset.page);
+                if (page && page >= 1 && page <= totalSectorPages) {
+                    currentSectorPage = page;
+                    loadSectorWiseData();
+                }
+            });
+        });
+    }
+
+    // Event listeners
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            sectorSearchQuery = sectorSearch.value.trim();
+            currentSectorPage = 1;
+            loadSectorWiseData();
+        });
+    }
+
+    if (sectorSearch) {
+        sectorSearch.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sectorSearchQuery = this.value.trim();
+                currentSectorPage = 1;
+                loadSectorWiseData();
+            }
+        });
+    }
+
+    if (perPageSelect) {
+        perPageSelect.addEventListener('change', function() {
+            sectorPerPage = parseInt(this.value);
+            currentSectorPage = 1;
+            loadSectorWiseData();
+        });
+    }
+
+    // Override the toggleSection function to load data when sector-wise detail is shown
+    const originalToggleSection = window.toggleSection;
+    window.toggleSection = function(section) {
+        if (section && section.id === 'sector-wise-detail-row') {
+            // Load data if not loaded yet or refresh
+            loadSectorWiseData();
+        }
+        if (typeof originalToggleSection === 'function') {
+            originalToggleSection(section);
+        }
+    };
+
+    // Also handle the sector-wise detail toggle from the card
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'sector-wise-detail-toggle') {
+            setTimeout(loadSectorWiseData, 100);
+        }
+    });
+});
     </script>
 
     <script>

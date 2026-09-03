@@ -71,7 +71,7 @@
             <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
           </li>
           <li class="nav-item d-none d-sm-inline-block">
-            <a  class="nav-link text-bold">Mangla Dam Housing Authorityss</a>
+            <a  class="nav-link text-bold">Mirpur Development Authority</a>
           </li>
 
         </ul>

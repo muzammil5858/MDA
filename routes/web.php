@@ -60,6 +60,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/form-list', [PropertyController::class, 'formList'])->name('formList');
        Route::get('/entries-list', [PropertyController::class, 'entriesList'])->name('entriesList');
+// Add Block routes
+Route::get('/add-block', [PropertyController::class, 'addblock'])->name('addBlock');
+Route::post('/store-block', [PropertyController::class, 'storeBlock'])->name('storeBlock');
+Route::get('/get-blocks/{sectorId}', [PropertyController::class, 'getBlocksBySector'])->name('getBlocks');
     Route::get('/form-detail/{id}', [PropertyController::class, 'formDetail'])->name('formDetail');
     Route::get('/form-edit/{id}', [PropertyController::class, 'formEdit'])->name('formEdit');
     Route::post('/update-form/{id}', [PropertyController::class, 'update'])->name('formUpdate');
@@ -86,6 +90,7 @@ Route::get('/file-viewer', [FileViewerController::class, 'show'])
 
 Route::middleware('auth')->group(function (){
     Route::get('/dashboard', [QAController::class, 'dashboard'])->name('dashboard');
+    Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails'])->name('sector.wise.details');
     Route::get('/sector-requests-count', [QAController::class, 'getSectorCounts']);
     Route::get('/Files', [QAController::class, 'qaFiles'])->name('qaFiles');
     Route::get('/entry-files', [QAController::class, 'entryFiles'])->name('entryFiles');

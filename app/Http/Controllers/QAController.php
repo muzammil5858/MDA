@@ -432,6 +432,130 @@ class QAController extends Controller
             'modeCategoryData'
         ));
     }
+    // In QAController.php - Add this method for paginated sector-wise detail
+
+// In QAController.php - getSectorWiseDetails method
+public function getSectorWiseDetails(Request $request)
+{
+    $perPage = $request->get('per_page', 10);
+    $page = $request->get('page', 1);
+    $search = $request->get('search', '');
+
+    // Get sectors with pagination - EXCLUDE unknown sectors
+    $sectorsQuery = DB::table('sectors')
+        ->where('name', 'NOT LIKE', '%unknown%')
+        ->where('name', 'NOT LIKE', '%Unknown%')
+        ->where('name', 'NOT LIKE', '%UNKNOWN%')
+        ->orderBy('name')
+        ->when($search, function ($query, $search) {
+            return $query->where('name', 'LIKE', "%{$search}%");
+        });
+
+    $totalSectors = $sectorsQuery->count();
+    $sectors = $sectorsQuery->skip(($page - 1) * $perPage)
+        ->take($perPage)
+        ->get();
+
+    $sectorIds = $sectors->pluck('id')->toArray();
+
+    if (empty($sectorIds)) {
+        return response()->json([
+            'data' => [],
+            'total' => 0,
+            'per_page' => $perPage,
+            'current_page' => $page,
+            'last_page' => 1,
+        ]);
+    }
+
+    // Get properties count by sector
+    $propertyCounts = DB::table('properties')
+        ->select('sector_id', DB::raw('COUNT(*) as total'))
+        ->whereIn('sector_id', $sectorIds)
+        ->groupBy('sector_id')
+        ->pluck('total', 'sector_id');
+
+    // Get category breakdown by sector
+    $categoryData = DB::table('properties')
+        ->select('sector_id', 'category', DB::raw('COUNT(*) as count'))
+        ->whereIn('sector_id', $sectorIds)
+        ->groupBy('sector_id', 'category')
+        ->get()
+        ->groupBy('sector_id');
+
+    // Get block wise details for each sector
+    $blockData = DB::table('blocks')
+        ->join('properties', 'blocks.id', '=', 'properties.block_id')
+        ->select(
+            'blocks.sector_id',
+            'blocks.name as block_name',
+            DB::raw('COUNT(properties.id) as total_properties'),
+            DB::raw('SUM(CASE WHEN properties.category = "Plot" THEN 1 ELSE 0 END) as plot_count'),
+            DB::raw('SUM(CASE WHEN properties.category = "House" THEN 1 ELSE 0 END) as house_count'),
+            DB::raw('SUM(CASE WHEN properties.category = "Commercial" THEN 1 ELSE 0 END) as commercial_count')
+        )
+        ->whereIn('blocks.sector_id', $sectorIds)
+        ->groupBy('blocks.sector_id', 'blocks.name')
+        ->get()
+        ->groupBy('sector_id');
+
+    // Format the response
+    $sectorWiseDetails = [];
+    foreach ($sectors as $sector) {
+        $sectorId = $sector->id;
+        $sectorName = $sector->name;
+
+        $totalProperties = $propertyCounts[$sectorId] ?? 0;
+
+        $plotCount = 0;
+        $houseCount = 0;
+        $commercialCount = 0;
+
+        if (isset($categoryData[$sectorId])) {
+            foreach ($categoryData[$sectorId] as $cat) {
+                $category = ucfirst(strtolower($cat->category));
+                if ($category === 'Plot') $plotCount = $cat->count;
+                elseif ($category === 'House') $houseCount = $cat->count;
+                elseif ($category === 'Commercial') $commercialCount = $cat->count;
+            }
+        }
+
+        $blocks = [];
+        $blockOrder = [];
+
+        if (isset($blockData[$sectorId])) {
+            foreach ($blockData[$sectorId] as $block) {
+                $blocks[] = [
+                    'block' => $block->block_name,
+                    'total_properties' => $block->total_properties,
+                    'plot_count' => $block->plot_count,
+                    'house_count' => $block->house_count,
+                    'commercial_count' => $block->commercial_count,
+                ];
+                $blockOrder[] = $block->block_name;
+            }
+        }
+
+        $sectorWiseDetails[] = [
+            'id' => $sectorId,
+            'name' => $sectorName,
+            'total_properties' => $totalProperties,
+            'plot_count' => $plotCount,
+            'house_count' => $houseCount,
+            'commercial_count' => $commercialCount,
+            'block_data' => $blocks,
+            'block_order' => $blockOrder,
+        ];
+    }
+
+    return response()->json([
+        'data' => $sectorWiseDetails,
+        'total' => $totalSectors,
+        'per_page' => $perPage,
+        'current_page' => $page,
+        'last_page' => ceil($totalSectors / $perPage),
+    ]);
+}
 
     public function qaFiles()
     {
@@ -511,7 +635,7 @@ class QAController extends Controller
 
     public function propertyList()
     {
-        $heading = "Mangla Dam Housing Authority";
+        $heading = "Mirpur Development Authority";
         $data = DB::table('properties')
             ->select(
                 'properties.id',

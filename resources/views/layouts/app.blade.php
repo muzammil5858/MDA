@@ -34,6 +34,9 @@
         <script src="../../dist/js/demo.js"></script>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+        {{-- Any view that does @push('styles') needs this to actually render --}}
+        @stack('styles')
+
     </head>
     <body class="hold-transition sidebar-mini layout-fixed">
         <div class="wrapper">
@@ -50,5 +53,9 @@
               </div>
 
         </div>
+
+        {{-- Any view that does @push('scripts') needs this to actually render --}}
+        @stack('scripts')
+
     </body>
 </html>

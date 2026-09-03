@@ -565,6 +565,12 @@
                   <p class="nav-heading">Entries List</p>
                 </a>
               </li>
+   <li class="nav-item">
+    <a href="{{ route('addBlock') }}" class="nav-link side-item">
+        <i class="far fa-circle nav-icon"></i>
+        <p class="nav-heading">Add Block</p>
+    </a>
+</li>
 
             </ul>
           </li>

@@ -58,21 +58,21 @@
     <div class="col-xs-12 col-sm-12 col-md-12">
         <div class="form-group">
             @php
-                    $town = DB::table('towns')->get();
+                    $town = DB::table('sectors')->get();
                     $use = is_array(json_decode($user->town)) ? json_decode($user->town) : [$user->town];
                 @endphp
             <strong>Town:</strong>
             <select name="town[]" id="town" class="form-control" multiple>
-                
+
                 <option value=""  disabled>Select Town</option>
                 @foreach($town as $key => $value)
                     <option {{in_array($value->id, $use) ? 'selected' : ''}} value="{{$value->id}}">{{$value->name}}</option>
                 @endforeach
-                
+
             </select>
         </div>
     </div>
-  
+
     <div class="col-xs-12 col-sm-12 col-md-12">
         <div class="form-group">
             <strong>Password:</strong>
@@ -101,9 +101,9 @@
             {{-- {!! Form::select('roles[]', $roles,$userRole, array('class' => 'form-control','multiple')) !!} --}}
         </div>
     </div>
-    
-   
-  
+
+
+
     <div class="col-xs-12 col-sm-12 col-md-12 text-center">
         <button type="submit" class="btn btn-primary">Submit</button>
     </div>
