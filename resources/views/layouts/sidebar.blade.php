@@ -55,30 +55,27 @@
 
 
 
-          @if(auth()->user()->hasRole('QA'))
-          <li class="nav-item">
-            <a href="{{route('dashboard')}}" class="nav-link side-item">
-              <i class="nav-icon fas fa-desktop"></i>
-              <p class="nav-heading">
-                Dashboard
-              </p>
-            </a>
-          </li><li class="nav-item">
-            <a href="{{route('qaFiles')}}" class="nav-link side-item">
-              <i class="nav-icon fas fa-file"></i>
-              <p class="nav-heading">
-              Indexed Files
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{route('entryFiles')}}" class="nav-link side-item">
-              <i class="nav-icon fas fa-file"></i>
-              <p class="nav-heading">
-              Entry Files
-              </p>
-            </a>
-          </li>
+ @if(auth()->user()->hasRole('QA'))
+
+    <li class="nav-item">
+        <a href="{{ route('mdaqaproperty') }}" class="nav-link side-item">
+            <i class="nav-icon fas fa-home"></i>
+            <p class="nav-heading">QA Property List</p>
+        </a>
+    </li>
+        <li class="nav-item">
+        <a href="{{ route('mdaIncompleteaList') }}" class="nav-link side-item">
+            <i class="nav-icon fas fa-list"></i>
+            <p class="nav-heading">QA Incomplete List</p>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ route('mdaQaList') }}" class="nav-link side-item">
+            <i class="nav-icon fas fa-list"></i>
+            <p class="nav-heading">QA VerifiedList</p>
+        </a>
+    </li>
+
           @elseif(auth()->user()->hasRole('user'))
           <li class="nav-item">
             <a href="{{route('property_list')}}" class="nav-link side-item">
@@ -553,7 +550,7 @@
                   <p class="nav-heading">Form</p>
                 </a>
               </li>
-              <li class="nav-item">
+              <li clas                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       s="nav-item">
                 <a href="/form-list" class="nav-link side-item">
                   <i class="far fa-circle nav-icon"></i>
                   <p class="nav-heading">Form List</p>

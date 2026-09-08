@@ -358,6 +358,45 @@
     border-radius:20px;
 }
 
+#upload-progress-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+}
+#upload-progress-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 30px 40px;
+    text-align: center;
+    width: 320px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+}
+#upload-progress-card h4 {
+    color: #03346E;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+#upload-progress-card .progress {
+    height: 22px;
+    border-radius: 20px;
+    background: #ECEFF1;
+}
+#upload-progress-card .progress-bar {
+    background-color: #03346E;
+    font-weight: bold;
+    font-size: 13px;
+    line-height: 22px;
+}
+#upload-progress-percent {
+    margin-top: 10px;
+    font-size: 15px;
+    color: #2C3E50;
+}
 
 /* bottom buttons */
 
@@ -1155,6 +1194,15 @@
 </fieldset>
 
                             </form>
+                            <div id="upload-progress-overlay">
+    <div id="upload-progress-card">
+        <h4>Updating, please wait...</h4>
+        <div class="progress">
+            <div id="upload-progress-bar" class="progress-bar" role="progressbar" style="width:0%">0%</div>
+        </div>
+        <div id="upload-progress-percent">Preparing upload...</div>
+    </div>
+</div>
                         </div>
                     </div>
 
@@ -1575,69 +1623,93 @@ $(document).ready(function () {
         $('html, body').animate({ scrollTop: box.offset().top - 100 }, 300);
     }
 
-    $('#msform').on('submit', function (e) {
-        e.preventDefault();
+$('#msform').on('submit', function (e) {
+    e.preventDefault();
 
-        // Remove dashes from CNIC fields
-        $('.cnic-input').each(function() {
-            $(this).val($(this).val().replace(/-/g, ''));
-        });
-
-        var form = this;
-        var formData = new FormData(form);
-        var $submitBtn = $('#submit-btn');
-
-        $submitBtn.prop('disabled', true).text('Saving...');
-        $('#form-alert-box').hide();
-
-        $.ajax({
-            url: $(form).attr('action'),
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json'
-            },
-            success: function (response) {
-    showAlert('success', response.message || 'Data updated successfully.');
-    if (response.redirect) {
-        setTimeout(function () {
-            window.location.href = response.redirect;  // ✅ UNCOMMENT THIS
-        }, 1500);
-    } else {
-        setTimeout(function () {
-            location.reload();
-        }, 1500);
-    }
-},
-            error: function (xhr) {
-                var message = 'Something went wrong. Please try again.';
-
-                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
-                    var errors = xhr.responseJSON.errors;
-                    var list = '<ul class="mb-0">';
-                    $.each(errors, function (field, messages) {
-                        list += '<li>' + messages[0] + '</li>';
-                    });
-                    list += '</ul>';
-                    message = list;
-                } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                    message = xhr.responseJSON.message;
-                }
-
-                showAlert('danger', message);
-                $submitBtn.prop('disabled', false).text('Update');
-            },
-            complete: function () {
-                if ($submitBtn.prop('disabled')) {
-                    $submitBtn.prop('disabled', false).text('Update');
-                }
-            }
-        });
+    // Remove dashes from CNIC fields
+    $('.cnic-input').each(function() {
+        $(this).val($(this).val().replace(/-/g, ''));
     });
+
+    var form = this;
+    var formData = new FormData(form);
+    var $submitBtn = $('#submit-btn');
+
+    $submitBtn.prop('disabled', true).text('Saving...');
+    $('#form-alert-box').hide();
+
+    // Show progress overlay
+    $('#upload-progress-bar').css('width', '0%').text('0%');
+    $('#upload-progress-percent').text('Preparing upload...');
+    $('#upload-progress-overlay').css('display', 'flex');
+
+    $.ajax({
+        url: $(form).attr('action'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        xhr: function () {
+            var xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener('progress', function (evt) {
+                if (evt.lengthComputable) {
+                    var percent = Math.round((evt.loaded / evt.total) * 100);
+                    $('#upload-progress-bar').css('width', percent + '%').text(percent + '%');
+                    $('#upload-progress-percent').text('Uploaded ' + percent + '%');
+                }
+            }, false);
+            return xhr;
+        },
+        success: function (response) {
+            $('#upload-progress-bar').css('width', '100%').text('100%');
+            $('#upload-progress-percent').text('Update complete!');
+
+            setTimeout(function () {
+                $('#upload-progress-overlay').hide();
+                showAlert('success', response.message || 'Data updated successfully.');
+                if (response.redirect) {
+                    setTimeout(function () {
+                        window.location.href = response.redirect;
+                    }, 1000);
+                } else {
+                    setTimeout(function () {
+                        location.reload();
+                    }, 1000);
+                }
+            }, 400);
+        },
+        error: function (xhr) {
+            $('#upload-progress-overlay').hide();
+
+            var message = 'Something went wrong. Please try again.';
+
+            if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                var errors = xhr.responseJSON.errors;
+                var list = '<ul class="mb-0">';
+                $.each(errors, function (field, messages) {
+                    list += '<li>' + messages[0] + '</li>';
+                });
+                list += '</ul>';
+                message = list;
+            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                message = xhr.responseJSON.message;
+            }
+
+            showAlert('danger', message);
+            $submitBtn.prop('disabled', false).text('Update');
+        },
+        complete: function () {
+            if ($submitBtn.prop('disabled') && !$('#upload-progress-overlay').is(':visible')) {
+                // keep disabled only if overlay hidden due to error already handled above
+            }
+        }
+    });
+});
 
     // ================= PAGE LOAD: EXISTING FILE RENDER =================
     @if(!empty($property->attachment->property_document))

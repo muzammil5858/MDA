@@ -33,24 +33,24 @@
             text-align:center;
         }
 
-.preview-box {
-    overflow: auto !important;
-    position: relative;
-}
+        .preview-box {
+            overflow: auto !important;
+            position: relative;
+        }
 
-.preview-box .pdf-scroll-outer {
-    display: block;
-    width: 100%;
-    min-height: 100%;
-}
+        .preview-box .pdf-scroll-outer {
+            display: block;
+            width: 100%;
+            min-height: 100%;
+        }
 
-.preview-box .pdf-viewer-container {
-    transform-origin: top left;
-    transition: transform 0.15s ease;
-    width: fit-content;
-    min-width: 100%;
-    min-height: 100%;
-}
+        .preview-box .pdf-viewer-container {
+            transform-origin: top left;
+            transition: transform 0.15s ease;
+            width: fit-content;
+            min-width: 100%;
+            min-height: 100%;
+        }
         .pdf-page-wrap{
             position:relative;
             margin:0 auto 12px auto;
@@ -181,7 +181,7 @@
         .detail-subheading {
             font-weight: 400;
             color: #2C2C2C;
-          font-size: 11px;
+            font-size: 11px;
             margin-bottom: 2px;
             display: block;
         }
@@ -374,6 +374,32 @@
                             <p class="text-center">View complete property information</p>
 
                             <div id="detailView">
+
+                                {{-- ===== SUCCESS / ERROR MESSAGES ===== --}}
+                                @if(session('success'))
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-check-circle"></i> {{ session('success') }}
+                                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                    </div>
+                                @endif
+
+                                @if(session('error'))
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-times-circle"></i> {{ session('error') }}
+                                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                    </div>
+                                @endif
+
+                                @if($errors->any())
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <ul style="margin:0; padding-left:18px;">
+                                            @foreach($errors->all() as $err)
+                                                <li>{{ $err }}</li>
+                                            @endforeach
+                                        </ul>
+                                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                    </div>
+                                @endif
 
                                 {{-- ===== PROPERTY DETAIL SECTION ===== --}}
                                 <div class="section-title">📋 Property Detail</div>
@@ -588,7 +614,7 @@
                                 </div>
 
                                 <div style="margin-top:10px;">
-                                    <label class="detail-label"style="margin-bottom: 10px; display: block;">Complete Property File</label>
+                                    <label class="detail-label" style="margin-bottom: 10px; display: block;">Complete Property File</label>
                                     @if(!empty($property->attachment->property_document))
                                         <div class="current-file-box">
                                             <span class="current-file-label">Current File:</span>
@@ -688,19 +714,64 @@
                                     @endif
                                 </div>
 
-                                {{-- <div class="mt-3">
-                                    <div class="complete-file-check">
-                                        <input type="checkbox" id="check_complete_file"
-                                            {{ isset($property->attachment->status) && $property->attachment->status ? 'checked' : '' }}
-                                            disabled>
-                                        <label for="check_complete_file">
-                                            Complete File Data has been added.
-                                            @if(isset($property->attachment->status) && $property->attachment->status && isset($property->attachment->entry_date))
-                                                <span class="text-success">(Confirmed on {{ \Carbon\Carbon::parse($property->attachment->entry_date)->format('Y-m-d H:i') }})</span>
-                                            @endif
+                                {{-- ================= QA VERIFICATION ================= --}}
+                                <div class="section-title" style="margin-top:25px;">
+                                    🔍 QA Verification
+                                </div>
+
+                                <form method="POST" action="{{ route('qa.store') }}" id="qaForm">
+                                    @csrf
+                                    <input type="hidden" name="property_id" value="{{ $property->id }}">
+
+                                    <div style="margin-top:15px;">
+                                        <label class="detail-label">
+                                            QA Status <span style="color:red;">*</span>
                                         </label>
+
+                                        <div style="display:flex; gap:30px; margin-top:10px;">
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                                <input type="radio" name="qa_status" value="qa_done" required
+                                                    {{ optional($property->qaStatus)->status == 1 ? 'checked' : '' }}>
+                                                <span>QA Done</span>
+                                            </label>
+
+                                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                                <input type="radio" name="qa_status" value="having_issue" required
+                                                    {{ $property->qaStatus && $property->qaStatus->status == 0 ? 'checked' : '' }}>
+                                                <span>Having Issue</span>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div> --}}
+
+                                    <div id="qaIssueFields"
+                                         style="{{ ($property->qaStatus && $property->qaStatus->status == 0) ? '' : 'display:none;' }} margin-top:20px;">
+
+                                        <div>
+                                            <label class="detail-label">Issue <span style="color:red;">*</span></label>
+                                            <select name="value" id="qaValue" class="form-control">
+                                                <option value="">Select Issue</option>
+                                                <option value="Missing Document" {{ optional($property->qaStatus)->issue == 'Missing Document' ? 'selected' : '' }}>Missing Document</option>
+                                                <option value="Incorrect Information" {{ optional($property->qaStatus)->issue == 'Incorrect Information' ? 'selected' : '' }}>Incorrect Information</option>
+                                                <option value="Incomplete File" {{ optional($property->qaStatus)->issue == 'Incomplete File' ? 'selected' : '' }}>Incomplete File</option>
+                                                <option value="Payment Issue" {{ optional($property->qaStatus)->issue == 'Payment Issue' ? 'selected' : '' }}>Payment Issue</option>
+                                                <option value="Other" {{ optional($property->qaStatus)->issue == 'Other' ? 'selected' : '' }}>Other</option>
+                                            </select>
+                                        </div>
+
+                                        <div style="margin-top:15px;">
+                                            <label class="detail-label">Description</label>
+                                            <textarea name="remarks" id="qaRemarks" class="form-control" rows="4"
+                                                placeholder="Enter issue description...">{{ optional($property->qaStatus)->remarks }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <div style="margin-top:20px; margin-bottom:20px;">
+                                        <button type="submit"
+                                                style="width:100%; background:#03346E; color:white; border:none; padding:11px; border-radius:5px; cursor:pointer;">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </form>
 
                             </div>
                         </div>
@@ -843,6 +914,79 @@
                 }).catch(function (err) {
                     $container.html('<div class="no-preview" style="padding:40px;">Preview could not be loaded. <br>' + err.message + '</div>');
                 });
+            }
+
+            // ================= QA STATUS RADIO TOGGLE =================
+            $('input[name="qa_status"]').on('change', function () {
+                let selectedStatus = $(this).val();
+
+                if (selectedStatus === 'having_issue') {
+                    $('#qaIssueFields').slideDown();
+                    $('#qaValue').prop('required', true);
+                } else {
+                    $('#qaIssueFields').slideUp();
+                    $('#qaValue').prop('required', false);
+                    $('#qaValue').val('');
+                    $('#qaRemarks').val('');
+                }
+            });
+
+            // ================= QA FORM AJAX SUBMIT =================
+            $('#qaForm').on('submit', function (e) {
+                e.preventDefault();
+
+                var $form = $(this);
+                var $btn = $form.find('button[type="submit"]');
+                var originalBtnText = $btn.text();
+
+                $btn.prop('disabled', true).text('Submitting...');
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    method: 'POST',
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.success) {
+                            showQaAlert('success', res.message);
+                            setTimeout(function () {
+                                window.location.href = res.redirect;
+                            }, 1200);
+                        } else {
+                            showQaAlert('danger', res.message || 'Something went wrong.');
+                            $btn.prop('disabled', false).text(originalBtnText);
+                        }
+                    },
+                    error: function (xhr) {
+                        $btn.prop('disabled', false).text(originalBtnText);
+
+                        if (xhr.status === 422) {
+                            var errors = xhr.responseJSON.errors;
+                            var msg = '';
+                            $.each(errors, function (field, messages) {
+                                msg += messages[0] + '<br>';
+                            });
+                            showQaAlert('danger', msg);
+                        } else {
+                            showQaAlert('danger', 'Something went wrong. Please try again.');
+                        }
+                    }
+                });
+            });
+
+            function showQaAlert(type, message) {
+                $('#qaAjaxAlert').remove();
+
+                var alertHtml = '<div id="qaAjaxAlert" class="alert alert-' + type + ' alert-dismissible fade show" role="alert" style="margin-top:15px;">' +
+                    message +
+                    '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                    '</div>';
+
+                $('#qaForm').before(alertHtml);
+
+                $('#detailView').animate({
+                    scrollTop: $('#qaAjaxAlert').position().top + $('#detailView').scrollTop() - 20
+                }, 300);
             }
 
             // ================= PAGE LOAD: EXISTING FILE RENDER =================

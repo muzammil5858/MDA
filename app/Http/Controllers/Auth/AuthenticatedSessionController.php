@@ -43,7 +43,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended('users');
         }
         if(Auth::user()->hasRole('QA')){
-            return redirect('/dashboard');
+            return redirect()->route('mdaqaproperty');
         }
         if(Auth::user()->hasRole('user')){
             return redirect('/properties-list');
@@ -54,7 +54,7 @@ class AuthenticatedSessionController extends Controller
         if(Auth::user()->hasRole('director')){
             return redirect('/dashboard');
         }
-   
+
             return redirect('/form');
     }
 

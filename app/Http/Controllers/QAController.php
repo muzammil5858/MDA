@@ -557,17 +557,116 @@ public function getSectorWiseDetails(Request $request)
     ]);
 }
 
-    public function qaFiles()
-    {
-        $data = collect();
-        return view('qa.filelist', compact("data"));
-    }
+// Sirf wo properties jin ki attachment entry_date mojood ho
+public function propertyList()
+{
+    $heading = "Mirpur Development Authority";
 
-    public function entryFiles()
-    {
-        $data = collect();
-        return view('qa.filelist1', compact("data"));
+    $data = Property::with(['sector', 'block', 'attachment'])
+        ->whereHas('attachment', function ($q) {
+            $q->whereNotNull('entry_date');
+        })
+        ->whereDoesntHave('qaStatus')
+        ->latest()
+        ->get();
+
+    return view('qa.mdaqaproperty', compact('data', 'heading'));
+}
+
+
+
+// Sirf QA verified (status = 1) properties
+public function mdaQaList()
+{
+    $heading = "MDA QA List (Verified)";
+
+    $data = Property::with(['sector', 'block', 'attachment', 'qaStatus'])
+        ->whereHas('qaStatus', function ($q) {
+            $q->where('status', 1);
+        })
+        ->latest()
+        ->get();
+
+    return view('qa.mdaQaList', compact('data', 'heading'));
+}
+public function mdaIncompleteaList()
+{
+    $heading = "MDA QA List (Having Issue)";
+
+    $data = Property::with(['sector', 'block', 'attachment', 'qaStatus.user'])
+        ->whereHas('qaStatus', function ($q) {
+            $q->where('status', 0);   // 👈 status 1 se 0 kar diya
+        })
+        ->latest()
+        ->get();
+
+    return view('qa.mdaQaIncomplete', compact('data', 'heading'));
+}
+public function mdaQaDetail($id)
+{
+    $property = Property::with([
+        'sector',
+        'block',
+        'payment',
+        'attachment',
+        'plotHistories',
+        'qaStatus',
+    ])->findOrFail($id);
+
+    return view('qa.mdaQaDetail', compact('property'));
+}
+
+public function storeQA(Request $request)
+{
+    $validated = $request->validate([
+        'property_id' => 'required|exists:properties,id',
+        'qa_status'   => 'required|in:qa_done,having_issue',
+        'value'       => 'required_if:qa_status,having_issue|nullable|string|max:255',
+        'remarks'     => 'nullable|string|max:2000',
+    ]);
+
+    try {
+        DB::table('qa_properties')->updateOrInsert(
+            ['property_id' => $validated['property_id']],
+            [
+                'user_id'    => auth()->id(),
+                'status'     => $validated['qa_status'] === 'qa_done' ? 1 : 0,
+                'issue'      => $validated['value'] ?? null,
+                'remarks'    => $validated['remarks'] ?? null,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'QA status submitted successfully.',
+            'redirect' => route('mdaqaproperty'),
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('QA Store Error: ' . $e->getMessage());
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Something went wrong while submitting QA status. Please try again.',
+        ], 500);
     }
+}
+
+
+
+    // public function qaFiles()
+    // {
+    //     $data = collect();
+    //     return view('qa.filelist', compact("data"));
+    // }
+
+    // public function entryFiles()
+    // {
+    //     $data = collect();
+    //     return view('qa.filelist1', compact("data"));
+    // }
 
     public function excel(Request $request)
     {
@@ -633,21 +732,21 @@ public function getSectorWiseDetails(Request $request)
         return view('qa.mdhaqalist', compact('data', 'heading'));
     }
 
-    public function propertyList()
-    {
-        $heading = "Mirpur Development Authority";
-        $data = DB::table('properties')
-            ->select(
-                'properties.id',
-                'properties.plot_no',
-                'sectors.name as sector',
-                'properties.sector_id'
-            )
-            ->leftJoin('sectors', 'sectors.id', '=', 'properties.sector_id')
-            ->get();
+    // public function propertyList()
+    // {
+    //     $heading = "Mirpur Development Authority";
+    //     $data = DB::table('properties')
+    //         ->select(
+    //             'properties.id',
+    //             'properties.plot_no',
+    //             'sectors.name as sector',
+    //             'properties.sector_id'
+    //         )
+    //         ->leftJoin('sectors', 'sectors.id', '=', 'properties.sector_id')
+    //         ->get();
 
-        return view('qa.mdhaqalist', compact('data', 'heading'));
-    }
+    //     return view('qa.mdhaqalist', compact('data', 'heading'));
+    // }
 
     public function scheduleAppointment()
     {

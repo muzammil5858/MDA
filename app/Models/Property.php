@@ -7,6 +7,7 @@ use App\Models\Sector;
 use App\Models\CurrentOwner;
 use App\Models\Payment;
 use App\Models\PlotHistory;
+use App\Models\QaProperty;
 use App\Models\Block;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -55,4 +56,9 @@ class Property extends Model
     {
         return $this->belongsTo(Block::class, 'block_id');
     }
+    // app/Models/Property.php
+public function qaStatus()
+{
+    return $this->hasOne(QaProperty::class, 'property_id');
+}
 }

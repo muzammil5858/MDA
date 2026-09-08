@@ -88,16 +88,23 @@ Route::get('/file-viewer', [FileViewerController::class, 'show'])
 
 // QA Routes
 
-Route::middleware('auth')->group(function (){
+Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [QAController::class, 'dashboard'])->name('dashboard');
+
+    Route::get('/qa-property-lists', [QAController::class, 'propertyList'])->name('mdaqaproperty');
+        Route::get('/qa-property/{id}', [QAController::class, 'mdaQaDetail'])->name('mdaQaDetail');
+            Route::get('/mda-qa-incomplete-list', [QAController::class, 'mdaIncompleteaList'])->name('mdaIncompleteaList');
+
+    Route::get('/mda-qa-list', [QAController::class, 'mdaQaList'])->name('mdaQaList');
+    Route::post('/qa/store', [QAController::class, 'storeQA'])->name('qa.store');
+
     Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails'])->name('sector.wise.details');
     Route::get('/sector-requests-count', [QAController::class, 'getSectorCounts']);
     Route::get('/Files', [QAController::class, 'qaFiles'])->name('qaFiles');
     Route::get('/entry-files', [QAController::class, 'entryFiles'])->name('entryFiles');
-
 });
-Route::get('/excel-sheet', [QAController::class, 'excel'])->name('excel');
 
+Route::get('/excel-sheet', [QAController::class, 'excel'])->name('excel');
 
 // User Routes
 

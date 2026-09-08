@@ -246,28 +246,36 @@ class PropertyController extends Controller
     /**
      * List of all submitted properties (with related data).
      */
-    public function formList()
-    {
-        $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
-            ->whereNull('user_id')
-            ->latest()
-            ->get();
+public function formList()
+{
+    $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+        ->where(function ($query) {
+            $query->whereHas('attachment', function ($q) {
+                $q->whereNull('entry_date');
+            })
+            ->orWhereDoesntHave('attachment');
+        })
+        ->latest()
+        ->get();
 
-        return view('property.formlist', compact('data'));
-    }
+    return view('property.formlist', compact('data'));
+}
+
 
     /**
      * List of properties created by the logged-in user.
      */
-    public function entriesList()
-    {
-        $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->get();
+  public function entriesList()
+{
+    $data = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+        ->whereHas('attachment', function ($query) {
+            $query->whereNotNull('entry_date');
+        })
+        ->latest()
+        ->get();
 
-        return view('property.Entries_List', compact('data'));
-    }
+    return view('property.Entries_List', compact('data'));
+}
 
     /**
      * Show a single property's full detail.
@@ -394,8 +402,8 @@ class PropertyController extends Controller
         DB::beginTransaction();
 
         try {
-            $oldApplicationNo = $property->application_no;
-            $newApplicationNo = $request->application_no;
+            $oldApplicationNo = (string)  $property->application_no;
+            $newApplicationNo = (string) $request->application_no;
 
             // 🔥 Store old sector/block for path change detection
             $oldSectorId = $property->sector_id;
@@ -668,6 +676,8 @@ class PropertyController extends Controller
         string $newApplicationNo,
         bool $forceUpdate = false
     ) {
+            $oldApplicationNo = $oldApplicationNo ?? '';
+    $newApplicationNo = $newApplicationNo ?? '';
         $disk = Storage::disk('public');
 
         $attachment = Attchement::where('property_id', $property->id)->first();

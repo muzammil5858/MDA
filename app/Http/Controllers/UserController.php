@@ -1,7 +1,7 @@
 <?php
-    
+
 namespace App\Http\Controllers;
-    
+
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -29,7 +29,7 @@ class UserController extends Controller
     // public function alltehsils(Request $request,$id){
     //     // $data = Institute::where('district_id',$id)->get();
     //     return \response()->json($data);
-    // } 
+    // }
     /**
      * Show the form for creating a new resource.
      *
@@ -40,7 +40,7 @@ class UserController extends Controller
         $roles = Role::pluck('name','name')->all();
         return view('users.create',compact('roles'));
     }
-    
+
     /**
      * Store a newly created resource in storage.
      *
@@ -49,8 +49,8 @@ class UserController extends Controller
      */
         public function store(Request $request)
         {
-            
-            
+
+
             $data = $this->validate($request, [
                 'name' => 'required',
                 'email' => 'nullable',
@@ -59,22 +59,22 @@ class UserController extends Controller
                 'cnic' => 'required',
                 'phoneno' => 'required|size:11',
                 'town' => 'required',
-                
+
             ]);
-            
-            
-        
+
+
+
             $input = $data;
             $input['town'] = json_encode($request->town);
             if(auth()->user()->hasRole('front-desk')){
                 $input['source'] = 'fd-'.auth()->user()->id;
             }
-            
-            
+
+
             $input['password'] = Hash::make($input['password']);
-            
-            
-        
+
+
+
             $user = User::create($input);
             if (!empty($request->biometric)) {
                 $bio = collect(json_decode($request->biometric))->first();
@@ -93,12 +93,12 @@ class UserController extends Controller
             $user->assignRole($request->input('roles'));
             if(auth()->user()->hasRole('front-desk')){
             return redirect()->route('fd.index')
-                            ->with('success','User created successfully');  
+                            ->with('success','User created successfully');
             }
             return redirect()->route('users.index')
                             ->with('success','User created successfully');
         }
-    
+
     /**
      * Display the specified resource.
      *
@@ -107,10 +107,15 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::find($id);
+     //   $user = User::find($id);
+           $user = User::findOrFail($id);
+        // ✅ Decode town if it's JSON
+        if ($user->town && is_string($user->town)) {
+            $user->town = json_decode($user->town, true);
+        }
         return view('users.show',compact('user'));
     }
-    
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -120,14 +125,14 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::find($id);
-        
+
         $roles = Role::pluck('name','name')->all();
         // dd($roles);
         $userRole = $user->roles->pluck('name','name')->all();
-    
+
         return view('users.edit',compact('user','roles','userRole'));
     }
-    
+
     /**
      * Update the specified resource in storage.
      *
@@ -137,7 +142,7 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email',
@@ -146,18 +151,18 @@ class UserController extends Controller
             'cnic' => 'required',
             'town' => 'required',
         ]);
-    
+
         $input = $request->all();
         // dd($input);
         $user = User::find($id);
-        if(!empty($input['password'])){ 
+        if(!empty($input['password'])){
             $input['password'] = Hash::make($input['password']);
         }else{
-            $input['password'] = $user->password;    
+            $input['password'] = $user->password;
         }
         $input['town'] = json_encode($request->town);
-        
-        
+
+
         $some = $user->update([
             'name' => $input['name'],
             'email' => $input['email'],
@@ -165,11 +170,11 @@ class UserController extends Controller
             'town' => $input['town'],
             'password' => $input['password'],
         ]);
-    
+
         DB::table('model_has_roles')->where('model_id',$id)->delete();
-    
+
         $user->assignRole($request->input('roles'));
-    
+
         if(auth()->user()->hasRole('front-desk')){
 
             return redirect()->route('fd.index')
@@ -178,7 +183,7 @@ class UserController extends Controller
         return redirect()->route('users.index')
                         ->with('success','User updated successfully');
     }
-    
+
     /**
      * Remove the specified resource from storage.
      *

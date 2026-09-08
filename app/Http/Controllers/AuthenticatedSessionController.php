@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->intended('users');
         }
         if(Auth::user()->hasRole('QA')){
-            return redirect('/dashboard');
+            return redirect()->route('mdaqaproperty');
         }
         if(Auth::user()->hasRole('director')){
             return redirect('/dashboard');
@@ -41,11 +41,11 @@ class AuthenticatedSessionController extends Controller
         if(Auth::user()->hasRole('assistant-director')){
             return redirect('/dashboard');
         }
-   
+
             return redirect('/form');
     }
 
-    
+
 
     /**
      * Destroy an authenticated session.

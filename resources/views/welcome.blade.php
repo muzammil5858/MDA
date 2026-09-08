@@ -339,6 +339,7 @@
       font-size: 14.5px;
       transition: all 0.2s ease;
     }
+    
 
     .modal-body-inner .btn-login-submit:hover {
       background: var(--gold);
