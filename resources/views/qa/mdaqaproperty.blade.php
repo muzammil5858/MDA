@@ -14,6 +14,8 @@
         text-align: right !important;
         margin-top: 15px;
     }
+
+
     .dataTables_wrapper .dataTables_info {
         float: right !important;
         margin-top: 15px;
@@ -49,6 +51,18 @@
     line-height: 1.3;
     text-align: center;
 }
+.sector-names {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.6;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    padding: 0 10px;
+}
+
+
 
 @media (max-width: 768px) {
     .qa-status-badge {
@@ -63,9 +77,25 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="card">
-                        <div class="card-header">
-                            <h3 class="text-center">{{ $heading }}</h3>
-                        </div>
+
+<div class="card-header">
+    <h3 class="text-center mb-2">
+        {{ $heading }}
+    </h3>
+
+    @if(isset($sectorNames) && $sectorNames->count())
+        <div class="text-center mt-2">
+            <div class="text-muted font-weight-bold mb-1">
+                Sectors:
+            </div>
+
+            <div class="sector-names">
+                {{ $sectorNames->implode(', ') }}
+            </div>
+        </div>
+    @endif
+</div>
+
                         <div class="card-body">
                             @if(session('success'))
                                 <div class="alert alert-success">{{ session('success') }}</div>
@@ -78,6 +108,7 @@
                                         <th>Applicant Name</th>
                                         <th>Application No</th>
                                         <th>Plot No</th>
+                                        <th>Sector</th>
                                         <th>QA Status</th>
                                         <th>Entry Date</th>
                                         <th>Action</th>
@@ -90,6 +121,7 @@
                                             <td>{{ $dat->applicant_name ?? 'N/A' }}</td>
                                             <td>{{ $dat->application_no ?? 'N/A' }}</td>
                                             <td>{{ $dat->plot_no ?? 'N/A' }}</td>
+                                            <td>{{$dat->sector->name ?? "N/A"}}</td>
                                              <td>
     @if($dat->qaStatus && $dat->qaStatus->status == 1)
         <span class="badge badge-success qa-status-badge">QA Done</span>

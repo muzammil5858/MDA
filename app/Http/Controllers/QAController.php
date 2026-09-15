@@ -12,21 +12,25 @@ use App\Models\Requests;
 use App\Models\TransferFile;
 use App\Models\Inheritance;
 use App\Models\SmallRequest;
+
 use DB;
 
 class QAController extends Controller
 {
+
     public function dashboard()
     {
+        $allowedSectorIds = $this->getUserSectorIds();
         // Total properties count
-        $totalProperties = Property::count();
+$totalProperties = Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
+    ->count();
 
-        // Category counts for all properties
-        $categoryCounts = Property::select('category')
-            ->groupBy('category')
-            ->selectRaw('category, COUNT(*) as count')
-            ->pluck('count', 'category')
-            ->toArray();
+$categoryCounts = Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
+    ->select('category')
+    ->groupBy('category')
+    ->selectRaw('category, COUNT(*) as count')
+    ->pluck('count', 'category')
+    ->toArray();
 
         $categories = ['Commercial', 'House', 'Plot'];
         $categoryData = [];
@@ -34,12 +38,15 @@ class QAController extends Controller
             $categoryData[$category] = $categoryCounts[$category] ?? 0;
         }
 
-        // ✅ Sectors from sectors table
-    $sectorsList = DB::table('sectors')->orderBy('name', 'desc')->get(['id', 'name']);
+$sectorsList = DB::table('sectors')
+    ->when($allowedSectorIds, fn($q) => $q->whereIn('id', $allowedSectorIds))
+    ->orderBy('name', 'desc')
+    ->get(['id', 'name']);
 
-        // ✅ Blocks from blocks table
-        $blocksList = DB::table('blocks')->orderBy('name')->get(['id', 'name', 'sector_id']);
-
+$blocksList = DB::table('blocks')
+    ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
+    ->orderBy('name')
+    ->get(['id', 'name', 'sector_id']);
         // Sector-wise category counts
         $sectorCategoryDataRaw = Property::whereIn('sector_id', $sectorsList->pluck('id'))
             ->select('sector_id', 'category')
@@ -116,6 +123,7 @@ class QAController extends Controller
         // ── SECTOR WISE REQUEST STATS (No Town) ──
         $sectorRequestStats = DB::table('requests')
             ->join('sectors', 'requests.sector', '=', 'sectors.name')
+             ->when($allowedSectorIds, fn($q) => $q->whereIn('sectors.id', $allowedSectorIds))
             ->selectRaw('
                 sectors.id as sector_id,
                 sectors.name as sector_name,
@@ -140,6 +148,7 @@ class QAController extends Controller
         // ── SECTOR WISE DETAIL (Properties by Sector with Block Data) ──
         $sectorWiseDetails = DB::table('sectors')
             ->leftJoin('properties', 'sectors.id', '=', 'properties.sector_id')
+             ->when($allowedSectorIds, fn($q) => $q->whereIn('sectors.id', $allowedSectorIds))
             ->select(
                 'sectors.id as sector_id',
                 'sectors.name as sector_name',
@@ -156,6 +165,7 @@ class QAController extends Controller
         $sectorBlockWiseDetails = DB::table('sectors')
             ->leftJoin('blocks', 'sectors.id', '=', 'blocks.sector_id')
             ->leftJoin('properties', 'blocks.id', '=', 'properties.block_id')
+            ->when($allowedSectorIds, fn($q) => $q->whereIn('sectors.id', $allowedSectorIds))
             ->select(
                 'sectors.id as sector_id',
                 'sectors.name as sector_name',
@@ -207,11 +217,11 @@ class QAController extends Controller
 
         // Size counts for properties
         $sizeCounts = [
-            '5 Marla' => DB::table('properties')->whereBetween('marla', [1, 6])->count(),
-            '7 Marla' => DB::table('properties')->whereBetween('marla', [6, 8.5])->count(),
-            '10 Marla' => DB::table('properties')->whereBetween('marla', [8.5, 11])->count(),
-            '12 Marla' => DB::table('properties')->whereBetween('marla', [11, 13.5])->count(),
-            '15 Marla' => DB::table('properties')->whereBetween('marla', [13.5, 17.5])->count(),
+            '5 Marla' => Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))->whereBetween('marla', [1, 6])->count(),
+            '7 Marla' => Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))->whereBetween('marla', [6, 8.5])->count(),
+            '10 Marla' =>Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))->whereBetween('marla', [8.5, 11])->count(),
+            '12 Marla' => Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))->whereBetween('marla', [11, 13.5])->count(),
+            '15 Marla' => Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))->whereBetween('marla', [13.5, 17.5])->count(),
             '1 Kanal' => DB::table('properties')->where(function ($query) {
                 $query->where('kanal', 1)->orWhere('marla', '>', 17.5);
             })->count(),
@@ -432,6 +442,32 @@ class QAController extends Controller
             'modeCategoryData'
         ));
     }
+
+    /**
+ * Agar logged-in user ka role QA hai to uske assigned sectors return karo,
+ * warna null (matlab koi restriction nahi, sab data dikhega)
+ */
+private function getUserSectorIds()
+{
+    $user = auth()->user();
+
+    if ($user && $user->hasRole('QA')) {
+        $towns = json_decode($user->town, true);
+
+        if (json_last_error() === JSON_ERROR_NONE && is_array($towns)) {
+            return array_map('intval', $towns);
+        }
+
+        // Fallback: comma-separated ya single value
+        if (is_string($user->town) && str_contains($user->town, ',')) {
+            return array_map('intval', explode(',', $user->town));
+        }
+
+        return [(int) $user->town];
+    }
+
+    return null;
+}
     // In QAController.php - Add this method for paginated sector-wise detail
 
 // In QAController.php - getSectorWiseDetails method
@@ -557,53 +593,85 @@ public function getSectorWiseDetails(Request $request)
     ]);
 }
 
+
 // Sirf wo properties jin ki attachment entry_date mojood ho
 public function propertyList()
 {
     $heading = "Mirpur Development Authority";
+    $allowedSectorIds = $this->getUserSectorIds();
+
+    // ✅ QA user ke assigned sectors ke names
+    $sectorNames = collect();
+    if ($allowedSectorIds) {
+        $sectorNames = DB::table('sectors')
+            ->whereIn('id', $allowedSectorIds)
+            ->orderBy('name')
+            ->pluck('name');
+    }
 
     $data = Property::with(['sector', 'block', 'attachment'])
         ->whereHas('attachment', function ($q) {
             $q->whereNotNull('entry_date');
         })
         ->whereDoesntHave('qaStatus')
+        ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
         ->latest()
         ->get();
 
-    return view('qa.mdaqaproperty', compact('data', 'heading'));
+    return view('qa.mdaqaproperty', compact('data', 'heading', 'sectorNames'));
 }
-
 
 
 // Sirf QA verified (status = 1) properties
 public function mdaQaList()
 {
     $heading = "MDA QA List (Verified)";
+    $allowedSectorIds = $this->getUserSectorIds();
+
+    $sectorNames = collect();
+    if ($allowedSectorIds) {
+        $sectorNames = DB::table('sectors')
+            ->whereIn('id', $allowedSectorIds)
+            ->orderBy('name')
+            ->pluck('name');
+    }
 
     $data = Property::with(['sector', 'block', 'attachment', 'qaStatus'])
         ->whereHas('qaStatus', function ($q) {
             $q->where('status', 1);
         })
+        ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
         ->latest()
         ->get();
 
-    return view('qa.mdaQaList', compact('data', 'heading'));
+    return view('qa.mdaQaList', compact('data', 'heading', 'sectorNames'));
 }
 public function mdaIncompleteaList()
 {
     $heading = "MDA QA List (Having Issue)";
+    $allowedSectorIds = $this->getUserSectorIds();
+
+    $sectorNames = collect();
+    if ($allowedSectorIds) {
+        $sectorNames = DB::table('sectors')
+            ->whereIn('id', $allowedSectorIds)
+            ->orderBy('name')
+            ->pluck('name');
+    }
 
     $data = Property::with(['sector', 'block', 'attachment', 'qaStatus.user'])
         ->whereHas('qaStatus', function ($q) {
-            $q->where('status', 0);   // 👈 status 1 se 0 kar diya
+            $q->where('status', 0);
         })
+        ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
         ->latest()
         ->get();
 
-    return view('qa.mdaQaIncomplete', compact('data', 'heading'));
+    return view('qa.mdaQaIncomplete', compact('data', 'heading', 'sectorNames'));
 }
 public function mdaQaDetail($id)
 {
+    $allowedSectorIds = $this->getUserSectorIds();
     $property = Property::with([
         'sector',
         'block',
@@ -611,7 +679,12 @@ public function mdaQaDetail($id)
         'attachment',
         'plotHistories',
         'qaStatus',
-    ])->findOrFail($id);
+    ])
+        // ✅ Agar QA user hai aur uski property allowed sectors mein nahi, to 403
+    ->when($allowedSectorIds, function ($q) use ($allowedSectorIds) {
+        $q->whereIn('sector_id', $allowedSectorIds);
+    })
+    ->findOrFail($id);
 
     return view('qa.mdaQaDetail', compact('property'));
 }
@@ -624,6 +697,17 @@ public function storeQA(Request $request)
         'value'       => 'required_if:qa_status,having_issue|nullable|string|max:255',
         'remarks'     => 'nullable|string|max:2000',
     ]);
+        // ✅ Security: Check karo property QA user ke assigned sector mein hai
+    $allowedSectorIds = $this->getUserSectorIds();
+    $property = Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
+        ->find($validated['property_id']);
+
+    if (!$property) {
+        return response()->json([
+            'success' => false,
+            'message' => 'You are not authorized to update this property.',
+        ], 403);
+    }
 
     try {
         DB::table('qa_properties')->updateOrInsert(

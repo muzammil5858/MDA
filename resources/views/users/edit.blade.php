@@ -61,10 +61,10 @@
                     $town = DB::table('sectors')->get();
                     $use = is_array(json_decode($user->town)) ? json_decode($user->town) : [$user->town];
                 @endphp
-            <strong>Town:</strong>
+            <strong>Sector:</strong>
             <select name="town[]" id="town" class="form-control" multiple>
 
-                <option value=""  disabled>Select Town</option>
+                <option value=""  disabled>Select Sector</option>
                 @foreach($town as $key => $value)
                     <option {{in_array($value->id, $use) ? 'selected' : ''}} value="{{$value->id}}">{{$value->name}}</option>
                 @endforeach
