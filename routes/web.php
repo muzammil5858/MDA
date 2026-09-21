@@ -90,6 +90,10 @@ Route::get('/file-viewer', [FileViewerController::class, 'show'])
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [QAController::class, 'dashboard'])->name('dashboard');
+    Route::get('/data-review-stats', [QAController::class, 'getDataReviewStats'])
+    ->name('data.review.stats');
+    Route::get('/data-review-details', [QAController::class, 'getDataReviewDetails'])
+    ->name('data.review.details');
 
     Route::get('/qa-property-lists', [QAController::class, 'propertyList'])->name('mdaqaproperty');
         Route::get('/qa-property/{id}', [QAController::class, 'mdaQaDetail'])->name('mdaQaDetail');

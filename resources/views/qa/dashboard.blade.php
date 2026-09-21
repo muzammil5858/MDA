@@ -939,8 +939,6 @@
             </div>{{-- end .main-table-container --}}
 
             <!-- SECTOR WISE DETAIL TABLE -->
-
-<!-- SECTOR WISE DETAIL TABLE -->
 <div class="table-section d-none" id="sector-wise-detail-row" style="margin-bottom:50px; margin-top:1px; width:100%;">
     <div class="table-name"></div>
 
@@ -1009,6 +1007,62 @@
                 <!-- Dynamic pagination will be loaded here -->
             </ul>
             </nav>
+        </div>
+    </div>
+</div>
+
+<!-- DATA REVIEW ROW -->
+<div class="table-section d-none" id="data-review-row" style="margin-bottom:50px; margin-top:1px; width:100%;">
+    <div style="display:flex; justify-content:center; align-items:center; margin-bottom:0.75rem;">
+        <strong style="font-size:1.2rem;">DATA REVIEW - QA USERS</strong>
+    </div>
+    <div class="table-responsive" style="overflow-x:auto; width:100%;">
+        <table class="table table-bordered" style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background: var(--gradient-table-header); color:#fff;">
+                    <th style="text-align:center; padding:10px 8px;">QA User</th>
+                    <th style="text-align:center; padding:10px 8px;">Assigned Sectors</th>
+                    <th style="text-align:center; padding:10px 8px;">Forms in Sectors</th>
+                    <th style="text-align:center; padding:10px 8px;">Total Checked</th>
+                    <th style="text-align:center; padding:10px 8px;">Verified</th>
+                    <th style="text-align:center; padding:10px 8px;">Issue</th>
+                </tr>
+            </thead>
+            <tbody id="dataReviewTableBody">
+                <tr><td colspan="6" class="text-center">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- DATA REVIEW DETAIL MODAL -->
+<div class="modal fade" id="dataReviewDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl" style="max-width:95%;">
+        <div class="modal-content" style="border-radius:12px;">
+            <div class="modal-header" style="background: var(--color-primary-gradient); color:#fff;">
+                <h5 class="modal-title" id="dataReviewModalTitle">List</h5>
+               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="opacity:1;"></button>
+            </div>
+            <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+                <table class="table table-bordered table-striped" id="dataReviewDetailTable" style="width:100%; font-size:14px;">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th>#</th>
+                            <th>Applicant Name</th>
+                            <th>Application No</th>
+                            <th>Plot No</th>
+                            <th>Sector</th>
+                            <th>Block</th>
+                            <th>Status</th>
+                            <th>Checked By</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataReviewDetailBody">
+                        <tr><td colspan="9" class="text-center">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -1159,288 +1213,420 @@
         }
 
         // ============================================================
-// SECTOR WISE DETAIL WITH PAGINATION
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    let currentSectorPage = 1;
-    let sectorPerPage = 10;
-    let sectorSearchQuery = '';
-    let totalSectorPages = 1;
+        // SECTOR WISE DETAIL WITH PAGINATION
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentSectorPage = 1;
+            let sectorPerPage = 10;
+            let sectorSearchQuery = '';
+            let totalSectorPages = 1;
 
-    const sectorWiseTableBody = document.getElementById('sectorWiseTableBody');
-    const sectorPagination = document.getElementById('sectorPagination');
-    const sectorPaginationInfo = document.getElementById('sectorPaginationInfo');
-    const sectorSearch = document.getElementById('sectorSearch');
-    const searchBtn = document.getElementById('searchSectorBtn');
-    const perPageSelect = document.getElementById('sectorPerPage');
+            const sectorWiseTableBody = document.getElementById('sectorWiseTableBody');
+            const sectorPagination = document.getElementById('sectorPagination');
+            const sectorPaginationInfo = document.getElementById('sectorPaginationInfo');
+            const sectorSearch = document.getElementById('sectorSearch');
+            const searchBtn = document.getElementById('searchSectorBtn');
+            const perPageSelect = document.getElementById('sectorPerPage');
 
-    // Function to load sector-wise data
-    function loadSectorWiseData() {
-        if (!sectorWiseTableBody) return;
+            // Function to load sector-wise data
+            function loadSectorWiseData() {
+                if (!sectorWiseTableBody) return;
 
-        const url = `/sector-wise-details?page=${currentSectorPage}&per_page=${sectorPerPage}&search=${encodeURIComponent(sectorSearchQuery)}`;
+                const url = `/sector-wise-details?page=${currentSectorPage}&per_page=${sectorPerPage}&search=${encodeURIComponent(sectorSearchQuery)}`;
 
-        fetch(url, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    renderSectorTable(data.data);
+                    renderSectorPagination(data);
+                })
+                .catch(error => {
+                    console.error('Error loading sector data:', error);
+                    sectorWiseTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center text-danger">Error loading data</td>
+                        </tr>
+                    `;
+                });
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            renderSectorTable(data.data);
-            renderSectorPagination(data);
-        })
-        .catch(error => {
-            console.error('Error loading sector data:', error);
-            sectorWiseTableBody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center text-danger">Error loading data</td>
-                </tr>
-            `;
-        });
-    }
 
-    // Function to render sector table
-// Function to render sector table
-function renderSectorTable(sectors) {
-    if (!sectors || sectors.length === 0) {
-        sectorWiseTableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center">No sectors found</td>
-            </tr>
-        `;
-        return;
-    }
-
-    let html = '';
-    sectors.forEach(sector => {
-        const blockData = sector.block_data || [];
-        const blockOrder = sector.block_order || [];
-
-        // Check if sector has any data
-        const hasData = sector.total_properties > 0 || sector.plot_count > 0 || sector.house_count > 0 || sector.commercial_count > 0;
-        const textColor = hasData ? '#000000' : '#999999'; // Black if has data, grey if empty
-
-        // Sort blocks by block order if available, otherwise alphabetically
-        let sortedBlocks = [...blockData];
-        if (blockOrder.length > 0) {
-            sortedBlocks = blockOrder.map(blockName => {
-                const found = blockData.find(b => b.block === blockName);
-                return found || { block: blockName, total_properties: 0, plot_count: 0, house_count: 0, commercial_count: 0 };
-            });
-        }
-
-        html += `
-            <tr class="sector-main-row" data-sector-id="${sector.id}" data-block-order='${JSON.stringify(blockOrder)}' data-block-data='${JSON.stringify(sortedBlocks)}'>
-                <td style="white-space: normal; word-wrap: break-word; word-break: break-word; padding:10px 8px; vertical-align:middle; color: ${textColor};">
-                    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
-                        <span style="flex:1; min-width:60px; font-weight: ${hasData ? '600' : '400'}; color: ${textColor};">${sector.name}</span>
-                        ${blockData.length > 0 ? `
-                            <button class="btn btn-sm p-0 ms-1 bg-transparent border-0 block-toggle flex-shrink-0"
-                                type="button" data-sector="${sector.id}" title="Toggle Blocks">
-                                <i class="bi bi-chevron-down" style="color: ${hasData ? '#2980b9' : '#cccccc'};"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                </td>
-                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.total_properties}</td>
-                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.plot_count}</td>
-                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.house_count}</td>
-                <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.commercial_count}</td>
-            </tr>
-        `;
-    });
-
-    sectorWiseTableBody.innerHTML = html;
-
-    // Re-bind block toggle events
-    document.querySelectorAll('.block-toggle').forEach(btn => {
-        btn.removeEventListener('click', toggleBlockHandler);
-        btn.addEventListener('click', toggleBlockHandler);
-    });
-}
-
-    // Block toggle handler
-    function toggleBlockHandler(e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const button = e.currentTarget;
-        const sectorId = button.dataset.sector;
-        const row = button.closest('tr');
-
-        if (!row) return;
-
-        const existingRows = document.querySelectorAll(`.block-row[data-sector="${sectorId}"]`);
-
-        if (existingRows.length > 0) {
-            // Toggle visibility of existing rows
-            const isHidden = existingRows[0].classList.contains('d-none');
-            existingRows.forEach(r => {
-                if (isHidden) {
-                    r.classList.remove('d-none');
-                } else {
-                    r.classList.add('d-none');
+            // Function to render sector table
+            function renderSectorTable(sectors) {
+                if (!sectors || sectors.length === 0) {
+                    sectorWiseTableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center">No sectors found</td>
+                        </tr>
+                    `;
+                    return;
                 }
-            });
-            const icon = button.querySelector('i');
-            if (icon) {
-                icon.className = isHidden ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+
+                let html = '';
+                sectors.forEach(sector => {
+                    const blockData = sector.block_data || [];
+                    const blockOrder = sector.block_order || [];
+
+                    // Check if sector has any data
+                    const hasData = sector.total_properties > 0 || sector.plot_count > 0 || sector.house_count > 0 || sector.commercial_count > 0;
+                    const textColor = hasData ? '#000000' : '#999999'; // Black if has data, grey if empty
+
+                    // Sort blocks by block order if available, otherwise alphabetically
+                    let sortedBlocks = [...blockData];
+                    if (blockOrder.length > 0) {
+                        sortedBlocks = blockOrder.map(blockName => {
+                            const found = blockData.find(b => b.block === blockName);
+                            return found || { block: blockName, total_properties: 0, plot_count: 0, house_count: 0, commercial_count: 0 };
+                        });
+                    }
+
+                    html += `
+                        <tr class="sector-main-row" data-sector-id="${sector.id}" data-block-order='${JSON.stringify(blockOrder)}' data-block-data='${JSON.stringify(sortedBlocks)}'>
+                            <td style="white-space: normal; word-wrap: break-word; word-break: break-word; padding:10px 8px; vertical-align:middle; color: ${textColor};">
+                                <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
+                                    <span style="flex:1; min-width:60px; font-weight: ${hasData ? '600' : '400'}; color: ${textColor};">${sector.name}</span>
+                                    ${blockData.length > 0 ? `
+                                        <button class="btn btn-sm p-0 ms-1 bg-transparent border-0 block-toggle flex-shrink-0"
+                                            type="button" data-sector="${sector.id}" title="Toggle Blocks">
+                                            <i class="bi bi-chevron-down" style="color: ${hasData ? '#2980b9' : '#cccccc'};"></i>
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </td>
+                            <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.total_properties}</td>
+                            <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.plot_count}</td>
+                            <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.house_count}</td>
+                            <td style="text-align:center; padding:10px 8px; white-space:nowrap; color: ${textColor}; font-weight: ${hasData ? '600' : '400'};">${sector.commercial_count}</td>
+                        </tr>
+                    `;
+                });
+
+                sectorWiseTableBody.innerHTML = html;
+
+                // Re-bind block toggle events
+                document.querySelectorAll('.block-toggle').forEach(btn => {
+                    btn.removeEventListener('click', toggleBlockHandler);
+                    btn.addEventListener('click', toggleBlockHandler);
+                });
             }
-            return;
-        }
 
-        // Get block data from the row
-        let blockData = [];
-        try {
-            const dataAttr = row.dataset.blockData;
-            if (dataAttr && dataAttr !== '[]' && dataAttr !== '') {
-                blockData = JSON.parse(dataAttr);
-            }
-        } catch(e) {
-            console.error('Error parsing block data:', e);
-        }
-
-        if (!blockData || blockData.length === 0) return;
-
-        // Insert block rows
-        let lastInsertedRow = row;
-        blockData.forEach(block => {
-            const newRow = document.createElement('tr');
-            newRow.classList.add('block-row');
-            newRow.setAttribute('data-sector', sectorId);
-                const hasBlockData = (block.total_properties > 0) || (block.plot_count > 0) || (block.house_count > 0) || (block.commercial_count > 0);
-    const blockTextColor = hasBlockData ? '#000000' : '#999999';
-
-            newRow.innerHTML = `
- <td style="padding-left: 40px; white-space: nowrap; color: ${blockTextColor}; font-weight: ${hasBlockData ? '600' : '400'};">
-            <i class="bi bi-dot" style="color:#2980b9;"></i>
-            ${block.block || 'Unknown'}
-        </td>
-                <td style="text-align:center; color: ${blockTextColor};">${block.total_properties || 0}</td>
-                <td style="text-align:center; color: ${blockTextColor};">${block.plot_count || 0}</td>
-                <td style="text-align:center; color: ${blockTextColor};">${block.house_count || 0}</td>
-                <td style="text-align:center; color: ${blockTextColor};">${block.commercial_count || 0}</td>
-            `;
-
-            lastInsertedRow.parentNode.insertBefore(newRow, lastInsertedRow.nextSibling);
-            lastInsertedRow = newRow;
-        });
-
-        const icon = button.querySelector('i');
-        if (icon) {
-            icon.className = 'bi bi-chevron-up';
-        }
-    }
-
-    // Function to render pagination
-    function renderSectorPagination(data) {
-        const total = data.total || 0;
-        const perPage = data.per_page || sectorPerPage;
-        const currentPage = data.current_page || 1;
-        const lastPage = data.last_page || 1;
-
-        totalSectorPages = lastPage;
-
-        // Update info text
-        const start = (currentPage - 1) * perPage + 1;
-        const end = Math.min(currentPage * perPage, total);
-        sectorPaginationInfo.textContent = `Showing ${start} to ${end} of ${total} sectors`;
-
-        // Build pagination
-        let html = '';
-        html += `<li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
-        </li>`;
-
-        // Show pages with ellipsis
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(lastPage, currentPage + 2);
-
-        if (startPage > 1) {
-            html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
-            if (startPage > 2) {
-                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
-            </li>`;
-        }
-
-        if (endPage < lastPage) {
-            if (endPage < lastPage - 1) {
-                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-            }
-            html += `<li class="page-item"><a class="page-link" href="#" data-page="${lastPage}">${lastPage}</a></li>`;
-        }
-
-        html += `<li class="page-item ${currentPage >= lastPage ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
-        </li>`;
-
-        sectorPagination.innerHTML = html;
-
-        // Add click events to pagination links
-        sectorPagination.querySelectorAll('.page-link').forEach(link => {
-            link.addEventListener('click', function(e) {
+            // Block toggle handler
+            function toggleBlockHandler(e) {
                 e.preventDefault();
-                const page = parseInt(this.dataset.page);
-                if (page && page >= 1 && page <= totalSectorPages) {
-                    currentSectorPage = page;
+                e.stopPropagation();
+
+                const button = e.currentTarget;
+                const sectorId = button.dataset.sector;
+                const row = button.closest('tr');
+
+                if (!row) return;
+
+                const existingRows = document.querySelectorAll(`.block-row[data-sector="${sectorId}"]`);
+
+                if (existingRows.length > 0) {
+                    // Toggle visibility of existing rows
+                    const isHidden = existingRows[0].classList.contains('d-none');
+                    existingRows.forEach(r => {
+                        if (isHidden) {
+                            r.classList.remove('d-none');
+                        } else {
+                            r.classList.add('d-none');
+                        }
+                    });
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.className = isHidden ? 'bi bi-chevron-up' : 'bi bi-chevron-down';
+                    }
+                    return;
+                }
+
+                // Get block data from the row
+                let blockData = [];
+                try {
+                    const dataAttr = row.dataset.blockData;
+                    if (dataAttr && dataAttr !== '[]' && dataAttr !== '') {
+                        blockData = JSON.parse(dataAttr);
+                    }
+                } catch(e) {
+                    console.error('Error parsing block data:', e);
+                }
+
+                if (!blockData || blockData.length === 0) return;
+
+                // Insert block rows
+                let lastInsertedRow = row;
+                blockData.forEach(block => {
+                    const newRow = document.createElement('tr');
+                    newRow.classList.add('block-row');
+                    newRow.setAttribute('data-sector', sectorId);
+                        const hasBlockData = (block.total_properties > 0) || (block.plot_count > 0) || (block.house_count > 0) || (block.commercial_count > 0);
+            const blockTextColor = hasBlockData ? '#000000' : '#999999';
+
+                    newRow.innerHTML = `
+         <td style="padding-left: 40px; white-space: nowrap; color: ${blockTextColor}; font-weight: ${hasBlockData ? '600' : '400'};">
+                    <i class="bi bi-dot" style="color:#2980b9;"></i>
+                    ${block.block || 'Unknown'}
+                </td>
+                        <td style="text-align:center; color: ${blockTextColor};">${block.total_properties || 0}</td>
+                        <td style="text-align:center; color: ${blockTextColor};">${block.plot_count || 0}</td>
+                        <td style="text-align:center; color: ${blockTextColor};">${block.house_count || 0}</td>
+                        <td style="text-align:center; color: ${blockTextColor};">${block.commercial_count || 0}</td>
+                    `;
+
+                    lastInsertedRow.parentNode.insertBefore(newRow, lastInsertedRow.nextSibling);
+                    lastInsertedRow = newRow;
+                });
+
+                const icon = button.querySelector('i');
+                if (icon) {
+                    icon.className = 'bi bi-chevron-up';
+                }
+            }
+
+            // Function to render pagination
+            function renderSectorPagination(data) {
+                const total = data.total || 0;
+                const perPage = data.per_page || sectorPerPage;
+                const currentPage = data.current_page || 1;
+                const lastPage = data.last_page || 1;
+
+                totalSectorPages = lastPage;
+
+                // Update info text
+                const start = (currentPage - 1) * perPage + 1;
+                const end = Math.min(currentPage * perPage, total);
+                sectorPaginationInfo.textContent = `Showing ${start} to ${end} of ${total} sectors`;
+
+                // Build pagination
+                let html = '';
+                html += `<li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage - 1}">&laquo;</a>
+                </li>`;
+
+                // Show pages with ellipsis
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(lastPage, currentPage + 2);
+
+                if (startPage > 1) {
+                    html += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                    if (startPage > 2) {
+                        html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    </li>`;
+                }
+
+                if (endPage < lastPage) {
+                    if (endPage < lastPage - 1) {
+                        html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
+                    html += `<li class="page-item"><a class="page-link" href="#" data-page="${lastPage}">${lastPage}</a></li>`;
+                }
+
+                html += `<li class="page-item ${currentPage >= lastPage ? 'disabled' : ''}">
+                    <a class="page-link" href="#" data-page="${currentPage + 1}">&raquo;</a>
+                </li>`;
+
+                sectorPagination.innerHTML = html;
+
+                // Add click events to pagination links
+                sectorPagination.querySelectorAll('.page-link').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = parseInt(this.dataset.page);
+                        if (page && page >= 1 && page <= totalSectorPages) {
+                            currentSectorPage = page;
+                            loadSectorWiseData();
+                        }
+                    });
+                });
+            }
+
+            // Event listeners
+            if (searchBtn) {
+                searchBtn.addEventListener('click', function() {
+                    sectorSearchQuery = sectorSearch.value.trim();
+                    currentSectorPage = 1;
+                    loadSectorWiseData();
+                });
+            }
+
+            if (sectorSearch) {
+                sectorSearch.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sectorSearchQuery = this.value.trim();
+                        currentSectorPage = 1;
+                        loadSectorWiseData();
+                    }
+                });
+            }
+
+            if (perPageSelect) {
+                perPageSelect.addEventListener('change', function() {
+                    sectorPerPage = parseInt(this.value);
+                    currentSectorPage = 1;
+                    loadSectorWiseData();
+                });
+            }
+
+            // Override the toggleSection function to load data when sector-wise detail is shown
+            const originalToggleSection = window.toggleSection;
+            window.toggleSection = function(section) {
+                if (section && section.id === 'sector-wise-detail-row') {
+                    // Load data if not loaded yet or refresh
                     loadSectorWiseData();
                 }
+                if (typeof originalToggleSection === 'function') {
+                    originalToggleSection(section);
+                }
+            };
+
+            // Also handle the sector-wise detail toggle from the card
+            document.addEventListener('click', function(e) {
+                if (e.target.id === 'sector-wise-detail-toggle') {
+                    setTimeout(loadSectorWiseData, 100);
+                }
             });
         });
-    }
+    </script>
 
-    // Event listeners
-    if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
-            sectorSearchQuery = sectorSearch.value.trim();
-            currentSectorPage = 1;
-            loadSectorWiseData();
+    <!-- ============================================================
+         DATA REVIEW - GLOBAL FUNCTIONS (outside DOMContentLoaded so
+         they are reachable, plus click delegation so number clicks
+         always work regardless of when the row HTML was inserted)
+    ============================================================ -->
+    <script>
+        // Opens the detail modal for a given user + metric type
+        window.openDataReviewDetail = function (userId, type, title) {
+                sessionStorage.setItem('dataReviewState', JSON.stringify({ userId, type, title }));
+
+            document.getElementById('dataReviewModalTitle').textContent = title;
+            const body = document.getElementById('dataReviewDetailBody');
+            body.innerHTML = '<tr><td colspan="9" class="text-center">Loading...</td></tr>';
+
+            const modalEl = document.getElementById('dataReviewDetailModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            const url = `/data-review-details?user_id=${encodeURIComponent(userId)}&type=${encodeURIComponent(type)}`;
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.json())
+                .then(res => {
+                    const rows = res.data || [];
+                    if (rows.length === 0) {
+                        body.innerHTML = '<tr><td colspan="9" class="text-center">No records found</td></tr>';
+                        return;
+                    }
+                    body.innerHTML = rows.map((r, i) => `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${r.applicant_name}</td>
+                            <td>${r.application_no}</td>
+                            <td>${r.plot_no}</td>
+                            <td>${r.sector}</td>
+                            <td>${r.block}</td>
+                            <td>${r.status}</td>
+                            <td>${r.checked_by}</td>
+                            <td><a href="${r.detail_url}"><i class="bi bi-eye"></i> View</a></td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(err => {
+                    console.error(err);
+                    body.innerHTML = '<tr><td colspan="9" class="text-center text-danger">Error loading data</td></tr>';
+                });
+        };
+
+        // Event delegation: catches clicks on any .review-num span,
+        // even ones added dynamically after this script ran.
+        document.addEventListener('click', function (e) {
+            const el = e.target.closest('.review-num');
+            if (!el) return;
+            window.openDataReviewDetail(el.dataset.uid, el.dataset.type, el.dataset.title);
+        });
+
+        // Fetches and renders the Data Review summary table
+        window.loadDataReviewStats = function () {
+            const tbody = document.getElementById('dataReviewTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
+
+            fetch('{{ route("data.review.stats") }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(res => {
+                const rows = res.data || [];
+                if (rows.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No QA users found</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = rows.map(u => {
+                    const uid = u.is_summary ? 'all' : u.id;
+                    // const uid = (u.sectors === 'All') ? 'all' : u.id;
+                    return `
+                    <tr>
+                        <td style="text-align:center; padding:10px 8px; font-weight:600; color:#000000;">${u.name}</td>
+                        <td style="text-align:center; padding:10px 8px; color:#000000;">${u.sectors}</td>
+                        <td style="text-align:center; padding:10px 8px;">
+                            <span class="clickable-span review-num" style="background:rgba(37,99,235,0.08); color:#03346E;"
+                                  data-uid="${uid}" data-type="forms" data-title="${u.name} - Total Forms in Sectors">${u.sector_total_forms}</span>
+                        </td>
+                        <td style="text-align:center; padding:10px 8px;">
+                            <span class="clickable-span review-num" style="background:rgba(37,99,235,0.08); color:#03346E;"
+                                  data-uid="${uid}" data-type="checked" data-title="${u.name} - Total Checked">${u.total_checked}</span>
+                        </td>
+                        <td style="text-align:center; padding:10px 8px;">
+                            <span class="clickable-span review-num" style="background:rgba(16,185,129,0.12); color:#10B981; font-weight:700;"
+                                  data-uid="${uid}" data-type="verified" data-title="${u.name} - Verified">${u.verified}</span>
+                        </td>
+                        <td style="text-align:center; padding:10px 8px;">
+                            <span class="clickable-span review-num" style="background:rgba(239,68,68,0.12); color:#EF4444; font-weight:700;"
+                                  data-uid="${uid}" data-type="issue" data-title="${u.name} - Issue">${u.issue}</span>
+                        </td>
+                    </tr>`;
+                }).join('');
+            })
+            .catch(err => {
+                console.error('Error loading data review stats:', err);
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading data</td></tr>';
+            });
+
+        };
+
+
+        // Modal manually band ho to state clear kar do
+document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('dataReviewDetailModal');
+    if (modalEl) {
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            sessionStorage.removeItem('dataReviewState');
         });
     }
+});
 
-    if (sectorSearch) {
-        sectorSearch.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sectorSearchQuery = this.value.trim();
-                currentSectorPage = 1;
-                loadSectorWiseData();
-            }
-        });
-    }
+// Back button se wapas aane par Data Review section + modal dobara khol do
+window.addEventListener('pageshow', function () {
+    const raw = sessionStorage.getItem('dataReviewState');
+    if (!raw) return;
 
-    if (perPageSelect) {
-        perPageSelect.addEventListener('change', function() {
-            sectorPerPage = parseInt(this.value);
-            currentSectorPage = 1;
-            loadSectorWiseData();
-        });
-    }
+    let state;
+    try { state = JSON.parse(raw); } catch (e) { return; }
 
-    // Override the toggleSection function to load data when sector-wise detail is shown
-    const originalToggleSection = window.toggleSection;
-    window.toggleSection = function(section) {
-        if (section && section.id === 'sector-wise-detail-row') {
-            // Load data if not loaded yet or refresh
-            loadSectorWiseData();
-        }
-        if (typeof originalToggleSection === 'function') {
-            originalToggleSection(section);
-        }
-    };
-
-    // Also handle the sector-wise detail toggle from the card
-    document.addEventListener('click', function(e) {
-        if (e.target.id === 'sector-wise-detail-toggle') {
-            setTimeout(loadSectorWiseData, 100);
-        }
-    });
+    // dashboard ke cards render hone ka wait
+    setTimeout(function () {
+        const toggle = document.getElementById('data-review-toggle');
+        if (toggle) toggle.click();          // Data Review table dikhaye
+        window.openDataReviewDetail(state.userId, state.type, state.title);
+    }, 300);
 });
     </script>
 
@@ -1523,8 +1709,12 @@ function renderSectorTable(sectors) {
 
                 document.getElementById('sector-wise-detail-toggle')
                     ?.addEventListener('click', () => toggleSection(sectorWiseDetailRow));
+
                 document.getElementById('data-review-toggle')
-                    ?.addEventListener('click', () => toggleSection(document.getElementById('data-review-row')));
+                    ?.addEventListener('click', () => {
+                        toggleSection(document.getElementById('data-review-row'));
+                        window.loadDataReviewStats();
+                    });
 
                 const sizeBreakdownRow = document.getElementById('size-breakdown-row');
                 document.getElementById('size-breakdown-toggle')
@@ -2119,7 +2309,6 @@ function renderSectorTable(sectors) {
             });
         }
 
-        // 2. Allotment Type Distribution (Pie Chart)
         // 2. Allotment Type Distribution (Pie Chart)
         const allotmentTypeData = @json($allotmentTypeDistribution);
         const allotmentTypeLabels = Object.keys(allotmentTypeData);

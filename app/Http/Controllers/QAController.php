@@ -447,26 +447,198 @@ $blocksList = DB::table('blocks')
  * Agar logged-in user ka role QA hai to uske assigned sectors return karo,
  * warna null (matlab koi restriction nahi, sab data dikhega)
  */
-private function getUserSectorIds()
+private function getUserSectorIds($user = null)
 {
-    $user = auth()->user();
+    $user = $user ?: auth()->user();
 
     if ($user && $user->hasRole('QA')) {
-        $towns = json_decode($user->town, true);
+        $town = $user->town;
+
+        // Town assign nahi hai → koi restriction nahi, sab sectors visible
+        if (empty($town)) {
+            return null;
+        }
+
+        $towns = json_decode($town, true);
 
         if (json_last_error() === JSON_ERROR_NONE && is_array($towns)) {
             return array_map('intval', $towns);
         }
 
-        // Fallback: comma-separated ya single value
-        if (is_string($user->town) && str_contains($user->town, ',')) {
-            return array_map('intval', explode(',', $user->town));
+        if (is_string($town) && str_contains($town, ',')) {
+            return array_map('intval', explode(',', $town));
         }
 
-        return [(int) $user->town];
+        return [(int) $town];
     }
 
     return null;
+}
+
+
+/**
+ * Generic version — kisi bhi $user ke liye uske assigned sectors return karta hai
+ */
+private function getSectorIdsForUser($user)
+{
+    if (!$user || !$user->hasRole('QA')) {
+        return null;
+    }
+
+    $towns = json_decode($user->town, true);
+
+    if (json_last_error() === JSON_ERROR_NONE && is_array($towns)) {
+        return array_map('intval', $towns);
+    }
+
+    if (is_string($user->town) && str_contains($user->town, ',')) {
+        return array_map('intval', explode(',', $user->town));
+    }
+
+    return [(int) $user->town];
+}
+
+/**
+ * Data Review list — sab QA users + unke checked/verified/issue stats
+ */
+public function getDataReviewStats()
+{
+    $qaUsers = User::role('QA')->get();
+
+    $data = [];
+    $totalChecked = 0;
+    $totalVerified = 0;
+    $totalIssue = 0;
+    $summaryRowIndex = null; // us row ka index jahan sectors = 'All' hai
+
+    foreach ($qaUsers as $index => $user) {
+        $sectorIds = $this->getUserSectorIds($user);
+        $userTotalChecked = Property::whereHas('qaStatus', fn($q) => $q->where('user_id', $user->id))->count();
+
+$userVerifiedCount = Property::whereHas('qaStatus', fn($q) =>
+    $q->where('user_id', $user->id)->where('status', 1))->count();
+
+$userIssueCount = Property::whereHas('qaStatus', fn($q) =>
+    $q->where('user_id', $user->id)->where('status', 0))->count();
+
+        // $userTotalChecked = DB::table('qa_properties')
+        //     ->where('user_id', $user->id)
+        //     ->count();
+
+        // $userVerifiedCount = DB::table('qa_properties')
+        //     ->where('user_id', $user->id)
+        //     ->where('status', 1)
+        //     ->count();
+
+        // $userIssueCount = DB::table('qa_properties')
+        //     ->where('user_id', $user->id)
+        //     ->where('status', 0)
+        //     ->count();
+
+        $sectorTotalForms = Property::when($sectorIds, fn($q) => $q->whereIn('sector_id', $sectorIds))
+            ->count();
+
+        if ($sectorIds === null) {
+            $sectorsLabel = 'All';
+            $summaryRowIndex = count($data); // ye row summary bane gi
+        } else {
+            $sectorNames = DB::table('sectors')
+                ->whereIn('id', $sectorIds)
+                ->orderBy('name')
+                ->pluck('name');
+            $sectorsLabel = $sectorNames->isNotEmpty() ? $sectorNames->implode(', ') : '-';
+        }
+
+        $data[] = [
+            'id'                 => $user->id,
+            'name'               => $user->name,
+            'sectors'            => $sectorsLabel,
+            'sector_total_forms' => $sectorTotalForms,
+            'total_checked'      => $userTotalChecked,
+            'verified'           => $userVerifiedCount,
+            'issue'              => $userIssueCount,
+            'is_summary'         => false,
+
+        ];
+
+        $totalChecked  += $userTotalChecked;
+        $totalVerified += $userVerifiedCount;
+        $totalIssue    += $userIssueCount;
+    }
+
+    // Jis row ka sectors = 'All' hai (matlab town empty), usi ki columns mein grand total dal do
+    if ($summaryRowIndex !== null) {
+        $data[$summaryRowIndex]['total_checked'] = $totalChecked;
+        $data[$summaryRowIndex]['verified']      = $totalVerified;
+        $data[$summaryRowIndex]['issue']         = $totalIssue;
+         $data[$summaryRowIndex]['is_summary']    = true;   // <-- naya
+    }
+
+    return response()->json(['data' => $data]);
+}
+
+public function getDataReviewDetails(Request $request)
+{
+    $type   = $request->get('type');     // forms | checked | verified | issue
+    $userId = $request->get('user_id');  // specific user id, ya 'all'
+
+    $query = Property::with(['sector', 'block', 'qaStatus.user']);
+
+    if ($userId && $userId !== 'all') {
+
+        $user = User::find($userId);
+        $sectorIds = $this->getUserSectorIds($user);
+
+        switch ($type) {
+            case 'forms':
+                $query->when($sectorIds, fn($q) => $q->whereIn('sector_id', $sectorIds));
+                break;
+            case 'checked':
+                $query->whereHas('qaStatus', fn($q) => $q->where('user_id', $userId));
+                break;
+            case 'verified':
+                $query->whereHas('qaStatus', fn($q) => $q->where('user_id', $userId)->where('status', 1));
+                break;
+            case 'issue':
+                $query->whereHas('qaStatus', fn($q) => $q->where('user_id', $userId)->where('status', 0));
+                break;
+        }
+
+    } else {
+        // "All" / summary row
+        switch ($type) {
+            case 'forms':
+                // koi filter nahi — sab properties
+                break;
+            case 'checked':
+                $query->whereHas('qaStatus');
+                break;
+            case 'verified':
+                $query->whereHas('qaStatus', fn($q) => $q->where('status', 1));
+                break;
+            case 'issue':
+                $query->whereHas('qaStatus', fn($q) => $q->where('status', 0));
+                break;
+        }
+    }
+
+    $data = $query->latest()->get()->map(function ($p) {
+        return [
+            'id'              => $p->id,
+            'applicant_name'  => $p->applicant_name ?? 'N/A',
+            'application_no'  => $p->application_no ?? 'N/A',
+            'plot_no'         => $p->plot_no ?? 'N/A',
+            'sector'          => $p->sector->name ?? 'N/A',
+            'block'           => $p->block->name ?? 'N/A',
+            'status'          => $p->qaStatus
+                                    ? ($p->qaStatus->status == 1 ? 'QA Done' : ($p->qaStatus->issue ?? 'Having Issue'))
+                                    : 'Pending',
+            'checked_by'      => $p->qaStatus->user->name ?? '-',
+            'detail_url'      => route('mdaQaDetail', $p->id),
+        ];
+    });
+
+    return response()->json(['data' => $data]);
 }
     // In QAController.php - Add this method for paginated sector-wise detail
 
