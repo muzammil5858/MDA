@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/qa/store', [QAController::class, 'storeQA'])->name('qa.store');
 
     Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails'])->name('sector.wise.details');
+    Route::get('/file-upload-details', [QAController::class, 'getFileUploadDetails'])->name('file.upload.details');
     Route::get('/sector-requests-count', [QAController::class, 'getSectorCounts']);
     Route::get('/Files', [QAController::class, 'qaFiles'])->name('qaFiles');
     Route::get('/entry-files', [QAController::class, 'entryFiles'])->name('entryFiles');
@@ -213,6 +214,15 @@ Route::middleware('auth')->group(function (){
 Route::middleware('auth')->group(function (){
     Route::get('/property-area/{id}', [QAController::class, 'propertyArea'])->name('propertyArea');
     Route::get('/property-List', [QAController::class, 'propertyList'])->name('property.list');
+
+
+Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails'])
+    ->name('sector.wise.details');
+Route::get('/files-status/{type}', [QAController::class, 'filesStatus'])
+    ->where('type', 'uploaded|remaining')
+    ->name('files.status');
+Route::get('/files-status/uploaded', [QAController::class, 'uploadedFiles'])->name('files.uploaded');
+Route::get('/files-status/remaining', [QAController::class, 'remainingFiles'])->name('files.remaining');
     Route::get('/schedule-appointment', [ClerkController::class, 'scheduleAppointment'])->name('scheduleAppointment');
     Route::post('/schsave', [QAController::class, 'schedulestore']);
 

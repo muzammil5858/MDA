@@ -247,7 +247,7 @@
             </li>
           </li>
           @elseif(auth()->user()->hasRole('director'))
-          <li class="nav-item">
+          {{-- <li class="nav-item">
             <a href="{{ route('dashboard') }}"
               class="nav-link side-item"
               style="color: white;"
@@ -257,8 +257,15 @@
               <p>Dashboard</p>
             </a>
 
-          </li>
+          </li> --}}
           <li class="nav-item">
+  <a href="{{ route('dashboard') }}"
+     class="nav-link side-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+    <i class="nav-icon fas fa-file"></i>
+    <p class="nav-heading">Dashboard</p>
+  </a>
+</li>
+          {{-- <li class="nav-item">
             <a href="{{route('ddTransfer')}}" class="nav-link side-item">
               <i class="nav-icon fas fa-file"></i>
               <p class="nav-heading">
@@ -305,7 +312,7 @@
             Old Transfers
               </p>
             </a>
-          </li>
+          </li> --}}
           @elseif(auth()->user()->hasRole('assistant-director') || auth()->user()->hasRole('deputy-director'))
 
           <li class="nav-item">

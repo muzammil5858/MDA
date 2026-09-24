@@ -16,7 +16,21 @@ use App\Models\SmallRequest;
 use DB;
 
 class QAController extends Controller
+
 {
+    /**
+ * File upload filter: DB se check karta hai.
+ * uploaded  => attachment maujood hai (entry_date null nahi)
+ * remaining => attachment nahi hai (ya entry_date null hai)
+ */
+private function applyFileFilter($query, string $type)
+{
+    $hasFile = fn($q) => $q->whereNotNull('entry_date');
+
+    return $type === 'uploaded'
+        ? $query->whereHas('attachment', $hasFile)
+        : $query->whereDoesntHave('attachment', $hasFile);
+}
 
     public function dashboard()
     {
@@ -24,6 +38,10 @@ class QAController extends Controller
         // Total properties count
 $totalProperties = Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
     ->count();
+$filesBase = fn() => Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds));
+
+$filesUploadedCount  = $this->applyFileFilter($filesBase(), 'uploaded')->count();
+$filesRemainingCount = $this->applyFileFilter($filesBase(), 'remaining')->count();
 
 $categoryCounts = Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
     ->select('category')
@@ -414,6 +432,8 @@ $blocksList = DB::table('blocks')
 
         return view('qa.dashboard', compact(
             'totalProperties',
+                'filesUploadedCount',
+    'filesRemainingCount',
             'categoryData',
             'orderedSectorCategoryData',
             'categoryChartData',
@@ -1129,6 +1149,58 @@ public function storeQA(Request $request)
         return redirect()->back();
     }
 
+
+
+
+public function filesStatus(Request $request, $type)
+{
+    abort_unless(in_array($type, ['uploaded', 'remaining']), 404);
+
+    $allowedSectorIds = $this->getUserSectorIds();
+
+    $query = Property::with(['sector', 'block', 'attachment'])
+        ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds));
+
+    $query = $this->applyFileFilter($query, $type);
+
+    $paginator = $query->latest()->paginate(10);
+
+    // Is page ki properties ke user_id se names ek hi query mein
+    $userIds = $paginator->getCollection()->pluck('user_id')->filter()->unique()->values();
+    $users   = User::whereIn('id', $userIds)->pluck('name', 'id');
+
+    $rows = $paginator->getCollection()->map(function ($p) use ($users) {
+        $att = $p->attachment;
+        if ($att instanceof \Illuminate\Support\Collection) {
+            $att = $att->first();
+        }
+
+        $name = $p->user_id ? ($users[$p->user_id] ?? null) : null;
+
+        return [
+            'id'             => $p->id,
+            'applicant_name' => $p->applicant_name ?? 'N/A',
+            'application_no' => $p->application_no ?? 'N/A',
+            'plot_no'        => $p->plot_no ?? 'N/A',
+            'sector'         => $p->sector->name ?? 'N/A',
+            'block'          => $p->block->name ?? 'N/A',
+            'uploaded_by'    => $name ? explode(' ', trim($name))[0] : '-',
+            'uploaded_at'    => optional($att)->entry_date
+                                    ? \Carbon\Carbon::parse($att->entry_date)->format('d-m-Y')
+                                    : '-',
+            'detail_url'     => route('mdaQaDetail', $p->id),
+        ];
+    });
+
+    return response()->json([
+        'data'         => $rows,
+        'total'        => $paginator->total(),
+        'per_page'     => $paginator->perPage(),
+        'current_page' => $paginator->currentPage(),
+        'last_page'    => $paginator->lastPage(),
+    ]);
+}
+
     public function DDverify($id, $type)
     {
         if ($type == 1 || $type == 2 || $type == 3 || $type == 4) {
@@ -1254,4 +1326,15 @@ public function storeQA(Request $request)
                 ->with('error', 'Error loading transaction history');
         }
     }
+    public function uploadedFiles(Request $request)
+{
+    $files = YourModel::where('status', 'uploaded')->paginate(10);
+    return response()->json($files);
+}
+
+public function remainingFiles(Request $request)
+{
+    $files = YourModel::where('status', 'remaining')->paginate(10);
+    return response()->json($files);
+}
 }
