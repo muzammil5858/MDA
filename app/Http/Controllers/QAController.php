@@ -668,12 +668,14 @@ public function getSectorWiseDetails(Request $request)
     $perPage = $request->get('per_page', 10);
     $page = $request->get('page', 1);
     $search = $request->get('search', '');
+    $allowedSectorIds = $this->getUserSectorIds();
 
     // Get sectors with pagination - EXCLUDE unknown sectors
     $sectorsQuery = DB::table('sectors')
         ->where('name', 'NOT LIKE', '%unknown%')
         ->where('name', 'NOT LIKE', '%Unknown%')
         ->where('name', 'NOT LIKE', '%UNKNOWN%')
+                ->when($allowedSectorIds, fn($q) => $q->whereIn('id', $allowedSectorIds)) 
         ->orderBy('name')
         ->when($search, function ($query, $search) {
             return $query->where('name', 'LIKE', "%{$search}%");

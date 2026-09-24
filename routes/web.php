@@ -102,7 +102,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/mda-qa-list', [QAController::class, 'mdaQaList'])->name('mdaQaList');
     Route::post('/qa/store', [QAController::class, 'storeQA'])->name('qa.store');
 
-    Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails'])->name('sector.wise.details');
+Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails'])
+    ->name('sector.wise.details');
     Route::get('/file-upload-details', [QAController::class, 'getFileUploadDetails'])->name('file.upload.details');
     Route::get('/sector-requests-count', [QAController::class, 'getSectorCounts']);
     Route::get('/Files', [QAController::class, 'qaFiles'])->name('qaFiles');
@@ -216,8 +217,7 @@ Route::middleware('auth')->group(function (){
     Route::get('/property-List', [QAController::class, 'propertyList'])->name('property.list');
 
 
-Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails'])
-    ->name('sector.wise.details');
+
 Route::get('/files-status/{type}', [QAController::class, 'filesStatus'])
     ->where('type', 'uploaded|remaining')
     ->name('files.status');

@@ -1058,8 +1058,8 @@
 window.loadSectorWiseData = function() {
     if (!sectorWiseTableBody) return;
 
-    // Loading message
-    sectorWiseTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Loading sectors...</td></tr>`;
+    // Show loading text sirf first time
+    sectorWiseTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>`;
 
     const url = `/sector-wise-details?page=${currentSectorPage}&per_page=${sectorPerPage}&search=${encodeURIComponent(sectorSearchQuery)}`;
 
@@ -1070,9 +1070,7 @@ window.loadSectorWiseData = function() {
         }
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error('HTTP ' + response.status);
-        }
+        if (!response.ok) throw new Error('HTTP ' + response.status);
         return response.json();
     })
     .then(data => {
@@ -1084,14 +1082,11 @@ window.loadSectorWiseData = function() {
         renderSectorPagination(data);
     })
     .catch(error => {
-        console.error('Error loading sector data:', error);
+        console.error('Sector load error:', error);
         sectorWiseTableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-danger">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    Data load nahi ho saka. Error: ${error.message}
-                </td>
-            </tr>`;
+            <tr><td colspan="5" class="text-center text-danger">
+                <i class="bi bi-exclamation-triangle"></i> Data load nahi ho saka (Error: ${error.message})
+            </td></tr>`;
     });
 };
 
@@ -1251,17 +1246,23 @@ window.loadSectorWiseData = function() {
             };
 
             // Sector Wise Detail toggle button click par bhi auto load
-            document.addEventListener('click', function(e) {
-                if (e.target.id === 'sector-wise-detail-toggle') {
-                    // Thoda wait karo taake section visible ho jaye, phir load karo
-                    setTimeout(function() {
-                        const section = document.getElementById('sector-wise-detail-row');
-                        if (section && !section.classList.contains('d-none')) {
-                            window.loadSectorWiseData();
-                        }
-                    }, 50);
-                }
-            });
+ // Sector Wise Detail toggle par foran load
+document.addEventListener('click', function(e) {
+    const toggle = e.target.closest('#sector-wise-detail-toggle');
+    if (!toggle) return;
+    e.preventDefault();
+    e.stopPropagation();
+    // Section open karo
+    const section = document.getElementById('sector-wise-detail-row');
+    if (!section) return;
+    // Baqi sections band karo
+    document.querySelectorAll('.table-section').forEach(t => t.classList.add('d-none'));
+    section.classList.remove('d-none');
+    activeSection = section;
+    // Data load karo
+    currentSectorPage = 1;
+    window.loadSectorWiseData();
+});
 
             // Agar page load par hi section visible ho (rare case), to bhi load karo
             window.addEventListener('load', function() {
@@ -1547,11 +1548,18 @@ window.loadSectorWiseData = function() {
                     }
                 };
 
-                document.getElementById('sector-wise-detail-toggle')
-                    ?.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        toggleSection(sectorWiseDetailRow);
-                    });
+             document.getElementById('sector-wise-detail-toggle')
+    ?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSection(sectorWiseDetailRow);
+
+        // section open hote hi list load karo (default per_page/page already 10/1 hain)
+        if (!sectorWiseDetailRow.classList.contains('d-none')) {
+            if (typeof window.loadSectorWiseData === 'function') {
+                window.loadSectorWiseData();
+            }
+        }
+    });
 
                 document.getElementById('data-review-toggle')
                     ?.addEventListener('click', (e) => {
