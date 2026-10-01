@@ -36,6 +36,9 @@ Route::post('/dummy-dashboard',[QAController::class, 'dashboard'])->name('thumb.
 Route::get('/', function () {
     return view('welcome');
 });
+Route::middleware('auth')->get('/lfm-test', function () {
+    return view('lfm-test');
+})->name('lfm.test');
 Route::get('/captcha', [CaptchaController::class, 'generateCaptcha'])->name('captcha.generate');
 Route::post('/captcha/validate', [CaptchaController::class, 'validateCaptcha'])->name('captcha.validate');
 Route::post('/temp-store',[PropertyController::class,'tempStore'])->name('tempStore');
@@ -83,7 +86,6 @@ Route::get('/get-blocks/{sectorId}', [PropertyController::class, 'getBlocksBySec
 // Update the controller route to accept path parameter
 Route::get('/file-viewer', [FileViewerController::class, 'show'])
     ->name('file.viewer');
-    Route::get('/get-blocks/{sectorName}', [PropertyController::class, 'getBlocks'])->name('getBlocks');
 });
 
 // QA Routes

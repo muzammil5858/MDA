@@ -1052,7 +1052,11 @@
     <div class="form-row">
         <div class="col-md-12 text-left">
             <label>Property Document <span class="required-star">*</span></label>
-            <input type="file" name="property_document" id="complete_property_file_input" accept=".pdf,.jpg,.jpeg,.png">
+            <div class="input-group mb-2">
+                <button type="button" class="btn btn-outline-primary lfm-picker" data-input="property_document_path" data-preview="property_document_preview">Choose File</button>
+            </div>
+            <input type="text" id="property_document_path" name="property_document_path" value="{{ old('property_document_path', $property->attachment->property_document ?? '') }}" class="form-control" placeholder="Selected library file path" readonly>
+            <div id="property_document_preview" class="small text-muted mt-2"></div>
             @if(!empty($property->attachment->property_document))
                 <div class="current-file-box">
                     <span class="current-file-label">Current File:</span>
@@ -1062,9 +1066,13 @@
                 </div>
             @endif
         </div>
-                <div class="col-md-12 text-left">
+        <div class="col-md-12 text-left">
             <label>Noting File</label>
-            <input type="file" name="noting_file">
+            <div class="input-group mb-2">
+                <button type="button" class="btn btn-outline-primary lfm-picker" data-input="noting_file_path" data-preview="noting_file_preview">Choose File</button>
+            </div>
+            <input type="text" id="noting_file_path" name="noting_file_path" value="{{ old('noting_file_path', $property->attachment->noting_file ?? '') }}" class="form-control" placeholder="Selected library file path" readonly>
+            <div id="noting_file_preview" class="small text-muted mt-2"></div>
             @if(!empty($property->attachment->noting_file))
                 <div class="current-file-box">
                     <span class="current-file-label">Current File:</span>
@@ -1429,6 +1437,49 @@ $(document).ready(function () {
         });
     }
 
+    function normalizeStoragePathForPreview(value) {
+        if (!value) return '';
+
+        var clean = value.trim();
+        clean = clean.replace(/^https?:\/\/[^/]+/i, '');
+        clean = clean.replace(/^\/+/, '');
+        clean = clean.replace(/^storage\//i, '');
+        clean = clean.replace(/^public\//i, '');
+
+        return clean;
+    }
+
+    function renderSelectedDocumentPreview(fileValue, fieldName) {
+        var cleanPath = normalizeStoragePathForPreview(fileValue);
+        if (!cleanPath) {
+            return;
+        }
+
+        var lower = cleanPath.toLowerCase();
+        var previewUrl = '{{ asset('storage') }}/' + cleanPath.replace(/^\/+/, '');
+        var $previewBox = $('#previewBox');
+
+        if (lower.match(/\.pdf$/i)) {
+            $previewBox.html('<div class="pdf-scroll-outer" id="pdfScrollOuter"><div id="pdfViewerContainer" class="pdf-viewer-container"></div></div>');
+            renderPdfProgressive(previewUrl, '#pdfViewerContainer');
+
+            if (fieldName === 'property_document') {
+                $('#complete_file_pages').val($('#complete_file_pages').val() || '');
+            }
+            return;
+        }
+
+        if (lower.match(/\.(png|jpe?g|gif|bmp|webp)$/i)) {
+            $previewBox.html('<div class="pdf-scroll-outer"><div id="pdfViewerContainer" class="pdf-viewer-container"><img src="' + previewUrl + '" style="max-width:100%;display:block;margin:auto;"></div></div>');
+            showZoomToolbar();
+            resetZoom();
+            return;
+        }
+
+        $previewBox.html('<div class="no-preview">Preview not available for this file type.<br>(' + cleanPath + ')</div>');
+        $('#previewToolbar').hide();
+    }
+
     // ================= AUTO COUNT PDF PAGES + PREVIEW =================
     $('#complete_property_file_input').on('change', function(e) {
         var file = e.target.files[0];
@@ -1482,6 +1533,10 @@ $(document).ready(function () {
             var $previewBox = $('#previewBox');
             $previewBox.html('<div class="no-preview">Preview not available for this file type.<br>(' + file.name + ')</div>');
         }
+    });
+
+    $('#property_document_path').on('change', function () {
+        renderSelectedDocumentPreview($(this).val(), 'property_document');
     });
 
     // ================= SELECT2 =================
@@ -1717,5 +1772,43 @@ $('#msform').on('submit', function (e) {
     @endif
 
 });
+    </script>
+
+    <script src="{{ asset('vendor/laravel-filemanager/js/stand-alone-button.js') }}"></script>
+    <script>
+        (function ($) {
+            $.fn.filemanager = function (type, options) {
+                type = type || 'file';
+
+                this.on('click', function (e) {
+                    e.preventDefault();
+
+                    var route_prefix = (options && options.prefix) ? options.prefix : '/filemanager';
+                    var target_input = $('#' + $(this).data('input'));
+                    var target_preview = $('#' + $(this).data('preview'));
+
+                    window.open(route_prefix + '?type=' + type, 'FileManager', 'width=900,height=600');
+
+                    window.SetUrl = function (items) {
+                        var file_path = items.map(function (item) {
+                            return item.url;
+                        }).join(',');
+
+                        file_path = file_path
+                            .replace(/^https?:\/\/[^/]+/i, '')
+                            .replace(/^\/+/, '')
+                            .replace(/^storage\//i, '');
+
+                        target_input.val('').val(file_path).trigger('change');
+                        target_preview.html('');
+                        target_preview.trigger('change');
+                    };
+                });
+
+                return this;
+            };
+        })(jQuery);
+
+        $('.lfm-picker').filemanager('file', { prefix: '{{ url(config('lfm.url_prefix', 'filemanager')) }}' });
     </script>
 </x-app-layout>

@@ -754,11 +754,19 @@
                             <div class="form-row">
                                 <div class="col-md-4 text-left">
                                     <label>Property Document <span class="required-star">*</span></label>
-                                    <input type="file" name="property_document">
+                                    <div class="input-group mb-2">
+                                        <button type="button" class="btn btn-outline-primary lfm-picker" data-input="property_document_path" data-preview="property_document_preview">Choose File</button>
+                                    </div>
+                                    <input type="text" id="property_document_path" name="property_document_path" value="{{ old('property_document_path') }}" class="form-control" placeholder="Selected library file path" readonly>
+                                    <div id="property_document_preview" class="small text-muted mt-2"></div>
                                 </div>
                                 <div class="col-md-4 text-left">
                                     <label>Noting File</label>
-                                    <input type="file" name="noting_file">
+                                    <div class="input-group mb-2">
+                                        <button type="button" class="btn btn-outline-primary lfm-picker" data-input="noting_file_path" data-preview="noting_file_preview">Choose File</button>
+                                    </div>
+                                    <input type="text" id="noting_file_path" name="noting_file_path" value="{{ old('noting_file_path') }}" class="form-control" placeholder="Selected library file path" readonly>
+                                    <div id="noting_file_preview" class="small text-muted mt-2"></div>
                                 </div>
 
                                 <div class="col-md-4 text-left">
@@ -1134,5 +1142,43 @@ $('#msform').on('submit', function (e) {
     });
 });
         });
+    </script>
+
+    <script src="{{ asset('vendor/laravel-filemanager/js/stand-alone-button.js') }}"></script>
+    <script>
+        (function ($) {
+            $.fn.filemanager = function (type, options) {
+                type = type || 'file';
+
+                this.on('click', function (e) {
+                    e.preventDefault();
+
+                    var route_prefix = (options && options.prefix) ? options.prefix : '/filemanager';
+                    var target_input = $('#' + $(this).data('input'));
+                    var target_preview = $('#' + $(this).data('preview'));
+
+                    window.open(route_prefix + '?type=' + type, 'FileManager', 'width=900,height=600');
+
+                    window.SetUrl = function (items) {
+                        var file_path = items.map(function (item) {
+                            return item.url;
+                        }).join(',');
+
+                        file_path = file_path
+                            .replace(/^https?:\/\/[^/]+/i, '')
+                            .replace(/^\/+/, '')
+                            .replace(/^storage\//i, '');
+
+                        target_input.val('').val(file_path).trigger('change');
+                        target_preview.html('');
+                        target_preview.trigger('change');
+                    };
+                });
+
+                return this;
+            };
+        })(jQuery);
+
+        $('.lfm-picker').filemanager('file', { prefix: '{{ url(config('lfm.url_prefix', 'filemanager')) }}' });
     </script>
 </x-app-layout>
