@@ -575,6 +575,13 @@
         <p class="nav-heading">Add Block</p>
     </a>
 </li>
+</li>
+   <li class="nav-item">
+    <a href="{{ route('addSector') }}" class="nav-link side-item">
+        <i class="far fa-circle nav-icon"></i>
+        <p class="nav-heading">Add Sector</p>
+    </a>
+</li>
 
             </ul>
           </li>

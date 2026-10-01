@@ -29,6 +29,27 @@ class PropertyController extends Controller
     {
         return $this->getBlocks($sectorId);
     }
+       // public function getBlocks($sectorId)
+    // {
+    //     if (empty($sectorId) || $sectorId === '') {
+    //         return response()->json([]);
+    //     }
+
+    //     $blocks = Block::where('sector_id', $sectorId)
+    //         ->orderBy('name')
+    //         ->get(['id', 'name']);
+
+    //     return response()->json($blocks);
+    // }
+
+    // public function getBlocksBySector($sectorId)
+    // {
+    //     $blocks = Block::where('sector_id', $sectorId)
+    //         ->orderBy('name')
+    //         ->get(['id', 'name']);
+
+    //     return response()->json($blocks);
+    // }
 
     /**
      * Show the multi-step form (create).
@@ -715,6 +736,103 @@ class PropertyController extends Controller
                     $attachmentData[$field] = $existingAttachment->$field;
                 }
             }
+        }
+    }
+        /* ============================================================
+     |  BLOCKS
+     * ============================================================ */
+
+    // public function getBlocks($sectorId)
+    // {
+    //     if (empty($sectorId) || $sectorId === '') {
+    //         return response()->json([]);
+    //     }
+
+    //     $blocks = Block::where('sector_id', $sectorId)
+    //         ->orderBy('name')
+    //         ->get(['id', 'name']);
+
+    //     return response()->json($blocks);
+    // }
+
+    // public function getBlocksBySector($sectorId)
+    // {
+    //     $blocks = Block::where('sector_id', $sectorId)
+    //         ->orderBy('name')
+    //         ->get(['id', 'name']);
+
+    //     return response()->json($blocks);
+    // }
+
+    /* ============================================================
+     |  BLOCK MANAGEMENT
+     * ============================================================ */
+
+    public function addblock()
+    {
+        $sectors = Sector::orderBy('name')->get(['id', 'name']);
+
+        $blocks = Block::with('sector:id,name')
+            ->orderBy('sector_id')
+            ->orderBy('name')
+            ->get(['id', 'sector_id', 'name']);
+
+        return view('property.add-block', compact('sectors', 'blocks'));
+    }
+
+    public function storeBlock(Request $request)
+    {
+        $request->validate([
+            'sector_id' => 'required|exists:sectors,id',
+            'name'      => 'required|string|max:255|unique:blocks,name,NULL,id,sector_id,' . $request->sector_id,
+        ]);
+
+        try {
+            Block::create([
+                'sector_id' => $request->sector_id,
+                'name'      => $request->name,
+            ]);
+
+            return redirect()->route('addBlock')->with('success', 'Block added successfully.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()
+                ->with('error', 'An error occurred: ' . $e->getMessage());
+        }
+    }
+
+    /* ============================================================
+     |  SECTOR MANAGEMENT
+     * ============================================================ */
+
+    public function addSector()
+    {
+        $sectors = Sector::orderBy('name')->get(['id', 'name']);
+
+        $blocks = Block::with('sector:id,name')
+            ->orderBy('sector_id')
+            ->orderBy('name')
+            ->get(['id', 'sector_id', 'name']);
+
+        return view('property.add_sector', compact('sectors', 'blocks'));
+    }
+
+    public function storeSector(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:sectors,name',
+        ]);
+
+        try {
+            Sector::create([
+                'name' => $request->name,
+            ]);
+
+            return redirect()->route('addSector')->with('success', 'Sector added successfully.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()
+                ->with('error', 'An error occurred: ' . $e->getMessage());
         }
     }
 

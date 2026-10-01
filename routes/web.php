@@ -60,7 +60,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/form', [PropertyController::class, 'create'])->name('form');
     Route::post('/submit-form', [PropertyController::class, 'store'])->name('formSubmission');
-
+Route::get('/add-sector', [PropertyController::class, 'addSector'])->name('addSector');
+Route::post('/store-sector', [PropertyController::class, 'storeSector'])->name('storeSector');
     Route::get('/form-list', [PropertyController::class, 'formList'])->name('formList');
        Route::get('/entries-list', [PropertyController::class, 'entriesList'])->name('entriesList');
 // Add Block routes
