@@ -3,7 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-
+use App\Contracts\OTPInterface;
+use App\Services\SMSOTPService;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -13,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+         $this->app->bind(OTPInterface::class, SMSOTPService::class);
     }
 
     /**
