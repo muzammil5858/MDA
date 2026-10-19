@@ -109,6 +109,8 @@
                                         <th>Application No</th>
                                         <th>Plot No</th>
                                         <th>Sector</th>
+                                        <th>Block</th>
+                                        <th>Sub Block</th>
                                         <th>QA Status</th>
                                         <th>Entry Date</th>
                                         <th>Action</th>
@@ -121,23 +123,25 @@
                                             <td>{{ $dat->applicant_name ?? 'N/A' }}</td>
                                             <td>{{ $dat->application_no ?? 'N/A' }}</td>
                                             <td>{{ $dat->plot_no ?? 'N/A' }}</td>
-                                            <td>{{$dat->sector->name ?? "N/A"}}</td>
-                                             <td>
-    @if($dat->qaStatus && $dat->qaStatus->status == 1)
-        <span class="badge badge-success qa-status-badge">QA Done</span>
-    @else
-        <span class="badge badge-warning qa-status-badge">{{ $dat->qaStatus->issue ?? 'Panding' }}</span>
-    @endif
-</td>
+                                            <td>{{ $dat->sector->name ?? 'N/A' }}</td>
+                                            <td>{{ $dat->block->name ?? 'N/A' }}</td>
+                                            <td>{{ $dat->subBlock->name ?? 'N/A' }}</td>
+                                            <td>
+                                                @if($dat->qaStatus && $dat->qaStatus->status == 1)
+                                                    <span class="badge badge-success qa-status-badge">QA Done</span>
+                                                @else
+                                                    <span class="badge badge-warning qa-status-badge">{{ $dat->qaStatus->issue ?? 'Pending' }}</span>
+                                                @endif
+                                            </td>
                                             <td>
                                                 {{ $dat->attachment && $dat->attachment->entry_date
                                                     ? \Carbon\Carbon::parse($dat->attachment->entry_date)->format('d-m-Y')
                                                     : 'N/A' }}
                                             </td>
                                             <td>
-                                               <a href="{{ route('mdaQaDetail', $dat->id) }}">
-    <i class="fa fa-eye" title="View Detail" style="font-size:18px; cursor:pointer;"></i>
-</a>
+                                                <a href="{{ route('mdaQaDetail', $dat->id) }}">
+                                                    <i class="fa fa-eye" title="View Detail" style="font-size:18px; cursor:pointer;"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                     @empty

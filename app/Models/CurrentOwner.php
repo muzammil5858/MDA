@@ -17,8 +17,10 @@ class CurrentOwner extends Model
         'father_husband_name',
         'old_nic',
         'cnic',
+        'date_of_transfer',
         'address_temporary',
-        'address_permanent'
+        'address_permanent',
+        'transfer_order_no'
     ];
 
     // Relationship with Property

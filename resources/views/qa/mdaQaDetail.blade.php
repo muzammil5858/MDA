@@ -199,6 +199,39 @@
             border-bottom: 2px solid #03346E;
         }
 
+        .detail-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 18px 0 10px;
+        }
+
+        .detail-tab-btn {
+            border: 1px solid #d9d9d9;
+            background: #f5f7fb;
+            color: #03346E;
+            border-radius: 8px 8px 0 0;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .detail-tab-btn.active {
+            background: #03346E;
+            color: #fff;
+            border-color: #03346E;
+        }
+
+        .detail-tab-panel {
+            display: none;
+        }
+
+        .detail-tab-panel.active {
+            display: block;
+        }
+
         .transferee-block {
             border: 1px dashed #03346E;
             border-radius: 6px;
@@ -373,6 +406,13 @@
                             <h2 id="heading" class="text-center">Mirpur Development Authority - Property Detail</h2>
                             <p class="text-center">View complete property information</p>
 
+                            <div class="detail-tabs">
+                                <button type="button" class="detail-tab-btn active" data-tab="step1">Property Detail</button>
+                                <button type="button" class="detail-tab-btn" data-tab="step2">Payment</button>
+                                <button type="button" class="detail-tab-btn" data-tab="step3">Property History</button>
+                                <button type="button" class="detail-tab-btn" data-tab="step4">Attachments</button>
+                            </div>
+
                             <div id="detailView">
 
                                 {{-- ===== SUCCESS / ERROR MESSAGES ===== --}}
@@ -401,6 +441,7 @@
                                     </div>
                                 @endif
 
+                                <div class="detail-tab-panel active" data-panel="step1">
                                 {{-- ===== PROPERTY DETAIL SECTION ===== --}}
                                 <div class="section-title">📋 Property Detail</div>
                                 <div class="two-col">
@@ -423,6 +464,10 @@
                                     <div>
                                         <label class="detail-label">Block</label>
                                         <div class="detail-subheading">{{ $property->block->name ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Sub Block</label>
+                                        <div class="detail-subheading">{{ $property->subBlock->name ?? '-' }}</div>
                                     </div>
                                     <div>
                                         <label class="detail-label">Approved Scheme</label>
@@ -449,7 +494,11 @@
                                         <div class="detail-subheading">{{ $property->form_no ?? '-' }}</div>
                                     </div>
                                     <div>
-                                        <label class="detail-label">Initial Draft Amount</label>
+                                        <label class="detail-label">Initial Draft Number</label>
+                                        <div class="detail-subheading">{{ $property->initial_draft_number ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Draft Amount/Down Payment</label>
                                         <div class="detail-subheading">{{ number_format($property->initial_draft_amount ?? 0, 0) }}</div>
                                     </div>
                                     <div>
@@ -457,11 +506,84 @@
                                         <div class="detail-subheading">{{ $property->initial_draft_date ?? '-' }}</div>
                                     </div>
                                     <div>
-                                        <label class="detail-label">Name Applicant/Allottee</label>
+                                        <label class="detail-label">Initial Notice No.</label>
+                                        <div class="detail-subheading">{{ $property->payment->initial_notice_no ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Initial Notice Date</label>
+                                        <div class="detail-subheading">{{ $property->payment->initial_notice_date ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Category</label>
+                                        <div class="detail-subheading">{{ $property->category ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Mode of Allottment</label>
+                                        <div class="detail-subheading">{{ $property->mode_allottment ?? '-' }}</div>
+                                    </div>
+
+                                    <div>
+                                        <label class="detail-label">Serial No of Balloting</label>
+                                        <div class="detail-subheading">{{ $property->balloting_serial_no ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Transfer Count</label>
+                                        <div class="detail-subheading">{{ $property->transfer_count ?? '0' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Ownership Type</label>
+                                        <div class="detail-subheading">{{ ucfirst($property->ownership_type ?? '-') }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Allotment Type</label>
+                                        <div class="detail-subheading">{{ ucfirst($property->allotment_type ?? '-') }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Has Adjacent Area</label>
+                                        <div class="detail-subheading">{{ ucfirst($property->has_adjacent_area ?? '-') }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Adjacent Area / Size</label>
+                                        <div class="detail-subheading">{{ $property->adjacent_area ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Original Size</label>
+                                        <div class="detail-subheading">{{ $property->original_size ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Adjacent Price</label>
+                                        <div class="detail-subheading">{{ number_format($property->adjacent_price ?? 0, 0) }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Adjacent Allotment No.</label>
+                                        <div class="detail-subheading">{{ $property->adjacent_allotment_no ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Adjacent Allotment Date</label>
+                                        <div class="detail-subheading">{{ $property->adjacent_allotment_date ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Revising Notice No.</label>
+                                        <div class="detail-subheading">{{ $property->revising_notice_no ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Revising Notice Date</label>
+                                        <div class="detail-subheading">{{ $property->revising_notice_date ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Revising Notice Status</label>
+                                        <div class="detail-subheading">{{ ucfirst($property->revising_notice_status ?? '-') }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Penalty Amount</label>
+                                        <div class="detail-subheading">{{ number_format($property->revising_penalty_amount ?? 0, 0) }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Name Applicant / Allottee</label>
                                         <div class="detail-subheading">{{ $property->applicant_name ?? '-' }}</div>
                                     </div>
                                     <div>
-                                        <label class="detail-label">Father/Husband Name</label>
+                                        <label class="detail-label">Father / Husband Name</label>
                                         <div class="detail-subheading">{{ $property->father_husband_name ?? '-' }}</div>
                                     </div>
                                     <div>
@@ -473,37 +595,32 @@
                                         <div class="detail-subheading">{{ $property->cnic ?? '-' }}</div>
                                     </div>
                                     <div>
-                                        <label class="detail-label">Category</label>
-                                        <div class="detail-subheading">{{ $property->category ?? '-' }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="detail-label">Mode of Allottment</label>
-                                        <div class="detail-subheading">{{ $property->mode_allottment ?? '-' }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="detail-label">Allotment Date</label>
-                                        <div class="detail-subheading">{{ $property->allotment_date ?? '-' }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="detail-label">Serial No of Balloting</label>
-                                        <div class="detail-subheading">{{ $property->balloting_serial_no ?? '-' }}</div>
+                                        <label class="detail-label">Allottee Category</label>
+                                        <div class="detail-subheading">{{ $property->allottee_category ?? '-' }}</div>
                                     </div>
                                 </div>
-                                <div>
+                                <div style="grid-column: 1 / -1;">
                                     <label class="detail-label">Address (Temporary)</label>
                                     <div class="detail-subheading">{{ $property->address_temporary ?? '-' }}</div>
                                 </div>
-                                <div>
+                                <div style="grid-column: 1 / -1;">
                                     <label class="detail-label">Address (Permanent)</label>
                                     <div class="detail-subheading">{{ $property->address_permanent ?? '-' }}</div>
                                 </div>
-                                <div>
+                                <div style="grid-column: 1 / -1;">
+                                    <label class="detail-label">Alternate Allotment</label>
+                                    <div class="detail-subheading">{{ $property->attachment->alternate_allotment ?? '-' }}</div>
+                                </div>
+                                <div style="grid-column: 1 / -1;">
                                     <label class="detail-label">Remarks</label>
                                     <div class="detail-subheading">{{ $property->remarks ?? '-' }}</div>
                                 </div>
 
+                                </div>
+
+                                <div class="detail-tab-panel" data-panel="step2">
                                 {{-- ===== PAYMENT DETAIL SECTION ===== --}}
-                                <div class="section-title" style="margin-top:25px;">💰 Payment Detail</div>
+                                <div class="section-title" style="margin-top:25px;">💰 Payment</div>
                                 <div class="two-col">
                                     <div>
                                         <label class="detail-label">Price</label>
@@ -517,18 +634,8 @@
                                         <label class="detail-label">Receivable Amount</label>
                                         <div class="detail-subheading">{{ number_format($property->payment->remaining_amount ?? 0, 0) }}</div>
                                     </div>
-                                    <div>
-                                        <label class="detail-label">Down payment</label>
-                                        <div class="detail-subheading">{{ number_format($property->payment->down_payment ?? 0, 0) }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="detail-label">Initial Notice No.</label>
-                                        <div class="detail-subheading">{{ $property->payment->initial_notice_no ?? '-' }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="detail-label">Initial Notice Date</label>
-                                        <div class="detail-subheading">{{ $property->payment->initial_notice_date ?? '-' }}</div>
-                                    </div>
+
+
                                     <div>
                                         <label class="detail-label">Total Received Amount</label>
                                         <div class="detail-subheading">{{ number_format($property->payment->total_received_amount ?? 0, 0) }}</div>
@@ -567,49 +674,115 @@
                                             <div class="detail-subheading">{{ $property->payment->map_approval_date ?? '-' }}</div>
                                         </div>
                                         <div>
+                                            <label class="detail-label">Map Approval Number</label>
+                                            <div class="detail-subheading">{{ $property->payment->map_approval_number ?? '-' }}</div>
+                                        </div>
+                                        <div>
+                                            <label class="detail-label">Map Approval Category</label>
+                                            <div class="detail-subheading">{{ $property->payment->map_approval_category ?? '-' }}</div>
+                                        </div>
+                                        <div>
                                             <label class="detail-label">Transfer Order No.</label>
                                             <div class="detail-subheading">{{ $property->payment->transfer_order_no ?? '-' }}</div>
                                         </div>
                                     </div>
                                 </div>
 
+                                </div>
+
+                                <div class="detail-tab-panel" data-panel="step3">
                                 {{-- ===== PLOT HISTORY SECTION ===== --}}
-                                <div class="section-title" style="margin-top:25px;">👤 Detail of Transferees</div>
-                                @forelse($property->plotHistories as $index => $transferee)
-                                    <div class="transferee-block">
-                                        <div class="two-col">
-                                            <div>
-                                                <label class="detail-label">Transferee Name</label>
-                                                <div class="detail-subheading">{{ $transferee->name ?? '-' }}</div>
-                                            </div>
-                                            <div>
-                                                <label class="detail-label">Father Name</label>
-                                                <div class="detail-subheading">{{ $transferee->father_name ?? '-' }}</div>
-                                            </div>
-                                            <div>
-                                                <label class="detail-label">ID Card</label>
-                                                <div class="detail-subheading">{{ $transferee->id_card ?? '-' }}</div>
-                                            </div>
-                                            <div>
-                                                <label class="detail-label">Challan No.</label>
-                                                <div class="detail-subheading">{{ $transferee->challan_no ?? '-' }}</div>
+                                <div class="section-title" style="margin-top:25px;">👤 Property History</div>
+
+                                <div style="margin-bottom: 15px;">
+                                    <label class="detail-label">Current Owners</label>
+                                    @forelse($property->currentOwners as $owner)
+                                        <div class="transferee-block">
+                                            <div class="two-col">
+                                                <div>
+                                                    <label class="detail-label">Name</label>
+                                                    <div class="detail-subheading">{{ $owner->applicant_name ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Father / Husband Name</label>
+                                                    <div class="detail-subheading">{{ $owner->father_husband_name ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">CNIC</label>
+                                                    <div class="detail-subheading">{{ $owner->cnic ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Date of Transfer</label>
+                                                    <div class="detail-subheading">{{ $owner->date_of_transfer ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Address</label>
+                                                    <div class="detail-subheading">{{ $owner->address_temporary ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Transfer/Allotment Order No</label>
+                                                    <div class="detail-subheading">{{ $owner->transfer_order_no ?? '-' }}</div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @empty
-                                    <div class="detail-subheading detail-subheading-empty">No transferees added</div>
-                                @endforelse
+                                    @empty
+                                        <div class="detail-subheading detail-subheading-empty">No current owners added</div>
+                                    @endforelse
+                                </div>
 
+                                <div>
+                                    <label class="detail-label">Transferees</label>
+                                    @forelse($property->plotHistories as $transferee)
+                                        <div class="transferee-block">
+                                            <div class="two-col">
+                                                <div>
+                                                    <label class="detail-label">Transferee Name</label>
+                                                    <div class="detail-subheading">{{ $transferee->name ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Father Name</label>
+                                                    <div class="detail-subheading">{{ $transferee->father_name ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">ID Card</label>
+                                                    <div class="detail-subheading">{{ $transferee->id_card ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Challan No.</label>
+                                                    <div class="detail-subheading">{{ $transferee->challan_no ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Allottee Date</label>
+                                                    <div class="detail-subheading">{{ $transferee->allottee_date ?? '-' }}</div>
+                                                </div>
+                                                <div style="grid-column: 1 / -1;">
+                                                    <label class="detail-label">Address</label>
+                                                    <div class="detail-subheading">{{ $transferee->address ?? '-' }}</div>
+                                                </div>
+                                                <div>
+                                                    <label class="detail-label">Transfer/Allotment Order No</label>
+                                                    <div class="detail-subheading">{{ $transferee->transfer_order_no ?? '-' }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="detail-subheading detail-subheading-empty">No transferees added</div>
+                                    @endforelse
+                                </div>
+
+                                </div>
+
+                                <div class="detail-tab-panel" data-panel="step4">
                                 {{-- ===== ATTACHMENTS SECTION ===== --}}
                                 <div class="section-title" style="margin-top:25px;">📎 Attachments</div>
                                 <div class="two-col">
                                     <div>
-                                        <label class="detail-label">Alternate Allotment</label>
-                                        <div class="detail-subheading">{{ $property->attachment->alternate_allotment ?? '-' }}</div>
-                                    </div>
-                                    <div>
                                         <label class="detail-label">Complete File Pages</label>
                                         <div class="detail-subheading">{{ $property->attachment->complete_file_pages ?? '-' }}</div>
+                                    </div>
+                                    <div>
+                                        <label class="detail-label">Alternate Allotment</label>
+                                        <div class="detail-subheading">{{ $property->attachment->alternate_allotment ?? '-' }}</div>
                                     </div>
                                 </div>
 
@@ -631,12 +804,12 @@
                                 </div>
 
                                 <div>
-                                    <label class="detail-label">Adjacent Area Allotment</label>
-                                    @if(!empty($property->attachment->adjacent_area_allotment))
+                                    <label class="detail-label">Noting File</label>
+                                    @if(!empty($property->attachment->noting_file))
                                         <div class="current-file-box">
                                             <span class="current-file-label">Current File:</span>
-                                            <a href="{{ route('file.viewer', ['path' => $property->attachment->adjacent_area_allotment]) }}" target="_blank">
-                                                {{ basename($property->attachment->adjacent_area_allotment) }}
+                                            <a href="{{ route('file.viewer', ['path' => $property->attachment->noting_file]) }}" target="_blank">
+                                                {{ basename($property->attachment->noting_file) }}
                                             </a>
                                         </div>
                                     @else
@@ -645,12 +818,26 @@
                                 </div>
 
                                 <div>
-                                    <label class="detail-label">Division of Plots</label>
-                                    @if(!empty($property->attachment->division_of_plots))
+                                    <label class="detail-label">Allotment Order</label>
+                                    @if(!empty($property->attachment->allotment_order))
                                         <div class="current-file-box">
                                             <span class="current-file-label">Current File:</span>
-                                            <a href="{{ route('file.viewer', ['path' => $property->attachment->division_of_plots]) }}" target="_blank">
-                                                {{ basename($property->attachment->division_of_plots) }}
+                                            <a href="{{ route('file.viewer', ['path' => $property->attachment->allotment_order]) }}" target="_blank">
+                                                {{ basename($property->attachment->allotment_order) }}
+                                            </a>
+                                        </div>
+                                    @else
+                                        <div class="detail-subheading detail-subheading-empty">No file uploaded</div>
+                                    @endif
+                                </div>
+
+                                <div>
+                                    <label class="detail-label">Adjacent Area Allotment</label>
+                                    @if(!empty($property->attachment->adjacent_area_allotment))
+                                        <div class="current-file-box">
+                                            <span class="current-file-label">Current File:</span>
+                                            <a href="{{ route('file.viewer', ['path' => $property->attachment->adjacent_area_allotment]) }}" target="_blank">
+                                                {{ basename($property->attachment->adjacent_area_allotment) }}
                                             </a>
                                         </div>
                                     @else
@@ -712,6 +899,22 @@
                                     @else
                                         <div class="detail-subheading detail-subheading-empty">No file uploaded</div>
                                     @endif
+                                </div>
+
+                                <div>
+                                    <label class="detail-label">CNIC (front-side)</label>
+                                    @if(!empty($property->attachment->cnic_front))
+                                        <div class="current-file-box">
+                                            <span class="current-file-label">Current File:</span>
+                                            <a href="{{ route('file.viewer', ['path' => $property->attachment->cnic_front]) }}" target="_blank">
+                                                {{ basename($property->attachment->cnic_front) }}
+                                            </a>
+                                        </div>
+                                    @else
+                                        <div class="detail-subheading detail-subheading-empty">No file uploaded</div>
+                                    @endif
+                                </div>
+
                                 </div>
 
                                 {{-- ================= QA VERIFICATION ================= --}}
@@ -784,6 +987,14 @@
 
     <script>
         $(document).ready(function () {
+            $('.detail-tab-btn').on('click', function () {
+                var target = $(this).data('tab');
+                $('.detail-tab-btn').removeClass('active');
+                $(this).addClass('active');
+                $('.detail-tab-panel').removeClass('active');
+                $('.detail-tab-panel[data-panel="' + target + '"]').addClass('active');
+            });
+
             // ================= ZOOM SETUP =================
             var currentZoom = 1;
             var ZOOM_STEP = 0.15;

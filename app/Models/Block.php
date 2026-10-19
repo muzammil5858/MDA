@@ -31,4 +31,9 @@ class Block extends Model
     {
         return $this->hasMany(Property::class, 'block_id');
     }
+
+    public function subBlocks()
+    {
+        return $this->hasMany(SubBlock::class, 'block_id');
+    }
 }

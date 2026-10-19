@@ -562,6 +562,22 @@
     </select>
 </div>
 
+<!-- Sub Block Dropdown -->
+<div class="col-md-6">
+    <label>Sub Block</label>
+    <select name="sub_block_id" id="sub_block" class="form-control">
+        <option value="">Select Sub Block</option>
+        @if(isset($sub_blocks) && $sub_blocks->count() > 0)
+            @foreach($sub_blocks as $sub_block)
+                <option value="{{ $sub_block->id }}"
+                    {{ old('sub_block_id', $property->sub_block_id ?? '') == $sub_block->id ? 'selected' : '' }}>
+                    {{ $sub_block->name }}
+                </option>
+            @endforeach
+        @endif
+    </select>
+</div>
+
                                             <div class="col-md-6">
                                                 <div class="row mx-0">
                                                     <div class="col-4 px-0">
@@ -582,15 +598,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col-md-6">
-                                                <label for="approved_scheme">Approved Scheme</label>
-                                                <select name="approved_scheme" id="approved_scheme" class="form-control">
-                                                    <option value="" disabled>Select Scheme</option>
-                                                    <option value="Scheme 1" {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 1' ? 'selected' : '' }}>Scheme 1</option>
-                                                    <option value="Scheme 2" {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 2' ? 'selected' : '' }}>Scheme 2</option>
-                                                    <option value="Scheme 3" {{ old('approved_scheme', $property->approved_scheme ?? '') == 'Scheme 3' ? 'selected' : '' }}>Scheme 3</option>
-                                                </select>
-                                            </div>
+
                                               <div class="col-md-3">
                                         <label>Size</label>
                                         <input type="text" class="form-control" name="size"
@@ -606,9 +614,15 @@
 
 
                                             <div class="col-md-6">
-                                                <label>Initial Draft Amount</label>
+                                                <label>Initial Draft Number</label>
+                                                <input type="text" class="form-control" name="initial_draft_number"
+                                                    placeholder="Initial Draft Number"
+                                                    value="{{ old('initial_draft_number', $property->initial_draft_number ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Draft Amount/Down Payment</label>
                                                 <input type="number" class="form-control" name="initial_draft_amount"  min="0"
-                                                    placeholder="Initial Draft Amount"
+                                                    placeholder="Draft Amount/Down Payment"
                                                     value="{{ old('initial_draft_amount', number_format($property->initial_draft_amount ?? 0, 0, '.', '')) }}">
                                             </div>
                                             <div class="col-md-6">
@@ -617,45 +631,21 @@
                                                     placeholder="Initial Draft Date"
                                                     value="{{ old('initial_draft_date', $property->initial_draft_date ?? '') }}">
                                             </div>
-
                                             <div class="col-md-6">
-                                                <label>Name Applicant/Allottee</label>
-                                                <input type="text" class="form-control" name="applicant_name"
-                                                    placeholder="Name Applicant"
-                                                    value="{{ old('applicant_name', $property->applicant_name ?? '') }}">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label>Father/Husband Name</label>
-                                                <input type="text" class="form-control" name="father_husband_name"
-                                                    placeholder="Father/Husband Name"
-                                                    value="{{ old('father_husband_name', $property->father_husband_name ?? '') }}">
+                                                <label>Initial Notice No. (Allotment Letter)</label>
+                                                <input type="text" class="form-control" name="initial_notice_no"
+                                                    placeholder="Initial Notice No."
+                                                    value="{{ old('initial_notice_no', $property->payment->initial_notice_no ?? '') }}">
                                             </div>
                                             <div class="col-md-6">
-                                                <label>Old NIC</label>
-                                                <input type="text" class="form-control cnic-input" name="old_nic"
-                                                    maxlength="15" placeholder="12345-1234567-1"
-                                                    value="{{ old('old_nic', $property->old_nic ?? '') }}">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label>CNIC</label>
-                                                <input type="text" class="form-control cnic-input" name="cnic"
-                                                    maxlength="15" placeholder="12345-1234567-1"
-                                                    value="{{ old('cnic', $property->cnic ?? '') }}">
-                                            </div>
-
-                                            <div class="col-md-12">
-                                                <label>Address (Temporary)</label>
-                                                <textarea class="form-control" placeholder="Address (Temporary)"
-                                                    name="address_temporary" rows="1">{{ old('address_temporary', $property->address_temporary ?? '') }}</textarea>
-                                            </div>
-                                            <div class="col-md-12">
-                                                <label>Address (Permanent)</label>
-                                                <textarea class="form-control" placeholder="Address (Permanent)"
-                                                    name="address_permanent" rows="1">{{ old('address_permanent', $property->address_permanent ?? '') }}</textarea>
+                                                <label>Initial Notice Date</label>
+                                                <input type="text" class="form-control datepicker" placeholder="Select Date"
+                                                    name="initial_notice_date"
+                                                    value="{{ old('initial_notice_date', $property->payment->initial_notice_date ?? '') }}">
                                             </div>
 
                                             <div class="col-md-6">
-                                                <label>Category</label>
+                                                <label>Property Category</label>
                                                 <select name="category" class="form-control">
                                                     <option value="">Select Category</option>
                                                     <option value="House" {{ old('category', $property->category ?? '') == 'House' ? 'selected' : '' }}>House</option>
@@ -674,58 +664,161 @@
                                                 </select>
                                             </div>
 
-                                            <div class="col-md-6">
-                                                <label>Allotment Date</label>
-                                                <input type="date" class="form-control datepicker" name="allotment_date"
-                                                    placeholder="Allotment Date"
-                                                    value="{{ old('allotment_date', $property->allotment_date ?? '') }}">
-                                            </div>
+
                                             <div class="col-md-6">
                                                 <label>Serial No of Balloting</label>
                                                 <input type="text" class="form-control" name="balloting_serial_no"
                                                     placeholder="Serial No of Balloting"
                                                     value="{{ old('balloting_serial_no', $property->balloting_serial_no ?? '') }}">
                                             </div>
-                                                        <div class="col-md-6">
-                <label>Transfer Count</label>
-                <input type="number"
-                       class="form-control"
-                       name="transfer_count"
-                       id="transfer_count"
-                       placeholder="Number of Transfers"
-                       min="0"
-                       value="{{ old('transfer_count', $property->transfer_count ?? '') }}">
-            </div>
+                                            <div class="col-md-6">
+                                                <label>Transfer Count</label>
+                                                <input type="number" class="form-control" name="transfer_count" id="transfer_count"
+                                                       placeholder="Number of Transfers" min="0"
+                                                       value="{{ old('transfer_count', $property->transfer_count ?? '') }}">
+                                            </div>
 
-            <div class="col-md-6">
-                <label>Ownership Type</label>
-                <select name="ownership_type" id="ownership_type" class="form-control">
-                    <option value="">Select Ownership Type</option>
-                    <option value="single"
-                        {{ old('ownership_type', $property->ownership_type ?? '') == 'single' ? 'selected' : '' }}>
-                        Single Owner
-                    </option>
-                    <option value="multiple"
-                        {{ old('ownership_type', $property->ownership_type ?? '') == 'multiple' ? 'selected' : '' }}>
-                        Multiple Owner
-                    </option>
-                </select>
-            </div>
-<div class="col-md-6">
-    <label>Allotment Type</label>
-    <select name="allotment_type" id="allotment_type" class="form-control">
-        <option value="">Select Allotment</option>
-        <option value="original"
-            {{ old('allotment_type', $property->allotment_type ?? '') == 'original' ? 'selected' : '' }}>
-            Original Allottee
-        </option>
-        <option value="transferee"
-            {{ old('allotment_type', $property->allotment_type ?? '') == 'transferee' ? 'selected' : '' }}>
-            Transferee
-        </option>
-    </select>
-</div>
+                                            <div class="col-md-6">
+                                                <label>Ownership Type</label>
+                                                <select name="ownership_type" id="ownership_type" class="form-control">
+                                                    <option value="">Select Ownership Type</option>
+                                                    <option value="single" {{ old('ownership_type', $property->ownership_type ?? '') == 'single' ? 'selected' : '' }}>Single Owner</option>
+                                                    <option value="multiple" {{ old('ownership_type', $property->ownership_type ?? '') == 'multiple' ? 'selected' : '' }}>Multiple Owner</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Allotment Type</label>
+                                                <select name="allotment_type" id="allotment_type" class="form-control">
+                                                    <option value="">Select Allotment</option>
+                                                    <option value="original" {{ old('allotment_type', $property->allotment_type ?? '') == 'original' ? 'selected' : '' }}>Original Allottee</option>
+                                                    <option value="transferee" {{ old('allotment_type', $property->allotment_type ?? '') == 'transferee' ? 'selected' : '' }}>Transferee</option>
+                                                </select>
+                                            </div>
 
+                                        </div>
+
+                                        {{-- Adjacent Allotment Section --}}
+                                        <div class="row mt-4">
+                                            <div class="col-12"><h2 class="fs-title">Adjacent Allotment:</h2></div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-md-6">
+                                                <label>Has Adjacent Area?</label>
+                                                <select name="has_adjacent_area" id="has_adjacent_area" class="form-control">
+                                                    <option value="">Select Option</option>
+                                                    <option value="yes" {{ old('has_adjacent_area', $property->has_adjacent_area ?? '') == 'yes' ? 'selected' : '' }}>Yes</option>
+                                                    <option value="no" {{ old('has_adjacent_area', $property->has_adjacent_area ?? '') == 'no' ? 'selected' : '' }}>No</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-row" id="adjacent_fields_div" style="display: {{ old('has_adjacent_area', $property->has_adjacent_area ?? '') == 'yes' ? 'flex' : 'none' }};">
+                                            <div class="col-md-6">
+                                                <label>Adjacent Area / Size</label>
+                                                <input type="text" class="form-control" name="adjacent_area"
+                                                    placeholder="Adjacent Area" value="{{ old('adjacent_area', $property->adjacent_area ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Original Size</label>
+                                                <input type="text" class="form-control" name="original_size"
+                                                    placeholder="Original Size" value="{{ old('original_size', $property->original_size ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Adjacent Price</label>
+                                                <input type="number" class="form-control" name="adjacent_price" min="0" step="0.01"
+                                                    placeholder="Adjacent Price" value="{{ old('adjacent_price', $property->adjacent_price ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Adjacent Allotment No.</label>
+                                                <input type="text" class="form-control" name="adjacent_allotment_no"
+                                                    placeholder="Adjacent Allotment No" value="{{ old('adjacent_allotment_no', $property->adjacent_allotment_no ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Adjacent Allotment Date</label>
+                                                <input type="date" class="form-control datepicker" name="adjacent_allotment_date"
+                                                    placeholder="Select Date" value="{{ old('adjacent_allotment_date', $property->adjacent_allotment_date ?? '') }}">
+                                            </div>
+                                        </div>
+
+                                        {{-- Revising Notice Section --}}
+                                        <div class="row mt-4">
+                                            <div class="col-12"><h2 class="fs-title">Revising Notice:</h2></div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-md-6">
+                                                <label>Revising Notice No.</label>
+                                                <input type="text" class="form-control" name="revising_notice_no"
+                                                    placeholder="Revising Notice No" value="{{ old('revising_notice_no', $property->revising_notice_no ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Revising Notice Date</label>
+                                                <input type="date" class="form-control datepicker" name="revising_notice_date"
+                                                    placeholder="Select Date" value="{{ old('revising_notice_date', $property->revising_notice_date ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Revising Notice Status</label>
+                                                <select name="revising_notice_status" id="revising_notice_status" class="form-control">
+                                                    <option value="">Select Status</option>
+                                                    <option value="canceled" {{ old('revising_notice_status', $property->revising_notice_status ?? '') == 'canceled' ? 'selected' : '' }}>Canceled</option>
+                                                    <option value="restored" {{ old('revising_notice_status', $property->revising_notice_status ?? '') == 'restored' ? 'selected' : '' }}>Restored</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6" id="revising_penalty_div" style="display: {{ old('revising_notice_status', $property->revising_notice_status ?? '') == 'restored' ? 'block' : 'none' }};">
+                                                <label>Penalty Amount</label>
+                                                <input type="number" class="form-control" name="revising_penalty_amount" min="0" step="0.01"
+                                                    placeholder="Penalty Amount" value="{{ old('revising_penalty_amount', $property->revising_penalty_amount ?? '') }}">
+                                            </div>
+                                        </div>
+
+                                        {{-- Allottee Section --}}
+                                        <div class="row mt-4">
+                                            <div class="col-7"><h2 class="fs-title">Allottee Details:</h2></div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-md-6">
+                                                <label>Allottee Name</label>
+                                                <input type="text" class="form-control" name="applicant_name"
+                                                    placeholder="Allottee Name"
+                                                    value="{{ old('applicant_name', $property->applicant_name ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Father/Husband Name</label>
+                                                <input type="text" class="form-control" name="father_husband_name"
+                                                    placeholder="Father/Husband Name"
+                                                    value="{{ old('father_husband_name', $property->father_husband_name ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Old NIC</label>
+                                                <input type="text" class="form-control cnic-input" name="old_nic"
+                                                    placeholder="Old NIC without dashes"
+                                                    value="{{ old('old_nic', $property->old_nic ?? '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>CNIC</label>
+                                                <input type="text" class="form-control cnic-input" name="cnic"
+                                                    pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
+                                                    placeholder="13 Digit CNIC"
+                                                    value="{{ old('cnic', $property->cnic ?? '') }}">
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label>Address (Temporary)</label>
+                                                <textarea class="form-control" placeholder="Address (Temporary)"
+                                                    name="address_temporary" rows="1">{{ old('address_temporary', $property->address_temporary ?? '') }}</textarea>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label>Address (Permanent)</label>
+                                                <textarea class="form-control" placeholder="Address (Permanent)"
+                                                    name="address_permanent" rows="1">{{ old('address_permanent', $property->address_permanent ?? '') }}</textarea>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>Allottee Category</label>
+                                                <select name="allottee_category" class="form-control">
+                                                    <option value="">Select Allottee Category</option>
+                                                    <option value="Lawyer" {{ old('allottee_category', $property->allottee_category ?? '') == 'Lawyer' ? 'selected' : '' }}>Lawyer</option>
+                                                    <option value="Overseas" {{ old('allottee_category', $property->allottee_category ?? '') == 'Overseas' ? 'selected' : '' }}>Overseas</option>
+                                                    <option value="Permanent Employee" {{ old('allottee_category', $property->allottee_category ?? '') == 'Permanent Employee' ? 'selected' : '' }}>Permanent Employee</option>
+                                                </select>
+                                            </div>
                                         </div>
 
                                         {{-- Current Owner Section --}}
@@ -742,36 +835,38 @@
                                                         @endif
                                                         <div class="form-row">
                                                             <div class="col-md-6">
-                                                                <label>Name Applicant/Allottee</label>
+                                                                <label>Name</label>
                                                                 <input type="text" class="form-control" name="current_owners[{{ $index }}][applicant_name]"
-                                                                    placeholder="Name Applicant" value="{{ $owner->applicant_name }}">
+                                                                    placeholder="Name" value="{{ $owner->applicant_name }}">
                                                             </div>
                                                             <div class="col-md-6">
-                                                                <label>Father/Husband Name</label>
+                                                                <label>Father Name</label>
                                                                 <input type="text" class="form-control" name="current_owners[{{ $index }}][father_husband_name]"
-                                                                    placeholder="Father/Husband Name" value="{{ $owner->father_husband_name }}">
-                                                            </div>
-                                                            <div class="col-md-6">
-                                                                <label>Old NIC</label>
-                                                                <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][old_nic]"
-                                                                    maxlength="15" placeholder="12345-1234567-1" value="{{ $owner->old_nic }}">
+                                                                    placeholder="Father Name" value="{{ $owner->father_husband_name }}">
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label>CNIC</label>
                                                                 <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][cnic]"
-                                                                    maxlength="15" placeholder="12345-1234567-1" value="{{ $owner->cnic }}">
+                                                                    pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
+                                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
+                                                                    placeholder="13 Digit CNIC" value="{{ $owner->cnic }}">
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <label>Date of Transfer</label>
+                                                                <input type="date" class="form-control datepicker" name="current_owners[{{ $index }}][date_of_transfer]"
+                                                                    placeholder="Date of Transfer" value="{{ $owner->date_of_transfer ?? '' }}">
                                                             </div>
                                                         </div>
                                                         <div class="form-row">
                                                             <div class="col-md-6">
-                                                                <label>Address (Temporary)</label>
-                                                                <textarea class="form-control" placeholder="Address (Temporary)"
+                                                                <label>Address</label>
+                                                                <textarea class="form-control" placeholder="Address"
                                                                     name="current_owners[{{ $index }}][address_temporary]" rows="1">{{ $owner->address_temporary }}</textarea>
                                                             </div>
                                                             <div class="col-md-6">
-                                                                <label>Address (Permanent)</label>
-                                                                <textarea class="form-control" placeholder="Address (Permanent)"
-                                                                    name="current_owners[{{ $index }}][address_permanent]" rows="1">{{ $owner->address_permanent }}</textarea>
+                                                                <label>Transfer/Allotment Order No</label>
+                                                                <input type="text" class="form-control" name="current_owners[{{ $index }}][transfer_order_no]"
+                                                                    placeholder="Transfer/Allotment Order No" value="{{ $owner->transfer_order_no ?? '' }}">
                                                             </div>
                                                         </div>
                                                     </div>
@@ -780,36 +875,38 @@
                                                 <div class="current-owner-block" data-index="0">
                                                     <div class="form-row">
                                                         <div class="col-md-6">
-                                                            <label>Name Applicant/Allottee</label>
+                                                            <label>Name</label>
                                                             <input type="text" class="form-control" name="current_owners[0][applicant_name]"
-                                                                placeholder="Name Applicant">
+                                                                placeholder="Name">
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <label>Father/Husband Name</label>
+                                                            <label>Father Name</label>
                                                             <input type="text" class="form-control" name="current_owners[0][father_husband_name]"
-                                                                placeholder="Father/Husband Name">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label>Old NIC</label>
-                                                            <input type="text" class="form-control cnic-input" name="current_owners[0][old_nic]"
-                                                                 maxlength="15" placeholder="12345-1234567-1">
+                                                                placeholder="Father Name">
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label>CNIC</label>
                                                             <input type="text" class="form-control cnic-input" name="current_owners[0][cnic]"
-                                                                maxlength="15" placeholder="12345-1234567-1">
+                                                                pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
+                                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
+                                                                placeholder="13 Digit CNIC">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label>Date of Transfer</label>
+                                                            <input type="date" class="form-control datepicker" name="current_owners[0][date_of_transfer]"
+                                                                placeholder="Date of Transfer">
                                                         </div>
                                                     </div>
                                                     <div class="form-row">
                                                         <div class="col-md-6">
-                                                            <label>Address (Temporary)</label>
-                                                            <textarea class="form-control" placeholder="Address (Temporary)"
+                                                            <label>Address</label>
+                                                            <textarea class="form-control" placeholder="Address"
                                                                 name="current_owners[0][address_temporary]" rows="1"></textarea>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <label>Address (Permanent)</label>
-                                                            <textarea class="form-control" placeholder="Address (Permanent)"
-                                                                name="current_owners[0][address_permanent]" rows="1"></textarea>
+                                                            <label>Transfer/Allotment Order No</label>
+                                                            <input type="text" class="form-control" name="current_owners[0][transfer_order_no]"
+                                                                placeholder="Transfer/Allotment Order No">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -852,24 +949,9 @@
                 <input type="number" step="any" class="form-control" placeholder="Enter Amount"  min="0"
                     name="remaining_amount" value="{{ old('remaining_amount', number_format($property->payment->remaining_amount ?? 0, 0, '.', '')) }}">
             </div>
-            <div class="col-md-6">
-                <label>Down payment</label>
-                <input type="number" step="any" class="form-control" placeholder="Down payment"  min="0"
-                    name="down_payment" value="{{ old('down_payment', number_format($property->payment->down_payment ?? 0, 0, '.', '')) }}">
-            </div>
 
-            <div class="col-md-6">
-                <label>Initial Notice No. (Allotment Letter)</label>
-                <input type="text" class="form-control" name="initial_notice_no"
-                    placeholder="Initial Notice No."
-                    value="{{ old('initial_notice_no', $property->payment->initial_notice_no ?? '') }}">
-            </div>
-            <div class="col-md-6">
-                <label>Initial Notice Date</label>
-                <input type="text" class="form-control datepicker" placeholder="Select Date"
-                    name="initial_notice_date"
-                    value="{{ old('initial_notice_date', $property->payment->initial_notice_date ?? '') }}">
-            </div>
+
+
             <div class="col-md-6">
                 <label>Total Received Amount</label>
                 <input type="number" step="any" class="form-control" placeholder="Total Received Amount"  min="0"
@@ -925,10 +1007,18 @@
                     value="{{ old('map_approval_date', $property->payment->map_approval_date ?? '') }}">
             </div>
             <div class="col-md-6">
-                <label>Transfer Order No.</label>
-                <input type="text" class="form-control" placeholder="Transfer Order No."
-                    name="transfer_order_no"
-                    value="{{ old('transfer_order_no', $property->payment->transfer_order_no ?? '') }}">
+                <label>Map Approval Number</label>
+                <input type="text" class="form-control" placeholder="Map Approval Number"
+                    name="map_approval_number"
+                    value="{{ old('map_approval_number', $property->payment->map_approval_number ?? '') }}">
+            </div>
+            <div class="col-md-6">
+                <label>Map Approval Category</label>
+                <select name="map_approval_category" class="form-control">
+                    <option value="">Select Category</option>
+                    <option value="Commercial" {{ old('map_approval_category', $property->payment->map_approval_category ?? '') == 'Commercial' ? 'selected' : '' }}>Commercial</option>
+                    <option value="Residential" {{ old('map_approval_category', $property->payment->map_approval_category ?? '') == 'Residential' ? 'selected' : '' }}>Residential</option>
+                </select>
             </div>
         </div>
     </div>
@@ -967,11 +1057,7 @@
                                                             <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" maxlength="15"
                                                                 name="transferees[{{ $index }}][id_card]" value="{{ $transferee->id_card }}">
                                                         </div>
-                                                        <div class="col-md-12">
-                                                            <label>Challan No.</label>
-                                                            <input type="text" class="form-control" placeholder="Challan No."
-                                                                name="transferees[{{ $index }}][challan_no]" value="{{ $transferee->challan_no }}">
-                                                        </div>
+
                                                         <div class="col-md-12">
                                                             <label>Address</label>
                                                             <input type="text" class="form-control" placeholder="Address"
@@ -981,6 +1067,11 @@
                                                             <label>Allottee Date</label>
                                                             <input type="date" class="form-control datepicker" placeholder="Allottee Date"
                                                                 name="transferees[{{ $index }}][allottee_date]" value="{{ $transferee->allottee_date ?? '' }}">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label>Transfer/Allotment Order No</label>
+                                                            <input type="text" class="form-control" placeholder="Transfer/Allotment Order No"
+                                                                name="transferees[{{ $index }}][transfer_order_no]" value="{{ $transferee->transfer_order_no ?? '' }}">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1000,10 +1091,7 @@
                                                             <label>ID Card</label>
                                                             <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" maxlength="15" name="transferees[0][id_card]">
                                                         </div>
-                                                        <div class="col-md-12">
-                                                            <label>Challan No.</label>
-                                                            <input type="text" class="form-control" placeholder="Challan No." name="transferees[0][challan_no]">
-                                                        </div>
+
                                                         <div class="col-md-12">
                                                             <label>Address</label>
                                                             <input type="text" class="form-control" placeholder="Address" name="transferees[0][address]">
@@ -1011,6 +1099,10 @@
                                                         <div class="col-md-12">
                                                             <label>Allottee Date</label>
                                                             <input type="date" class="form-control datepicker" placeholder="Allottee Date" name="transferees[0][allottee_date]">
+                                                        </div>
+                                                        <div class="col-md-12">
+                                                            <label>Transfer/Allotment Order No</label>
+                                                            <input type="text" class="form-control" placeholder="Transfer/Allotment Order No" name="transferees[0][transfer_order_no]">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1026,13 +1118,6 @@
                                 {{-- ===================== STEP 4 : ATTACHMENTS ===================== --}}
 <fieldset id="step-4">
     <div class="form-row">
-        <div class="col-md-6 text-left">
-            <label>Alternate Allotment</label>
-            <input type="text" class="form-control" name="alternate_allotment"
-                placeholder="Alternate Allotment"
-                value="{{ old('alternate_allotment', $property->attachment->alternate_allotment ?? '') }}">
-        </div>
-
         <div class="col-md-6 text-left">
             <label>Complete File Pages <span class="required-star">*</span></label>
             <input type="number"
@@ -1223,7 +1308,6 @@
         // Global variables for Current Owners
         var ownerIndex = {{ $property->currentOwners ? $property->currentOwners->count() : 1 }};
         var transfereeIndex = {{ $property->plotHistories->count() > 0 ? $property->plotHistories->count() : 1 }};
-
         // Add Current Owner
         function addOwner() {
             var block = `
@@ -1231,30 +1315,30 @@
                     <button type="button" class="btn btn-danger remove-owner" onclick="removeOwner(this)">Remove</button>
                     <div class="form-row">
                         <div class="col-md-6">
-                            <label>Name Applicant/Allottee</label>
-                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][applicant_name]" placeholder="Name Applicant">
+                            <label>Name</label>
+                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][applicant_name]" placeholder="Name">
                         </div>
                         <div class="col-md-6">
-                            <label>Father/Husband Name</label>
-                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][father_husband_name]" placeholder="Father/Husband Name">
-                        </div>
-                        <div class="col-md-6">
-                            <label>Old NIC</label>
-                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][old_nic]" maxlength="15" placeholder="12345-1234567-1">
+                            <label>Father Name</label>
+                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][father_husband_name]" placeholder="Father Name">
                         </div>
                         <div class="col-md-6">
                             <label>CNIC</label>
-                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]" maxlength="15" placeholder="12345-1234567-1">
+                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]" pattern="\\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);" placeholder="13 Digit CNIC">
+                        </div>
+                        <div class="col-md-6">
+                            <label>Date of Transfer</label>
+                            <input type="date" class="form-control datepicker" name="current_owners[${ownerIndex}][date_of_transfer]" placeholder="Date of Transfer">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6">
-                            <label>Address (Temporary)</label>
-                            <textarea class="form-control" placeholder="Address (Temporary)" name="current_owners[${ownerIndex}][address_temporary]" rows="1"></textarea>
+                            <label>Address</label>
+                            <textarea class="form-control" placeholder="Address" name="current_owners[${ownerIndex}][address_temporary]" rows="1"></textarea>
                         </div>
                         <div class="col-md-6">
-                            <label>Address (Permanent)</label>
-                            <textarea class="form-control" placeholder="Address (Permanent)" name="current_owners[${ownerIndex}][address_permanent]" rows="1"></textarea>
+                            <label>Transfer/Allotment Order No</label>
+                            <input type="text" class="form-control" name="current_owners[${ownerIndex}][transfer_order_no]" placeholder="Transfer/Allotment Order No">
                         </div>
                     </div>
                 </div>`;
@@ -1289,10 +1373,7 @@
                             <label>ID Card</label>
                             <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" name="transferees[${transfereeIndex}][id_card]" maxlength="15">
                         </div>
-                        <div class="col-md-12">
-                            <label>Challan No.</label>
-                            <input type="text" class="form-control" placeholder="Challan No." name="transferees[${transfereeIndex}][challan_no]">
-                        </div>
+
                         <div class="col-md-12">
                             <label>Address</label>
                             <input type="text" class="form-control" placeholder="Address" name="transferees[${transfereeIndex}][address]">
@@ -1300,6 +1381,10 @@
                         <div class="col-md-12">
                             <label>Allottee Date</label>
                             <input type="date" class="form-control datepicker" placeholder="Allottee Date" name="transferees[${transfereeIndex}][allottee_date]">
+                        </div>
+                        <div class="col-md-12">
+                            <label>Transfer/Allotment Order No</label>
+                            <input type="text" class="form-control" placeholder="Transfer/Allotment Order No" name="transferees[${transfereeIndex}][transfer_order_no]">
                         </div>
                     </div>
                 </div>`;
@@ -1552,17 +1637,28 @@ $(document).ready(function () {
         width: "100%"
     });
 
+    $('#sub_block').select2({
+        placeholder: "Select Sub Block",
+        allowClear: true,
+        width: "100%"
+    });
+
     var initialSector = $('#sector').val();
     var initialBlock = '{{ old('block_id', $property->block_id ?? '') }}';
+    var initialSubBlock = '{{ old('sub_block_id', $property->sub_block_id ?? '') }}';
 
     function loadBlocks(sectorId, selectedBlockId) {
         var blockSelect = $('#block');
+        var subBlockSelect = $('#sub_block');
 
         blockSelect.empty().append('<option value="">Select Block</option>');
+        subBlockSelect.empty().append('<option value="">Select Sub Block</option>');
         blockSelect.val('').trigger('change');
+        subBlockSelect.val('').trigger('change');
 
         if (!sectorId) {
             blockSelect.prop('disabled', true);
+            subBlockSelect.prop('disabled', true);
             return;
         }
 
@@ -1599,14 +1695,68 @@ $(document).ready(function () {
         });
     }
 
+    function loadSubBlocks(blockId, selectedSubBlockId) {
+        var subBlockSelect = $('#sub_block');
+
+        subBlockSelect.empty().append('<option value="">Select Sub Block</option>');
+        subBlockSelect.val('').trigger('change');
+
+        if (!blockId) {
+            subBlockSelect.prop('disabled', true);
+            return;
+        }
+
+        subBlockSelect.prop('disabled', false);
+        subBlockSelect.append('<option value="" disabled>Loading sub blocks...</option>');
+
+        $.ajax({
+            url: '/get-sub-blocks/' + blockId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(subBlocks) {
+                subBlockSelect.find('option:disabled').remove();
+
+                if (subBlocks.length > 0) {
+                    $.each(subBlocks, function(index, subBlock) {
+                        var isSelected = (selectedSubBlockId && String(subBlock.id) === String(selectedSubBlockId)) ? 'selected' : '';
+                        subBlockSelect.append('<option value="' + subBlock.id + '" ' + isSelected + '>' + subBlock.name + '</option>');
+                    });
+                } else {
+                    subBlockSelect.append('<option value="" disabled>No sub blocks available</option>');
+                }
+
+                if (selectedSubBlockId) {
+                    subBlockSelect.val(String(selectedSubBlockId)).trigger('change');
+                } else {
+                    subBlockSelect.trigger('change');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error fetching sub blocks:', xhr);
+                subBlockSelect.find('option:disabled').remove();
+                subBlockSelect.append('<option value="" disabled>Error loading sub blocks</option>');
+            }
+        });
+    }
+
     $('#sector').on('change', function() {
         loadBlocks($(this).val(), null);
     });
 
+    $('#block').on('change', function() {
+        loadSubBlocks($(this).val(), null);
+    });
+
     if (initialSector) {
         loadBlocks(initialSector, initialBlock);
+        if (initialBlock) {
+            setTimeout(function() {
+                loadSubBlocks(initialBlock, initialSubBlock);
+            }, 500);
+        }
     } else {
         $('#block').prop('disabled', true);
+        $('#sub_block').prop('disabled', true);
     }
 
     // ================= STEPPER =================
@@ -1651,22 +1801,31 @@ $(document).ready(function () {
         goToStep(index);
     });
 
+    // Revising Notice Status Toggle
+    $('#revising_notice_status').on('change', function() {
+        if ($(this).val() === 'restored') {
+            $('#revising_penalty_div').slideDown();
+        } else {
+            $('#revising_penalty_div').slideUp();
+            $('input[name="revising_penalty_amount"]').val('');
+        }
+    });
+
+    // Has Adjacent Area Toggle
+    $('#has_adjacent_area').on('change', function() {
+        if ($(this).val() === 'yes') {
+            $('#adjacent_fields_div').css('display', 'flex').hide().slideDown();
+        } else {
+            $('#adjacent_fields_div').slideUp(function() {
+                $(this).find('input').val('');
+            });
+        }
+    });
+
     // ================= CNIC FORMATTING =================
     $(document).on('input', '.cnic-input', function () {
         let value = $(this).val().replace(/\D/g, '');
-        if (value.length > 13) {
-            value = value.substring(0, 13);
-        }
-        let formatted = value;
-        if (value.length > 5) {
-            formatted = value.substring(0, 5) + '-' + value.substring(5);
-        }
-        if (value.length > 12) {
-            formatted = value.substring(0, 5) + '-' +
-                        value.substring(5, 12) + '-' +
-                        value.substring(12);
-        }
-        $(this).val(formatted);
+        $(this).val(value);
     });
 
     // ================= FORM SUBMIT (AJAX) =================

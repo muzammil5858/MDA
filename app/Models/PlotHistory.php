@@ -20,6 +20,7 @@ class PlotHistory extends Model
         'challan_no',
         'address',        // New field
         'allottee_date',  // New field
+        'transfer_order_no',
     ];
 
     public function property()

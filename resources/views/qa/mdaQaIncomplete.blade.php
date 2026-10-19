@@ -75,6 +75,7 @@
                                         <th>Plot No</th>
                                         <th>Sector</th>
                                         <th>Block</th>
+                                        <th>Sub Block</th>
                                         <th>QA Status</th>
                                         <th>Checked By</th>
                                         <th>Checked On</th>
@@ -90,9 +91,10 @@
                                             <td>{{ $dat->plot_no ?? 'N/A' }}</td>
                                             <td>{{ $dat->sector->name ?? 'N/A' }}</td>
                                             <td>{{ $dat->block->name ?? 'N/A' }}</td>
-<td>
-        <span class="badge badge-warning qa-status-badge">{{ $dat->qaStatus->issue ?? 'N/A' }}</span>
-</td>
+                                            <td>{{ $dat->subBlock->name ?? 'N/A' }}</td>
+                                            <td>
+                                                <span class="badge badge-warning qa-status-badge">{{ $dat->qaStatus->issue ?? 'N/A' }}</span>
+                                            </td>
                                             <td>{{ $dat->qaStatus->user->name ?? 'N/A' }}</td>
                                             <td>{{ $dat->qaStatus->updated_at ? \Carbon\Carbon::parse($dat->qaStatus->updated_at)->format('d-m-Y H:i') : 'N/A' }}</td>
                                             <td>

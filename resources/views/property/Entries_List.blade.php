@@ -116,6 +116,7 @@
                                         <th>Plot No</th>
                                          <th>Sector</th>
                                           <th>Block</th>
+                                          <th>Sub Block</th>
                                         <th>Created Date</th>
                                         <th>File Status</th>
                                         <th>Action</th>
@@ -130,6 +131,7 @@
                                             <td>{{ $dat->plot_no ?? 'N/A' }}</td>
                                             <td>{{ $dat->sector->name ?? 'N/A' }}</td>
                                             <td>{{ $dat->block->name ?? 'N/A' }}</td>
+                                            <td>{{ $dat->subBlock->name ?? 'N/A' }}</td>
 
                                             <td>{{ $dat->created_at ? date('d-m-Y', strtotime($dat->created_at)) : 'N/A' }}</td>
                                             <td>

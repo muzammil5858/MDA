@@ -57,8 +57,13 @@ class Property extends Model
         return $this->belongsTo(Block::class, 'block_id');
     }
     // app/Models/Property.php
-public function qaStatus()
-{
-    return $this->hasOne(QaProperty::class, 'property_id');
-}
+    public function qaStatus()
+    {
+        return $this->hasOne(QaProperty::class, 'property_id');
+    }
+
+    public function subBlock()
+    {
+        return $this->belongsTo(SubBlock::class, 'sub_block_id');
+    }
 }

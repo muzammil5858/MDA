@@ -16,7 +16,7 @@ class Payment extends Model
         'total_received_amount', 'received_amount_date',
         'allotment_order_no', 'allotment_order_date',
         'possession_slip_no', 'possession_slip_date',
-        'boundary_wall_approval', 'map_approval_date', 'transfer_order_no',
+        'boundary_wall_approval', 'map_approval_date', 'transfer_order_no', 'map_approval_number', 'map_approval_category',
     ];
 
     public function property()

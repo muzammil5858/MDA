@@ -63,11 +63,14 @@ Route::middleware('auth')->group(function () {
 Route::get('/add-sector', [PropertyController::class, 'addSector'])->name('addSector');
 Route::post('/store-sector', [PropertyController::class, 'storeSector'])->name('storeSector');
     Route::get('/form-list', [PropertyController::class, 'formList'])->name('formList');
+
+       Route::get('/form-list', [PropertyController::class, 'formList'])->name('formList');
        Route::get('/entries-list', [PropertyController::class, 'entriesList'])->name('entriesList');
 // Add Block routes
 Route::get('/add-block', [PropertyController::class, 'addblock'])->name('addBlock');
 Route::post('/store-block', [PropertyController::class, 'storeBlock'])->name('storeBlock');
 Route::get('/get-blocks/{sectorId}', [PropertyController::class, 'getBlocksBySector'])->name('getBlocks');
+Route::get('/get-sub-blocks/{blockId}', [PropertyController::class, 'getSubBlocks'])->name('getSubBlocks');
     Route::get('/form-detail/{id}', [PropertyController::class, 'formDetail'])->name('formDetail');
     Route::get('/form-edit/{id}', [PropertyController::class, 'formEdit'])->name('formEdit');
     Route::post('/update-form/{id}', [PropertyController::class, 'update'])->name('formUpdate');

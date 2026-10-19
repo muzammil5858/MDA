@@ -675,7 +675,7 @@ public function getSectorWiseDetails(Request $request)
         ->where('name', 'NOT LIKE', '%unknown%')
         ->where('name', 'NOT LIKE', '%Unknown%')
         ->where('name', 'NOT LIKE', '%UNKNOWN%')
-                ->when($allowedSectorIds, fn($q) => $q->whereIn('id', $allowedSectorIds)) 
+                ->when($allowedSectorIds, fn($q) => $q->whereIn('id', $allowedSectorIds))
         ->orderBy('name')
         ->when($search, function ($query, $search) {
             return $query->where('name', 'LIKE', "%{$search}%");
@@ -803,14 +803,20 @@ public function propertyList()
             ->pluck('name');
     }
 
-    $data = Property::with(['sector', 'block', 'attachment'])
+    $data = Property::with(['sector', 'block', 'subBlock', 'attachment'])
         ->whereHas('attachment', function ($q) {
             $q->whereNotNull('entry_date');
         })
         ->whereDoesntHave('qaStatus')
         ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
-        ->latest()
-        ->get();
+        ->get()
+        ->sortBy(fn ($property) => [
+            $property->sector->name ?? '',
+            $property->block->name ?? '',
+            $property->subBlock->name ?? '',
+            $property->application_no ?? '',
+        ])
+        ->values();
 
     return view('qa.mdaqaproperty', compact('data', 'heading', 'sectorNames'));
 }
@@ -830,13 +836,19 @@ public function mdaQaList()
             ->pluck('name');
     }
 
-    $data = Property::with(['sector', 'block', 'attachment', 'qaStatus'])
+    $data = Property::with(['sector', 'block', 'subBlock', 'attachment', 'qaStatus'])
         ->whereHas('qaStatus', function ($q) {
             $q->where('status', 1);
         })
         ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
-        ->latest()
-        ->get();
+        ->get()
+        ->sortBy(fn ($property) => [
+            $property->sector->name ?? '',
+            $property->block->name ?? '',
+            $property->subBlock->name ?? '',
+            $property->application_no ?? '',
+        ])
+        ->values();
 
     return view('qa.mdaQaList', compact('data', 'heading', 'sectorNames'));
 }
@@ -853,13 +865,19 @@ public function mdaIncompleteaList()
             ->pluck('name');
     }
 
-    $data = Property::with(['sector', 'block', 'attachment', 'qaStatus.user'])
+    $data = Property::with(['sector', 'block', 'subBlock', 'attachment', 'qaStatus.user'])
         ->whereHas('qaStatus', function ($q) {
             $q->where('status', 0);
         })
         ->when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
-        ->latest()
-        ->get();
+        ->get()
+        ->sortBy(fn ($property) => [
+            $property->sector->name ?? '',
+            $property->block->name ?? '',
+            $property->subBlock->name ?? '',
+            $property->application_no ?? '',
+        ])
+        ->values();
 
     return view('qa.mdaQaIncomplete', compact('data', 'heading', 'sectorNames'));
 }

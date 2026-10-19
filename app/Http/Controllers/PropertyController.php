@@ -9,6 +9,7 @@ use App\Models\Sector;
 use App\Models\PlotHistory;
 use App\Models\CurrentOwner;
 use App\Models\Attchement;
+use App\Models\SubBlock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -51,6 +52,16 @@ class PropertyController extends Controller
     //     return response()->json($blocks);
     // }
 
+    public function getSubBlocks($blockId)
+    {
+        if (empty($blockId) || $blockId === '') {
+            return response()->json([]);
+        }
+
+        $subBlocks = SubBlock::where('block_id', $blockId)->orderBy('name')->get();
+        return response()->json($subBlocks);
+    }
+
     /**
      * Show the multi-step form (create).
      */
@@ -70,6 +81,7 @@ class PropertyController extends Controller
             'plot_no'               => 'required|string',
             'sector_id'             => 'required|exists:sectors,id',
             'block_id'              => 'required|exists:blocks,id',
+            'sub_block_id'          => 'nullable|exists:sub_blocks,id',
             'kanal'                 => 'nullable|numeric',
             'marla'                 => 'nullable|numeric',
             'sqrft'                 => 'nullable|numeric',
@@ -78,26 +90,36 @@ class PropertyController extends Controller
             'form_no'               => 'nullable|string|max:255',
             'remarks'               => 'nullable|string',
             'initial_draft_amount'  => 'nullable|numeric',
+            'initial_draft_number'  => 'nullable|string|max:255',
             'initial_draft_date'    => 'nullable|date',
             'applicant_name'        => 'nullable|string',
             'father_husband_name'   => 'nullable|string',
             'old_nic'               => 'nullable|string',
-            'cnic'                  => 'nullable|string',
+            'cnic'                  => 'nullable|digits:13',
             'address_temporary'     => 'nullable|string',
             'address_permanent'     => 'nullable|string',
             'category'              => 'nullable|string',
+            'allottee_category'     => 'nullable|string',
             'mode_allottment'       => 'nullable|string',
-            'allotment_date'        => 'nullable|date',
             'balloting_serial_no'   => 'nullable|string',
             'transfer_count'        => 'nullable|integer|min:0',
             'ownership_type'        => 'nullable|in:single,multiple',
             'allotment_type'        => 'nullable|in:original,transferee',
+            'has_adjacent_area'     => 'nullable|in:yes,no',
+            'original_size'         => 'nullable|string',
+            'adjacent_area'         => 'nullable|string',
+            'adjacent_price'        => 'nullable|numeric',
+            'adjacent_allotment_no' => 'nullable|string',
+            'adjacent_allotment_date' => 'nullable|date',
+            'revising_notice_no'    => 'nullable|string',
+            'revising_notice_date'  => 'nullable|date',
+            'revising_notice_status'=> 'nullable|in:canceled,restored',
+            'revising_penalty_amount'=> 'nullable|numeric',
 
             // Step 2
             'total_price'             => 'nullable|numeric',
             'amount_deposited'       => 'nullable|numeric',
             'remaining_amount'       => 'nullable|numeric',
-            'down_payment'           => 'nullable|numeric',
             'initial_notice_no'      => 'nullable|string',
             'initial_notice_date'    => 'nullable|date',
             'total_received_amount'  => 'nullable|numeric',
@@ -108,28 +130,30 @@ class PropertyController extends Controller
             'possession_slip_date'   => 'nullable|date',
             'boundary_wall_approval' => 'nullable|string',
             'map_approval_date'      => 'nullable|date',
-            'transfer_order_no'      => 'nullable|string',
+            'map_approval_number'    => 'nullable|string',
+            'map_approval_category'  => 'nullable|string',
 
             // Step 3
             'transferees'               => 'nullable|array',
             'transferees.*.name'       => 'nullable|string',
             'transferees.*.father_name'=> 'nullable|string',
             'transferees.*.id_card'    => 'nullable|string',
-            'transferees.*.challan_no' => 'nullable|string',
             'transferees.*.address'    => 'nullable|string',
             'transferees.*.allottee_date' => 'nullable|date',
+            'transferees.*.transfer_order_no' => 'nullable|string',
 
             // Current Owners
             'current_owners' => 'nullable|array',
             'current_owners.*.applicant_name' => 'nullable|string|max:255',
             'current_owners.*.father_husband_name' => 'nullable|string|max:255',
             'current_owners.*.old_nic' => 'nullable|string|max:50',
-            'current_owners.*.cnic' => 'nullable|string|max:15',
+            'current_owners.*.cnic' => 'nullable|digits:13',
+            'current_owners.*.date_of_transfer' => 'nullable|date',
             'current_owners.*.address_temporary' => 'nullable|string',
             'current_owners.*.address_permanent' => 'nullable|string',
+            'current_owners.*.transfer_order_no' => 'nullable|string',
 
             // Step 4
-            'alternate_allotment'          => 'nullable|string',
             'property_document'            => $request->filled('property_document_path') ? 'nullable' : 'required|file',
             'property_document_path'       => 'nullable|string',
             'adjacent_area_allotment'      => 'nullable|file',
@@ -155,6 +179,7 @@ class PropertyController extends Controller
                 'plot_no'              => $request->plot_no,
                 'sector_id'            => $request->sector_id,
                 'block_id'             => $request->block_id,
+                'sub_block_id'         => $request->sub_block_id,
                 'kanal'                => $request->kanal,
                 'marla'                => $request->marla,
                 'sqrft'                => $request->sqrft,
@@ -163,6 +188,7 @@ class PropertyController extends Controller
                 'form_no'              => $request->form_no,
                 'remarks'              => $request->remarks,
                 'initial_draft_amount' => $request->initial_draft_amount,
+                'initial_draft_number' => $request->initial_draft_number,
                 'initial_draft_date'   => $request->initial_draft_date,
                 'applicant_name'       => $request->applicant_name,
                 'father_husband_name'  => $request->father_husband_name,
@@ -171,13 +197,23 @@ class PropertyController extends Controller
                 'address_temporary'    => $request->address_temporary,
                 'address_permanent'    => $request->address_permanent,
                 'category'             => $request->category,
+                'allottee_category'    => $request->allottee_category,
                 'mode_allottment'      => $request->mode_allottment,
-                'allotment_date'       => $request->allotment_date,
                 'balloting_serial_no'  => $request->balloting_serial_no,
                 'user_id'              => auth()->id(),
                 'transfer_count'       => $request->transfer_count,
                 'ownership_type'       => $request->ownership_type,
                 'allotment_type'       => $request->allotment_type,
+                'has_adjacent_area'    => $request->has_adjacent_area,
+                'original_size'        => $request->original_size,
+                'adjacent_area'        => $request->adjacent_area,
+                'adjacent_price'       => $request->adjacent_price,
+                'adjacent_allotment_no'=> $request->adjacent_allotment_no,
+                'adjacent_allotment_date' => $request->adjacent_allotment_date,
+                'revising_notice_no'   => $request->revising_notice_no,
+                'revising_notice_date' => $request->revising_notice_date,
+                'revising_notice_status' => $request->revising_notice_status,
+                'revising_penalty_amount' => $request->revising_penalty_amount,
             ]);
 
             // 2) Save Current Owners
@@ -201,7 +237,6 @@ class PropertyController extends Controller
                 'total_price'             => $request->total_price,
                 'amount_deposited'        => $request->amount_deposited,
                 'remaining_amount'        => $request->remaining_amount,
-                'down_payment'            => $request->down_payment,
                 'initial_notice_no'       => $request->initial_notice_no,
                 'initial_notice_date'     => $request->initial_notice_date,
                 'total_received_amount'   => $request->total_received_amount,
@@ -212,13 +247,14 @@ class PropertyController extends Controller
                 'possession_slip_date'    => $request->possession_slip_date,
                 'boundary_wall_approval'  => $request->boundary_wall_approval,
                 'map_approval_date'       => $request->map_approval_date,
-                'transfer_order_no'       => $request->transfer_order_no,
+                'map_approval_number'     => $request->map_approval_number,
+                'map_approval_category'   => $request->map_approval_category,
             ]);
 
             // 4) Plot History (transferees)
             if ($request->has('transferees')) {
                 foreach ($request->transferees as $row) {
-                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no']) &&
+                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) &&
                         empty($row['address']) && empty($row['allottee_date'])) {
                         continue;
                     }
@@ -227,9 +263,9 @@ class PropertyController extends Controller
                         'name'        => $row['name'] ?? null,
                         'father_name' => $row['father_name'] ?? null,
                         'id_card'     => $row['id_card'] ?? null,
-                        'challan_no'  => $row['challan_no'] ?? null,
                         'address'       => $row['address'] ?? null,
                         'allottee_date' => $row['allottee_date'] ?? null,
+                        'transfer_order_no' => $row['transfer_order_no'] ?? null,
                     ]);
                 }
             }
@@ -237,7 +273,6 @@ class PropertyController extends Controller
             // 5) Attachment (files)
             $attachmentData = [
                 'property_id'         => $property->id,
-                'alternate_allotment' => $request->alternate_allotment,
                 'property_document' => $request->property_document ?? null,
                 'status'              => false,
                 'entry_date'          => null,
@@ -320,16 +355,21 @@ class PropertyController extends Controller
      */
     public function formEdit($id)
     {
-        $property = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block'])
+        $property = Property::with(['payment', 'plotHistories', 'attachment', 'sector', 'block', 'subBlock'])
             ->findOrFail($id);
         $sectors = Sector::orderBy('name')->get();
         $blocks = collect();
+        $sub_blocks = collect();
 
         if ($property->sector_id) {
             $blocks = Block::where('sector_id', $property->sector_id)->orderBy('name')->get();
         }
 
-        return view('property.form-edit', compact('property', 'id', 'sectors', 'blocks'));
+        if ($property->block_id) {
+            $sub_blocks = SubBlock::where('block_id', $property->block_id)->orderBy('name')->get();
+        }
+
+        return view('property.form-edit', compact('property', 'id', 'sectors', 'blocks', 'sub_blocks'));
     }
 
     /**
@@ -363,6 +403,7 @@ class PropertyController extends Controller
             'plot_no'               => 'required|string',
             'sector_id'             => 'required|exists:sectors,id',
             'block_id'              => 'required|exists:blocks,id',
+            'sub_block_id'          => 'nullable|exists:sub_blocks,id',
             'kanal'                 => 'nullable|numeric',
             'marla'                 => 'nullable|numeric',
             'sqrft'                 => 'nullable|numeric',
@@ -371,24 +412,34 @@ class PropertyController extends Controller
             'form_no'               => 'nullable|string|max:255',
             'remarks'               => 'nullable|string',
             'initial_draft_amount'  => 'nullable|numeric',
+            'initial_draft_number'  => 'nullable|string|max:255',
             'initial_draft_date'    => 'nullable|date',
             'applicant_name'        => 'nullable|string',
             'father_husband_name'   => 'nullable|string',
             'old_nic'               => 'nullable|string',
-            'cnic'                  => 'nullable|string',
+            'cnic'                  => 'nullable|digits:13',
             'address_temporary'     => 'nullable|string',
             'address_permanent'     => 'nullable|string',
             'category'              => 'nullable|string',
+            'allottee_category'     => 'nullable|string',
             'mode_allottment'       => 'nullable|string',
-            'allotment_date'        => 'nullable|date',
             'balloting_serial_no'   => 'nullable|string',
             'transfer_count'        => 'nullable|integer|min:0',
             'ownership_type'        => 'nullable|in:single,multiple',
             'allotment_type'        => 'nullable|in:original,transferee',
+            'has_adjacent_area'     => 'nullable|in:yes,no',
+            'original_size'         => 'nullable|string',
+            'adjacent_area'         => 'nullable|string',
+            'adjacent_price'        => 'nullable|numeric',
+            'adjacent_allotment_no' => 'nullable|string',
+            'adjacent_allotment_date' => 'nullable|date',
+            'revising_notice_no'    => 'nullable|string',
+            'revising_notice_date'  => 'nullable|date',
+            'revising_notice_status'=> 'nullable|in:canceled,restored',
+            'revising_penalty_amount'=> 'nullable|numeric',
             'total_price'           => 'nullable|numeric',
             'amount_deposited'      => 'nullable|numeric',
             'remaining_amount'      => 'nullable|numeric',
-            'down_payment'          => 'nullable|numeric',
             'initial_notice_no'     => 'nullable|string',
             'initial_notice_date'   => 'nullable|date',
             'total_received_amount' => 'nullable|numeric',
@@ -399,20 +450,21 @@ class PropertyController extends Controller
             'possession_slip_date'  => 'nullable|date',
             'boundary_wall_approval'=> 'nullable|string',
             'map_approval_date'     => 'nullable|date',
-            'transfer_order_no'     => 'nullable|string',
+            'map_approval_number'   => 'nullable|string',
+            'map_approval_category' => 'nullable|string',
             'transferees'           => 'nullable|array',
             'transferees.*.name'    => 'nullable|string',
             'transferees.*.father_name' => 'nullable|string',
             'transferees.*.id_card' => 'nullable|string',
-            'transferees.*.challan_no' => 'nullable|string',
             'current_owners' => 'nullable|array',
             'current_owners.*.applicant_name' => 'nullable|string|max:255',
             'current_owners.*.father_husband_name' => 'nullable|string|max:255',
             'current_owners.*.old_nic' => 'nullable|string|max:50',
-            'current_owners.*.cnic' => 'nullable|string|max:15',
+            'current_owners.*.cnic' => 'nullable|digits:13',
+            'current_owners.*.date_of_transfer' => 'nullable|date',
             'current_owners.*.address_temporary' => 'nullable|string',
             'current_owners.*.address_permanent' => 'nullable|string',
-            'alternate_allotment'   => 'nullable|string',
+            'current_owners.*.transfer_order_no' => 'nullable|string',
             'complete_file_pages'   => 'nullable|integer',
             'property_document'     => $propertyDocumentRule,
             'property_document_path' => 'nullable|string',
@@ -424,6 +476,7 @@ class PropertyController extends Controller
             'decision_revising_authority' => 'nullable|file',
             'transferees.*.address'    => 'nullable|string',
             'transferees.*.allottee_date' => 'nullable|date',
+            'transferees.*.transfer_order_no' => 'nullable|string',
             'noting_file'                  => 'nullable|file',
             'noting_file_path'             => 'nullable|string',
             'cnic_front'                   => 'nullable|file',
@@ -450,6 +503,7 @@ class PropertyController extends Controller
                 'plot_no'              => $request->plot_no,
                 'sector_id'            => $request->sector_id,
                 'block_id'             => $request->block_id,
+                'sub_block_id'         => $request->sub_block_id,
                 'kanal'                => $request->kanal,
                 'marla'                => $request->marla,
                 'sqrft'                => $request->sqrft,
@@ -458,6 +512,7 @@ class PropertyController extends Controller
                 'form_no'              => $request->form_no,
                 'remarks'              => $request->remarks,
                 'initial_draft_amount' => $request->initial_draft_amount,
+                'initial_draft_number' => $request->initial_draft_number,
                 'initial_draft_date'   => $request->initial_draft_date,
                 'applicant_name'       => $request->applicant_name,
                 'father_husband_name'  => $request->father_husband_name,
@@ -466,12 +521,22 @@ class PropertyController extends Controller
                 'address_temporary'    => $request->address_temporary,
                 'address_permanent'    => $request->address_permanent,
                 'category'             => $request->category,
+                'allottee_category'    => $request->allottee_category,
                 'mode_allottment'      => $request->mode_allottment,
-                'allotment_date'       => $request->allotment_date,
                 'balloting_serial_no'  => $request->balloting_serial_no,
                 'transfer_count'       => $request->transfer_count,
                 'ownership_type'       => $request->ownership_type,
                 'allotment_type'       => $request->allotment_type,
+                'has_adjacent_area'    => $request->has_adjacent_area,
+                'original_size'        => $request->original_size,
+                'adjacent_area'        => $request->adjacent_area,
+                'adjacent_price'       => $request->adjacent_price,
+                'adjacent_allotment_no'=> $request->adjacent_allotment_no,
+                'adjacent_allotment_date' => $request->adjacent_allotment_date,
+                'revising_notice_no'   => $request->revising_notice_no,
+                'revising_notice_date' => $request->revising_notice_date,
+                'revising_notice_status' => $request->revising_notice_status,
+                'revising_penalty_amount' => $request->revising_penalty_amount,
                 'user_id'              => $userId,
             ]);
 
@@ -499,7 +564,6 @@ class PropertyController extends Controller
                     'total_price'             => $request->total_price,
                     'amount_deposited'        => $request->amount_deposited,
                     'remaining_amount'        => $request->remaining_amount,
-                    'down_payment'            => $request->down_payment,
                     'initial_notice_no'       => $request->initial_notice_no,
                     'initial_notice_date'     => $request->initial_notice_date,
                     'total_received_amount'   => $request->total_received_amount,
@@ -510,7 +574,8 @@ class PropertyController extends Controller
                     'possession_slip_date'    => $request->possession_slip_date,
                     'boundary_wall_approval'  => $request->boundary_wall_approval,
                     'map_approval_date'       => $request->map_approval_date,
-                    'transfer_order_no'       => $request->transfer_order_no,
+                    'map_approval_number'     => $request->map_approval_number,
+                    'map_approval_category'   => $request->map_approval_category,
                 ]
             );
 
@@ -519,7 +584,7 @@ class PropertyController extends Controller
                 PlotHistory::where('property_id', $property->id)->delete();
 
                 foreach ($request->transferees as $row) {
-                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) && empty($row['challan_no'])&&
+                    if (empty($row['name']) && empty($row['father_name']) && empty($row['id_card']) &&
                         empty($row['address']) && empty($row['allottee_date'])) {
                         continue;
                     }
@@ -528,9 +593,9 @@ class PropertyController extends Controller
                         'name'        => $row['name'] ?? null,
                         'father_name' => $row['father_name'] ?? null,
                         'id_card'     => $row['id_card'] ?? null,
-                        'challan_no'  => $row['challan_no'] ?? null,
                         'address'     => $row['address'] ?? null,
                         'allottee_date' => $row['allottee_date'] ?? null,
+                        'transfer_order_no' => $row['transfer_order_no'] ?? null,
                     ]);
                 }
             }
@@ -556,7 +621,6 @@ class PropertyController extends Controller
 
             // 6) Update Attachments
             $attachmentData = [
-                'alternate_allotment' => $request->alternate_allotment,
                 'complete_file_pages' => $request->complete_file_pages,
             ];
 
