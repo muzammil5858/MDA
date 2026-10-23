@@ -114,6 +114,9 @@ Route::get('/sector-wise-details', [QAController::class, 'getSectorWiseDetails']
     Route::get('/sector-requests-count', [QAController::class, 'getSectorCounts']);
     Route::get('/Files', [QAController::class, 'qaFiles'])->name('qaFiles');
     Route::get('/entry-files', [QAController::class, 'entryFiles'])->name('entryFiles');
+
+Route::get('/entry-creation-details', [QAController::class, 'entryCreationDetails'])
+    ->name('entry.creation.details');
 });
 
 Route::get('/excel-sheet', [QAController::class, 'excel'])->name('excel');

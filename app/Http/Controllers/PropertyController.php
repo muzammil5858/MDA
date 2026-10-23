@@ -476,6 +476,62 @@ class PropertyController extends Controller
             $confirmChecked = $request->has('check_complete_file') && $request->check_complete_file == '1';
             $userId = $confirmChecked ? auth()->id() : $property->user_id;
 
+
+            $watchedFields = [
+    'sub_block_id', 'has_adjacent_area', 'original_size', 'adjacent_area',
+    'adjacent_price', 'adjacent_allotment_no', 'adjacent_allotment_date',
+    'revising_notice_no', 'revising_notice_date', 'revising_notice_status',
+    'revising_penalty_amount', 'initial_draft_number',
+];
+
+$oldPropertyValues   = $property->only($watchedFields);
+$oldPayment          = Payment::where('property_id', $property->id)->first();
+$oldPaymentValues    = $oldPayment
+    ? $oldPayment->only(['map_approval_number', 'map_approval_category'])
+    : [];
+$oldTransferOrderNos = PlotHistory::where('property_id', $property->id)
+    ->pluck('transfer_order_no')
+    ->filter()
+    ->values();
+
+$fieldsChanged = [];
+
+// Property + Payment ke watched fields
+foreach (array_merge($watchedFields, ['map_approval_number', 'map_approval_category']) as $field) {
+    $old = array_key_exists($field, $oldPropertyValues)
+        ? $oldPropertyValues[$field]
+        : ($oldPaymentValues[$field] ?? null);
+    $new = $request->$field;
+
+    if ($this->entryValueWasAdded($old, $new)) {
+        $fieldsChanged[$field] = $new;
+    }
+}
+
+// transfer_order_no (PlotHistory rows se aata hai)
+$newTransferOrderNos = collect($request->transferees ?? [])
+    ->pluck('transfer_order_no')
+    ->filter()
+    ->values();
+
+$addedTransferOrderNos = $newTransferOrderNos
+    ->reject(fn ($no) => $oldTransferOrderNos->contains($no))
+    ->values();
+
+if ($addedTransferOrderNos->isNotEmpty()) {
+    $fieldsChanged['transfer_order_no'] = $addedTransferOrderNos->implode(', ');
+}
+
+if (!empty($fieldsChanged)) {
+    \App\Models\PropertyFieldEntry::create([
+        'property_id'    => $property->id,
+        'user_id'        => auth()->id(),
+        'entry_date'     => now()->toDateString(),
+        'fields_changed' => $fieldsChanged,
+    ]);
+}
+
+
             // 1) Update Property
             $property->update([
                 'application_no'       => $newApplicationNo,
@@ -821,7 +877,7 @@ private function storeAttachmentFiles(
         }
     }
 }
-  
+
 
     /* ============================================================
      |  BLOCK MANAGEMENT
@@ -980,4 +1036,13 @@ private function renameAttachmentFolder(Property $property): void
             'propertiesByUser'
         ));
     }
+
+    private function entryValueWasAdded($old, $new): bool
+{
+    if ($new === null || trim((string) $new) === '') {
+        return false;
+    }
+
+    return trim((string) $old) !== trim((string) $new);
+}
 }

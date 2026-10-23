@@ -42,6 +42,13 @@ $filesBase = fn() => Property::when($allowedSectorIds, fn($q) => $q->whereIn('se
 
 $filesUploadedCount  = $this->applyFileFilter($filesBase(), 'uploaded')->count();
 $filesRemainingCount = $this->applyFileFilter($filesBase(), 'remaining')->count();
+$entryCreationCount = \App\Models\PropertyFieldEntry::query()
+    ->whereHas('property', function ($q) use ($allowedSectorIds) {
+        $q->when($allowedSectorIds, fn ($qq) => $qq->whereIn('sector_id', $allowedSectorIds))
+          ->whereHas('attachment', fn ($a) => $a->whereNotNull('entry_date'));
+    })
+    ->count();
+
 
 $categoryCounts = Property::when($allowedSectorIds, fn($q) => $q->whereIn('sector_id', $allowedSectorIds))
     ->select('category')
@@ -434,6 +441,7 @@ $blocksList = DB::table('blocks')
             'totalProperties',
                 'filesUploadedCount',
     'filesRemainingCount',
+    'entryCreationCount',
             'categoryData',
             'orderedSectorCategoryData',
             'categoryChartData',
@@ -464,10 +472,68 @@ $blocksList = DB::table('blocks')
     }
 
     /**
+ * Entry Creation card click => date-wise grouped list.
+ * Har date ki heading ke neeche us din jitne records update huay wo sab.
+ */
+
+
+    public function entryCreationDetails(Request $request)
+{
+    $allowedSectorIds = $this->getUserSectorIds();
+
+    $logs = \App\Models\PropertyFieldEntry::with([
+            'property.sector',
+            'property.block',
+            'property.subBlock',
+            'property.attachment',
+            'user',
+        ])
+        ->whereHas('property', function ($q) use ($allowedSectorIds) {
+            $q->when($allowedSectorIds, fn ($qq) => $qq->whereIn('sector_id', $allowedSectorIds))
+              ->whereHas('attachment', fn ($a) => $a->whereNotNull('entry_date'));
+        })
+        ->orderByDesc('entry_date')
+        ->orderByDesc('id')
+        ->get();
+
+    $groups = $logs
+        ->groupBy(fn ($log) => \Carbon\Carbon::parse($log->entry_date)->format('d-m-Y'))
+        ->map(function ($dayLogs) {
+            return $dayLogs->map(function ($log) {
+                $p = $log->property;
+
+                return [
+                    'plot_no'        => $p->plot_no ?? 'N/A',
+                    'application_no' => $p->application_no ?? 'N/A',
+                    'sector'         => $p->sector->name ?? 'N/A',
+                    'block'          => $p->block->name ?? 'N/A',
+                    'sub_block'      => $p->subBlock->name ?? '-',
+                    'user_name'      => $log->user->name ?? '-',
+                    'date'           => \Carbon\Carbon::parse($log->entry_date)->format('d-m-Y'),
+                    'fields_changed' => implode(', ', array_keys((array) ($log->fields_changed ?? []))),
+                    'detail_url'     => route('mdaQaDetail', $p->id),
+                ];
+            })->values()->toArray();
+        })
+        ->toArray();
+
+    return response()->json([
+        'total'  => $logs->count(),
+        'groups' => $groups, // ['23-10-2026' => [rows...], '22-10-2026' => [rows...]]
+    ]);
+}
+
+
+
+
+
+    /**
  * Agar logged-in user ka role QA hai to uske assigned sectors return karo,
  * warna null (matlab koi restriction nahi, sab data dikhega)
  */
-private function getUserSectorIds($user = null)
+
+
+    private function getUserSectorIds($user = null)
 {
     $user = $user ?: auth()->user();
 
