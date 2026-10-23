@@ -789,17 +789,18 @@
                                             <div class="col-md-6">
                                                 <label>Old NIC</label>
                                                 <input type="text" class="form-control cnic-input" name="old_nic"
+                                                      maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                                     placeholder="Old NIC without dashes"
                                                     value="{{ old('old_nic', $property->old_nic ?? '') }}">
                                             </div>
-                                            <div class="col-md-6">
-                                                <label>CNIC</label>
-                                                <input type="text" class="form-control cnic-input" name="cnic"
-                                                    pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
-                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
-                                                    placeholder="13 Digit CNIC"
-                                                    value="{{ old('cnic', $property->cnic ?? '') }}">
-                                            </div>
+                                            <<div class="col-md-6">
+    <label>CNIC</label>
+    <input type="text" class="form-control cnic-input" name="cnic" maxlength="15"
+    oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+
+        placeholder="CNIC"
+        value="{{ old('cnic', $property->cnic ?? '') }}">
+</div>
                                             <div class="col-md-12">
                                                 <label>Address (Temporary)</label>
                                                 <textarea class="form-control" placeholder="Address (Temporary)"
@@ -844,13 +845,12 @@
                                                                 <input type="text" class="form-control" name="current_owners[{{ $index }}][father_husband_name]"
                                                                     placeholder="Father Name" value="{{ $owner->father_husband_name }}">
                                                             </div>
-                                                            <div class="col-md-6">
-                                                                <label>CNIC</label>
-                                                                <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][cnic]"
-                                                                    pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
-                                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
-                                                                    placeholder="13 Digit CNIC" value="{{ $owner->cnic }}">
-                                                            </div>
+                                                           <div class="col-md-6">
+    <label>CNIC</label>
+    <input type="text" class="form-control cnic-input" maxlength="15" name="current_owners[{{ $index }}][cnic]"
+      oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+        placeholder="CNIC" value="{{ $owner->cnic }}">
+</div>
                                                             <div class="col-md-6">
                                                                 <label>Date of Transfer</label>
                                                                 <input type="date" class="form-control datepicker" name="current_owners[{{ $index }}][date_of_transfer]"
@@ -884,13 +884,12 @@
                                                             <input type="text" class="form-control" name="current_owners[0][father_husband_name]"
                                                                 placeholder="Father Name">
                                                         </div>
-                                                        <div class="col-md-6">
-                                                            <label>CNIC</label>
-                                                            <input type="text" class="form-control cnic-input" name="current_owners[0][cnic]"
-                                                                pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
-                                                                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
-                                                                placeholder="13 Digit CNIC">
-                                                        </div>
+                                                       <div class="col-md-6">
+    <label>CNIC</label>
+    <input type="text" class="form-control cnic-input" maxlength="15" name="current_owners[0][cnic]"
+        oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+        placeholder="CNIC">
+</div>
                                                         <div class="col-md-6">
                                                             <label>Date of Transfer</label>
                                                             <input type="date" class="form-control datepicker" name="current_owners[0][date_of_transfer]"
@@ -1054,7 +1053,8 @@
 
                                                         <div class="col-md-12">
                                                             <label>ID Card</label>
-                                                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" maxlength="15"
+                                                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1"
+                                                                  maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                                                 name="transferees[{{ $index }}][id_card]" value="{{ $transferee->id_card }}">
                                                         </div>
 
@@ -1089,7 +1089,9 @@
 
                                                         <div class="col-md-12">
                                                             <label>ID Card</label>
-                                                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" maxlength="15" name="transferees[0][id_card]">
+                                                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1"
+                                                                  maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                                                            name="transferees[0][id_card]">
                                                         </div>
 
                                                         <div class="col-md-12">
@@ -1322,10 +1324,10 @@
                             <label>Father Name</label>
                             <input type="text" class="form-control" name="current_owners[${ownerIndex}][father_husband_name]" placeholder="Father Name">
                         </div>
-                        <div class="col-md-6">
-                            <label>CNIC</label>
-                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]" pattern="\\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);" placeholder="13 Digit CNIC">
-                        </div>
+                      <div class="col-md-6">
+    <label>CNIC</label>
+    <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]" oninput="this.value = this.value.replace(/[^0-9]/g, '');" placeholder="CNIC" maxlength="15">
+</div>
                         <div class="col-md-6">
                             <label>Date of Transfer</label>
                             <input type="date" class="form-control datepicker" name="current_owners[${ownerIndex}][date_of_transfer]" placeholder="Date of Transfer">
@@ -1371,7 +1373,9 @@
                         </div>
                         <div class="col-md-12">
                             <label>ID Card</label>
-                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" name="transferees[${transfereeIndex}][id_card]" maxlength="15">
+                            <input type="text" class="form-control cnic-input" placeholder="12345-1234567-1" name="transferees[${transfereeIndex}][id_card]"
+                                  maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                            >
                         </div>
 
                         <div class="col-md-12">

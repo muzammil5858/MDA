@@ -30,27 +30,7 @@ class PropertyController extends Controller
     {
         return $this->getBlocks($sectorId);
     }
-       // public function getBlocks($sectorId)
-    // {
-    //     if (empty($sectorId) || $sectorId === '') {
-    //         return response()->json([]);
-    //     }
 
-    //     $blocks = Block::where('sector_id', $sectorId)
-    //         ->orderBy('name')
-    //         ->get(['id', 'name']);
-
-    //     return response()->json($blocks);
-    // }
-
-    // public function getBlocksBySector($sectorId)
-    // {
-    //     $blocks = Block::where('sector_id', $sectorId)
-    //         ->orderBy('name')
-    //         ->get(['id', 'name']);
-
-    //     return response()->json($blocks);
-    // }
 
     public function getSubBlocks($blockId)
     {
@@ -95,7 +75,7 @@ class PropertyController extends Controller
             'applicant_name'        => 'nullable|string',
             'father_husband_name'   => 'nullable|string',
             'old_nic'               => 'nullable|string',
-            'cnic'                  => 'nullable|digits:13',
+            'cnic'                  => 'nullable|string',
             'address_temporary'     => 'nullable|string',
             'address_permanent'     => 'nullable|string',
             'category'              => 'nullable|string',
@@ -147,7 +127,7 @@ class PropertyController extends Controller
             'current_owners.*.applicant_name' => 'nullable|string|max:255',
             'current_owners.*.father_husband_name' => 'nullable|string|max:255',
             'current_owners.*.old_nic' => 'nullable|string|max:50',
-            'current_owners.*.cnic' => 'nullable|digits:13',
+            'current_owners.*.cnic' => 'nullable|string',
             'current_owners.*.date_of_transfer' => 'nullable|date',
             'current_owners.*.address_temporary' => 'nullable|string',
             'current_owners.*.address_permanent' => 'nullable|string',
@@ -273,7 +253,6 @@ class PropertyController extends Controller
             // 5) Attachment (files)
             $attachmentData = [
                 'property_id'         => $property->id,
-                'property_document' => $request->property_document ?? null,
                 'status'              => false,
                 'entry_date'          => null,
             ];
@@ -417,7 +396,7 @@ class PropertyController extends Controller
             'applicant_name'        => 'nullable|string',
             'father_husband_name'   => 'nullable|string',
             'old_nic'               => 'nullable|string',
-            'cnic'                  => 'nullable|digits:13',
+            'cnic'                  => 'nullable|string',
             'address_temporary'     => 'nullable|string',
             'address_permanent'     => 'nullable|string',
             'category'              => 'nullable|string',
@@ -460,7 +439,7 @@ class PropertyController extends Controller
             'current_owners.*.applicant_name' => 'nullable|string|max:255',
             'current_owners.*.father_husband_name' => 'nullable|string|max:255',
             'current_owners.*.old_nic' => 'nullable|string|max:50',
-            'current_owners.*.cnic' => 'nullable|digits:13',
+            'current_owners.*.cnic' => 'nullable|string',
             'current_owners.*.date_of_transfer' => 'nullable|date',
             'current_owners.*.address_temporary' => 'nullable|string',
             'current_owners.*.address_permanent' => 'nullable|string',
@@ -492,6 +471,7 @@ class PropertyController extends Controller
             $oldSectorId = $property->sector_id;
             $oldBlockId = $property->block_id;
             $oldPlotNo = $property->plot_no;
+            $oldSubBlockId   = $property->sub_block_id;
 
             $confirmChecked = $request->has('check_complete_file') && $request->check_complete_file == '1';
             $userId = $confirmChecked ? auth()->id() : $property->user_id;
@@ -603,19 +583,19 @@ class PropertyController extends Controller
             // 🔥 Check what changed
             $sectorChanged = $oldSectorId != $request->sector_id;
             $blockChanged = $oldBlockId != $request->block_id;
+            $subBlockChanged = $oldSubBlockId != $request->sub_block_id;
+
             $plotNoChanged = $oldPlotNo != $request->plot_no;
-            $appNoChanged = $oldApplicationNo !== $newApplicationNo;
+
 
             // 🔥 UPDATE ATTACHMENT PATHS IF ANYTHING CHANGED
-            if ($sectorChanged || $blockChanged || $plotNoChanged || $appNoChanged) {
+            if ($sectorChanged || $blockChanged || $subBlockChanged || $plotNoChanged) {
                 $property->refresh();
                 $property->load(['sector', 'block']);
 
                 $this->renameAttachmentFolder(
                     $property,
-                    $oldApplicationNo,
-                    $newApplicationNo,
-                    true // Force update
+
                 );
             }
 
@@ -710,123 +690,138 @@ class PropertyController extends Controller
         return $path !== '' ? $path : null;
     }
 
-    private function storeAttachmentFiles(
-        Request $request,
-        Property $property,
-        array &$attachmentData,
-        ?string $sectorName = null,
-        ?string $blockName = null
-    ) {
-        $fileFieldLabels = [
-            'property_document'            => 'Property Document',
-            'adjacent_area_allotment'      => 'Adjacent Area Allotment',
-            'allotment_order'              => 'Allotment Order',
-            'decision_courts'              => 'Decision of Courts Against Plot',
-            'decision_allotment_committee' => 'Decision of Allotment Committee',
-            'decision_mda_board'           => 'Decision of MDA Board',
-            'decision_revising_authority'  => 'Decision of Revising Authority',
-            'noting_file'                  => 'Noting File',
-            'cnic_front'                   => 'CNIC Front',
-        ];
+    private const ATTACHMENT_CODES = [
+    'property_document'            => 'PD',
+    'adjacent_area_allotment'      => 'AA',
+    'allotment_order'              => 'AO',
+    'decision_courts'              => 'DC',
+    'decision_allotment_committee' => 'DA',
+    'decision_mda_board'           => 'DB',
+    'decision_revising_authority'  => 'DR',
+    'noting_file'                  => 'NF',
+    'cnic_front'                   => 'CF',
+];
 
-        foreach (['property_document', 'noting_file'] as $field) {
-            $pathField = $field . '_path';
-            $selectedPath = $request->input($pathField);
+/**
+ * Sector/Block/[SubBlock]/PLOT_xx
+ */
+private function buildAttachmentBaseFolder(Property $property, ?string $sectorName = null, ?string $blockName = null): string
+{
+    $sectorName = $sectorName ?? $property->sector->name ?? 'No_Sector';
+    $blockName  = $blockName  ?? $property->block->name  ?? 'No_Block';
 
-            if (!empty($selectedPath) && !$request->hasFile($field)) {
-                $normalized = $this->normalizeStoragePath($selectedPath);
-                if ($normalized) {
-                    $attachmentData[$field] = $normalized;
-                }
-            }
+    $parts = [
+        $this->sanitizeFolderName($sectorName),
+        $this->sanitizeFolderName($blockName),
+    ];
+
+    if ($property->subBlock) {
+        $parts[] = $this->sanitizeFolderName($property->subBlock->name);
+    }
+
+    $parts[] = 'PLOT_' . $this->sanitizeFolderName($property->plot_no, $property->id);
+
+    return implode('/', $parts);
+}
+
+
+private function extractBaseFolderFromPath($path): ?string
+{
+    if (!is_string($path) || $path === '') {
+        return null;
+    }
+
+    $path = $this->normalizeStoragePath($path);
+    if (!$path) {
+        return null;
+    }
+
+    $knownFolders = ['pd', 'property_document', 'complete_property_file'];
+
+    $parts = explode('/', $path);
+    array_pop($parts); // file name hata do
+
+    // Aakhir se dhoondo, taake base ke andar koi same naam ka folder ho to masla na ho
+    for ($i = count($parts) - 1; $i >= 1; $i--) {
+        if (in_array(strtolower($parts[$i]), $knownFolders, true)) {
+            return implode('/', array_slice($parts, 0, $i));
         }
+    }
 
-        // Get sector and block names if not provided
-        if (!$sectorName && $property->sector) {
-            $sectorName = $property->sector->name;
-        }
-        if (!$blockName && $property->block) {
-            $blockName = $property->block->name;
-        }
+    return null;
+}
 
-        // Sanitize folder names
-        $sectorFolder = $this->sanitizeFolderName($sectorName ?? 'No_Sector');
-        $blockFolder = $this->sanitizeFolderName($blockName ?? 'No_Block');
-        $applicationFolder = $this->sanitizeFolderName($property->application_no, $property->id);
+private function storeAttachmentFiles(
+    Request $request,
+    Property $property,
+    array &$attachmentData,
+    ?string $sectorName = null,
+    ?string $blockName = null
+) {
+    // Pre-selected paths (file upload nahi, server se select ki hui file)
+    foreach (['property_document', 'noting_file'] as $field) {
+        $selectedPath = $request->input($field . '_path');
 
-        // Create folder structure: Sector/Block/ApplicationNo
-        $baseFolder = $sectorFolder . '/' . $blockFolder . '/' . $applicationFolder;
-
-        $disk = Storage::disk('public');
-
-        // Get existing attachment record
-        $existingAttachment = Attchement::where('property_id', $property->id)->first();
-
-        foreach ($fileFieldLabels as $field => $label) {
-            if (array_key_exists($field, $attachmentData)) {
-                continue;
-            }
-
-            if ($request->hasFile($field)) {
-                $file = $request->file($field);
-
-                $labelFolder = $this->sanitizeFolderName($label);
-                $folderPath  = $baseFolder . '/' . $labelFolder;
-
-                // 🔥 Use application_no instead of plot_no
-                $applicationNo = $property->application_no ?? 'APP';
-                $sectorNameForFile = $this->sanitizeFolderName($sectorName ?? 'SECTOR');
-
-                // 🔥 File name: APP-123_AZIZPUR
-                $fileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile;
-                $extension = $file->getClientOriginalExtension();
-                $fileName = $fileName . '.' . $extension;
-
-                if ($disk->exists($folderPath . '/' . $fileName)) {
-                    $fileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile . '_' . uniqid() . '.' . $extension;
-                }
-
-                if ($existingAttachment && !empty($existingAttachment->$field)) {
-                    $oldFilePath = $existingAttachment->$field;
-                    if ($disk->exists($oldFilePath)) {
-                        $disk->delete($oldFilePath);
-                    }
-                }
-
-                $path = $file->storeAs($folderPath, $fileName, 'public');
-                $attachmentData[$field] = $path;
-            } else {
-                if ($existingAttachment && !empty($existingAttachment->$field)) {
-                    $attachmentData[$field] = $existingAttachment->$field;
-                }
+        if (!empty($selectedPath) && !$request->hasFile($field)) {
+            $normalized = $this->normalizeStoragePath($selectedPath);
+            if ($normalized) {
+                $attachmentData[$field] = $normalized;
             }
         }
     }
-        /* ============================================================
-     |  BLOCKS
-     * ============================================================ */
 
-    // public function getBlocks($sectorId)
-    // {
-    //     if (empty($sectorId) || $sectorId === '') {
-    //         return response()->json([]);
-    //     }
+    $disk = Storage::disk('public');
+    $existingAttachment = Attchement::where('property_id', $property->id)->first();
 
-    //     $blocks = Block::where('sector_id', $sectorId)
-    //         ->orderBy('name')
-    //         ->get(['id', 'name']);
+    // 🔥 Shared base variable (upload se pehle decide hota hai)
+    $baseFolder = $this->extractBaseFolderFromPath($attachmentData['property_document'] ?? null)
+        ?? $this->extractBaseFolderFromPath($existingAttachment->property_document ?? null)
+        ?? $this->buildAttachmentBaseFolder($property, $sectorName, $blockName);
 
-    //     return response()->json($blocks);
-    // }
+    foreach (self::ATTACHMENT_CODES as $field => $shortCode) {
+        if (array_key_exists($field, $attachmentData)) {
+            continue;
+        }
 
-    // public function getBlocksBySector($sectorId)
-    // {
-    //     $blocks = Block::where('sector_id', $sectorId)
-    //         ->orderBy('name')
-    //         ->get(['id', 'name']);
+        if ($request->hasFile($field)) {
+            $file = $request->file($field);
 
-    //     return response()->json($blocks);
-    // }
+            // 🔥 baseFolder / CODE  =>  Sector/Block/Sub/PLOT_20/PD
+            $folderPath = $baseFolder . '/' . $shortCode;
+
+            // 🔥 Original name (sanitized)
+            $extension = $file->getClientOriginalExtension();
+            $safeName  = preg_replace('/[^A-Za-z0-9_\-]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+            $safeName  = trim($safeName, '_');
+
+            if ($safeName === '') {
+                $safeName = $shortCode . '_' . $property->id;
+            }
+
+            $fileName = $safeName . ($extension ? '.' . $extension : '');
+
+            if ($disk->exists($folderPath . '/' . $fileName)) {
+                $fileName = $safeName . '_' . uniqid() . ($extension ? '.' . $extension : '');
+            }
+
+            // Purani file delete
+            if ($existingAttachment && !empty($existingAttachment->$field)) {
+                $oldFilePath = $existingAttachment->$field;
+                if ($disk->exists($oldFilePath)) {
+                    $disk->delete($oldFilePath);
+                }
+            }
+
+            $path = $file->storeAs($folderPath, $fileName, 'public');
+            $attachmentData[$field] = $path;
+        } else {
+            if ($existingAttachment && !empty($existingAttachment->$field)) {
+                $attachmentData[$field] = $existingAttachment->$field;
+            }
+        }
+    }
+}
+  
 
     /* ============================================================
      |  BLOCK MANAGEMENT
@@ -900,132 +895,52 @@ class PropertyController extends Controller
         }
     }
 
-    /**
-     * 🔥 RENAME/UPDATE ATTACHMENT PATHS
-     * This method checks if old files exist and updates their paths
-     * based on current sector/block/application_no
-     */
-    private function renameAttachmentFolder(
-        Property $property,
-        string $oldApplicationNo,
-        string $newApplicationNo,
-        bool $forceUpdate = false
-    ) {
-        $disk = Storage::disk('public');
+private function renameAttachmentFolder(Property $property): void
+{
+    $disk = Storage::disk('public');
 
-        $attachment = Attchement::where('property_id', $property->id)->first();
+    $attachment = Attchement::where('property_id', $property->id)->first();
+    if (!$attachment) {
+        return;
+    }
 
-        if (!$attachment) {
-            return;
+    $property->loadMissing(['sector', 'block', 'subBlock']);
+    $newBaseFolder = $this->buildAttachmentBaseFolder($property);
+
+    $updated = false;
+
+    foreach (self::ATTACHMENT_CODES as $field => $shortCode) {
+        if (empty($attachment->$field)) {
+            continue;
         }
 
-        // Get new folder structure
-        $sectorName = $property->sector->name ?? 'No_Sector';
-        $blockName = $property->block->name ?? 'No_Block';
+        $oldPath = $attachment->$field;
+        $newPath = $newBaseFolder . '/' . $shortCode . '/' . basename($oldPath);
 
-        $sectorFolder = $this->sanitizeFolderName($sectorName);
-        $blockFolder = $this->sanitizeFolderName($blockName);
-        $applicationFolder = $this->sanitizeFolderName($newApplicationNo, $property->id);
-
-        $newBaseFolder = $sectorFolder . '/' . $blockFolder . '/' . $applicationFolder;
-
-        // Get old folder structure using original values
-        $oldSectorFolder = $this->sanitizeFolderName($property->getOriginal('sector_id') ?
-            Sector::find($property->getOriginal('sector_id'))->name ?? 'No_Sector' : 'No_Sector');
-        $oldBlockFolder = $this->sanitizeFolderName($property->getOriginal('block_id') ?
-            Block::find($property->getOriginal('block_id'))->name ?? 'No_Block' : 'No_Block');
-        $oldApplicationFolder = $this->sanitizeFolderName($oldApplicationNo, $property->id);
-
-        $oldBaseFolder = $oldSectorFolder . '/' . $oldBlockFolder . '/' . $oldApplicationFolder;
-
-        // If folder structure is same and not force update, return
-        if ($oldBaseFolder === $newBaseFolder && !$forceUpdate) {
-            return;
+        if ($oldPath === $newPath || !$disk->exists($oldPath)) {
+            continue;
         }
 
-        // Fields to update
-        $fields = [
-            'property_document',
-            'adjacent_area_allotment',
-            'allotment_order',
-            'decision_courts',
-            'decision_allotment_committee',
-            'decision_mda_board',
-            'decision_revising_authority',
-            'noting_file',
-            'cnic_front',
-        ];
-
-        $updated = false;
-
-        foreach ($fields as $field) {
-            if (empty($attachment->$field)) {
-                continue;
-            }
-
-            $oldPath = $attachment->$field;
-            $fileName = basename($oldPath);
-
-            // 🔥 CHECK: If file name starts with "APP-"
-            if (strpos($fileName, 'APP-') === 0) {
-                // Generate new file name using current application_no and sector
-                $applicationNo = $property->application_no ?? 'APP';
-                $sectorNameForFile = $this->sanitizeFolderName($sectorName);
-
-                // New file name: APP-123_AZIZPUR
-                $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-                $newFileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile . '.' . $extension;
-
-                // Get field label folder
-                $labelFolder = $this->sanitizeFolderName(
-                    str_replace('_', ' ', ucwords(str_replace('_', ' ', $field)))
-                );
-
-                $newPath = $newBaseFolder . '/' . $labelFolder . '/' . $newFileName;
-
-                // If file exists, add unique identifier
-                if ($disk->exists($newPath)) {
-                    $newFileName = 'APP-' . $applicationNo . '_' . $sectorNameForFile . '_' . uniqid() . '.' . $extension;
-                    $newPath = $newBaseFolder . '/' . $labelFolder . '/' . $newFileName;
-                }
-
-                // 🔥 MOVE FILE TO NEW LOCATION
-                if ($disk->exists($oldPath)) {
-                    // Ensure directory exists
-                    $disk->makeDirectory(dirname($newPath));
-
-                    // Move file
-                    $disk->move($oldPath, $newPath);
-
-                    // Update database path
-                    $attachment->$field = $newPath;
-                    $updated = true;
-                }
-            } else if ($forceUpdate) {
-                // 🔥 If file name doesn't start with "APP-" but force update is true
-                // Move file to new folder structure
-                $label = str_replace('_', ' ', ucwords(str_replace('_', ' ', $field)));
-                $labelFolder = $this->sanitizeFolderName($label);
-                $newPath = $newBaseFolder . '/' . $labelFolder . '/' . $fileName;
-
-                if ($disk->exists($oldPath) && !$disk->exists($newPath)) {
-                    $disk->makeDirectory(dirname($newPath));
-                    $disk->move($oldPath, $newPath);
-                    $attachment->$field = $newPath;
-                    $updated = true;
-                }
-            }
+        if ($disk->exists($newPath)) {
+            $newPath = $newBaseFolder . '/' . $shortCode . '/' . uniqid() . '_' . basename($oldPath);
         }
 
-        if ($updated) {
-            $attachment->save();
-        }
+        $disk->makeDirectory(dirname($newPath));
+        $disk->move($oldPath, $newPath);
+        $attachment->$field = $newPath;
+        $updated = true;
 
-        // 🔥 Clean up old folder if empty
-        if ($disk->exists($oldBaseFolder) && count($disk->allFiles($oldBaseFolder)) == 0) {
-            $disk->deleteDirectory($oldBaseFolder);
+        // Purana folder khali ho to delete
+        $oldDir = dirname($oldPath);
+        if ($disk->exists($oldDir) && count($disk->allFiles($oldDir)) === 0) {
+            $disk->deleteDirectory($oldDir);
         }
     }
+
+    if ($updated) {
+        $attachment->save();
+    }
+}
 
     public function dashboard()
     {

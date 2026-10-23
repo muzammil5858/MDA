@@ -570,15 +570,15 @@
                                     <div class="col-md-3">
                                         <label>Old NIC</label>
                                         <input type="text" class="form-control cnic-input" name="old_nic"
+                                              maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                             placeholder="Old NIC without dashes" value="{{ $property->old_nic ?? '' }}">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label>CNIC</label>
-                                        <input type="text" class="form-control cnic-input" name="cnic"
-                                            pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
-                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
-                                            placeholder="13 Digit CNIC" value="{{ $property->cnic ?? '' }}">
-                                    </div>
+                               <div class="col-md-3">
+    <label>CNIC</label>
+    <input type="text" class="form-control cnic-input" name="cnic"
+          maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+        placeholder="CNIC" value="{{ $property->cnic ?? '' }}">
+</div>
                                 </div>
                                 <div class="form-row">
                                     <div class="col-md-4">
@@ -626,12 +626,13 @@
                                                             placeholder="Father Name" value="{{ $owner->father_husband_name }}">
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <label>CNIC</label>
-                                                        <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][cnic]"
-                                                            pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
-                                                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
-                                                            placeholder="13 Digit CNIC" value="{{ $owner->cnic }}">
-                                                    </div>
+                                                                <label>CNIC</label>
+                                                                <input type="text" class="form-control cnic-input" name="current_owners[{{ $index }}][cnic]"
+                                                                      maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+
+                                                                    placeholder="CNIC" value="{{ $owner->cnic }}">
+                                                            </div>
+
                                                     <div class="col-md-3">
                                                         <label>Date of Transfer</label>
                                                         <input type="date" class="form-control datepicker" name="current_owners[{{ $index }}][date_of_transfer]"
@@ -665,13 +666,12 @@
                                                     <input type="text" class="form-control" name="current_owners[0][father_husband_name]"
                                                         placeholder="Father Name">
                                                 </div>
-                                                <div class="col-md-3">
-                                                    <label>CNIC</label>
-                                                    <input type="text" class="form-control cnic-input" name="current_owners[0][cnic]"
-                                                        pattern="\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits"
-                                                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);"
-                                                        placeholder="13 Digit CNIC">
-                                                </div>
+   <div class="col-md-3">
+    <label>CNIC</label>
+    <input type="text" class="form-control cnic-input" name="current_owners[0][cnic]"
+          maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+        placeholder="CNIC">
+</div>
                                                 <div class="col-md-3">
                                                     <label>Date of Transfer</label>
                                                     <input type="date" class="form-control datepicker" name="current_owners[0][date_of_transfer]"
@@ -729,6 +729,7 @@
                                         <label>Recievable Amount</label>
                                         <input type="number" class="form-control" placeholder="Enter Amount"  min="0"
                                             name="remaining_amount" value="{{ $property->payment->remaining_amount ?? '' }}">
+                                    </div>
 
                                     <div class="col-md-3">
                                         <label>Total Received Amount</label>
@@ -821,7 +822,8 @@
                                             <div class="col-md-3">
                                                  <label>ID Card</label>
                                                         <input type="text" class="form-control cnic-input"  name="transferees[0][id_card]"
-                                                            maxlength="15" placeholder="12345-1234567-1">
+                                                              maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                                                        placeholder="12345-1234567-1">
                                                     </div>
 
                                         </div>
@@ -949,9 +951,11 @@
                             <input type="text" class="form-control" name="current_owners[${ownerIndex}][father_husband_name]" placeholder="Father Name">
                         </div>
                         <div class="col-md-3">
-                            <label>CNIC</label>
-                            <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]" pattern="\\d{13}" maxlength="13" minlength="13" title="CNIC must be exactly 13 digits" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);" placeholder="13 Digit CNIC">
-                        </div>
+    <label>CNIC</label>
+    <input type="text" class="form-control cnic-input" name="current_owners[${ownerIndex}][cnic]"
+          maxlength="15"  oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+    placeholder="CNIC">
+</div>
                         <div class="col-md-3">
                             <label>Date of Transfer</label>
                             <input type="date" class="form-control datepicker" name="current_owners[${ownerIndex}][date_of_transfer]" placeholder="Date of Transfer">
@@ -1049,7 +1053,7 @@
                 var sectorId = $(this).val();
                 var blockSelect = $('#block');
                 var subBlockSelect = $('#sub_block');
-                
+
                 blockSelect.empty().append('<option value="">Select Block</option>');
                 subBlockSelect.empty().append('<option value="">Select Sub Block</option>');
                 blockSelect.val('').trigger('change');
@@ -1124,11 +1128,11 @@
                 $('#sector').trigger('change');
                 var selectedBlock = '{{ old('block_id', $property->block_id ?? '') }}';
                 var selectedSubBlock = '{{ old('sub_block_id', $property->sub_block_id ?? '') }}';
-                
+
                 if (selectedBlock) {
                     setTimeout(function() {
                         $('#block').val(selectedBlock).trigger('change');
-                        
+
                         if (selectedSubBlock) {
                             setTimeout(function() {
                                 $('#sub_block').val(selectedSubBlock).trigger('change');
